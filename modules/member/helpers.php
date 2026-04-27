@@ -153,7 +153,13 @@ function toy_member_require_login(PDO $pdo): array
 
 function toy_member_safe_next_path(string $path): string
 {
-    if ($path === '' || $path[0] !== '/' || str_starts_with($path, '//') || strpos($path, '\\') !== false) {
+    if (
+        $path === ''
+        || $path[0] !== '/'
+        || str_starts_with($path, '//')
+        || strpos($path, '\\') !== false
+        || preg_match('/[\x00-\x1F\x7F]/', $path) === 1
+    ) {
         return '/account';
     }
 

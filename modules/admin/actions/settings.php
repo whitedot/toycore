@@ -113,8 +113,8 @@ if (toy_request_method() === 'POST') {
             $errors[] = '사이트 이름을 입력하세요.';
         }
 
-        if ($values['base_url'] !== '' && filter_var($values['base_url'], FILTER_VALIDATE_URL) === false) {
-            $errors[] = 'Base URL 형식이 올바르지 않습니다.';
+        if ($values['base_url'] !== '' && !toy_is_http_url($values['base_url'])) {
+            $errors[] = 'Base URL은 http 또는 https URL이어야 합니다.';
         }
 
         if (!in_array($values['timezone'], timezone_identifiers_list(), true)) {

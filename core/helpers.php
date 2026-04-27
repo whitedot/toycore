@@ -51,7 +51,7 @@ function toy_is_https_request(): bool
 function toy_current_base_url(): string
 {
     $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
-    if ($host === '') {
+    if ($host === '' || preg_match('/[\x00-\x1F\x7F]/', $host) === 1) {
         return '';
     }
 
@@ -66,6 +66,19 @@ function toy_is_local_host(string $baseUrl): bool
     }
 
     return in_array(strtolower($host), ['localhost', '127.0.0.1', '::1'], true);
+}
+
+function toy_is_http_url(string $url): bool
+{
+    if ($url === '' || preg_match('/[\x00-\x1F\x7F]/', $url) === 1) {
+        return false;
+    }
+
+    if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+        return false;
+    }
+
+    return in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true);
 }
 
 function toy_request_method(): string
@@ -362,6 +375,11 @@ function toy_stylesheet_tag(): string
 
 function toy_redirect(string $url): void
 {
+    if ($url === '' || preg_match('/[\x00-\x1F\x7F]/', $url) === 1) {
+        toy_render_error(500, '리다이렉트 URL이 올바르지 않습니다.');
+        exit;
+    }
+
     header('Location: ' . $url, true, 302);
     exit;
 }
@@ -434,7 +452,7 @@ function toy_normalize_identifier(string $value): string
 function toy_absolute_url(?array $site, string $path): string
 {
     $baseUrl = is_array($site) ? rtrim((string) ($site['base_url'] ?? ''), '/') : '';
-    if ($baseUrl === '') {
+    if ($baseUrl === '' || !toy_is_http_url($baseUrl)) {
         return $path;
     }
 

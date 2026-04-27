@@ -31,6 +31,8 @@
 - CSRF helper
 - HTML escape helper
 - redirect helper
+- 리다이렉트/URL 제어 문자 차단
+- 사이트 Base URL http/https scheme 검증
 - 기본 mail helper
 - HMAC hash helper
 - 기본 보안 응답 헤더
