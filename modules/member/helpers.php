@@ -200,8 +200,8 @@ function toy_member_create_session(PDO $pdo, int $accountId): string
         $stmt->execute([
             'account_id' => $accountId,
             'session_token_hash' => $sessionTokenHash,
-            'ip_address' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
-            'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            'ip_address' => toy_client_ip(),
+            'user_agent' => toy_client_user_agent(),
             'expires_at' => $expiresAt,
             'created_at' => $now,
             'last_seen_at' => $now,
@@ -591,8 +591,8 @@ function toy_member_record_consent(PDO $pdo, int $accountId, string $consentKey,
         'consent_key' => $consentKey,
         'consent_version' => $version,
         'consented' => $consented ? 1 : 0,
-        'ip_address' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
-        'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+        'ip_address' => toy_client_ip(),
+        'user_agent' => toy_client_user_agent(),
         'created_at' => toy_now(),
     ]);
 }
@@ -742,8 +742,8 @@ function toy_member_log_auth(PDO $pdo, ?int $accountId, string $eventType, strin
         'account_id' => $accountId,
         'event_type' => $eventType,
         'result' => $result,
-        'ip_address' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
-        'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+        'ip_address' => toy_client_ip(),
+        'user_agent' => toy_client_user_agent(),
         'created_at' => toy_now(),
     ]);
 }
@@ -759,7 +759,7 @@ function toy_member_login_throttle_status(PDO $pdo, ?int $accountId): array
     $ipLimit = min(500, max(1, $ipLimit));
 
     $windowStartedAt = date('Y-m-d H:i:s', time() - $windowSeconds);
-    $ipAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    $ipAddress = toy_client_ip();
 
     if ($accountId !== null) {
         $stmt = $pdo->prepare(
@@ -819,7 +819,7 @@ function toy_member_password_reset_throttle_status(PDO $pdo, ?int $accountId): a
     $ipLimit = min(200, max(1, $ipLimit));
 
     $windowStartedAt = date('Y-m-d H:i:s', time() - $windowSeconds);
-    $ipAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    $ipAddress = toy_client_ip();
 
     if ($accountId !== null) {
         $stmt = $pdo->prepare(
@@ -875,7 +875,7 @@ function toy_member_email_verification_throttle_status(PDO $pdo, int $accountId)
     $ipLimit = min(200, max(1, $ipLimit));
 
     $windowStartedAt = date('Y-m-d H:i:s', time() - $windowSeconds);
-    $ipAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    $ipAddress = toy_client_ip();
 
     $stmt = $pdo->prepare(
         'SELECT COUNT(*) AS request_count
@@ -926,7 +926,7 @@ function toy_member_register_throttle_status(PDO $pdo): array
     $windowSeconds = min(86400, max(60, $windowSeconds));
     $ipLimit = min(200, max(1, $ipLimit));
 
-    $ipAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    $ipAddress = toy_client_ip();
     if ($ipAddress === '') {
         return ['limited' => false, 'reason' => ''];
     }

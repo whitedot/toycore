@@ -439,6 +439,26 @@ function toy_get_string(string $key, int $maxLength): string
     return substr($value, 0, $maxLength);
 }
 
+function toy_client_ip(): string
+{
+    $ipAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    if (preg_match('/\A[0-9A-Fa-f:.]{1,45}\z/', $ipAddress) !== 1) {
+        return '';
+    }
+
+    return $ipAddress;
+}
+
+function toy_client_user_agent(): string
+{
+    $userAgent = (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
+    if (function_exists('mb_substr')) {
+        return mb_substr($userAgent, 0, 500);
+    }
+
+    return substr($userAgent, 0, 500);
+}
+
 function toy_now(): string
 {
     return date('Y-m-d H:i:s');
@@ -687,8 +707,8 @@ function toy_audit_log(PDO $pdo, array $data): void
             'target_type' => (string) ($data['target_type'] ?? ''),
             'target_id' => (string) ($data['target_id'] ?? ''),
             'result' => (string) ($data['result'] ?? 'success'),
-            'ip_address' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
-            'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            'ip_address' => toy_client_ip(),
+            'user_agent' => toy_client_user_agent(),
             'message' => (string) ($data['message'] ?? ''),
             'metadata_json' => $metadataJson,
             'created_at' => toy_now(),
