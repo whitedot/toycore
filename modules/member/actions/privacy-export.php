@@ -24,7 +24,6 @@ toy_audit_log($pdo, [
     'message' => 'Member privacy export downloaded.',
 ]);
 
-header('Content-Type: application/json; charset=UTF-8');
-header('Content-Disposition: attachment; filename="toycore-privacy-export-' . (int) $account['id'] . '.json"');
+toy_send_download_headers('application/json; charset=UTF-8', 'toycore-privacy-export-' . (int) $account['id'] . '.json');
 echo json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 exit;

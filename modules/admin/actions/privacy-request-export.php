@@ -66,7 +66,6 @@ toy_audit_log($pdo, [
     'message' => 'Privacy request export downloaded.',
 ]);
 
-header('Content-Type: application/json; charset=UTF-8');
-header('Content-Disposition: attachment; filename="toycore-privacy-request-' . $requestId . '.json"');
+toy_send_download_headers('application/json; charset=UTF-8', 'toycore-privacy-request-' . $requestId . '.json');
 echo json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 exit;

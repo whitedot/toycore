@@ -33,6 +33,7 @@
 - redirect helper
 - 리다이렉트/URL 제어 문자 차단
 - 사이트 Base URL http/https scheme 검증
+- 다운로드 응답 헤더 helper
 - 기본 mail helper
 - HMAC hash helper
 - 기본 보안 응답 헤더
@@ -40,6 +41,7 @@
 - 동적 PHP 응답 캐시 방지 헤더
 - 감사 로그 helper
 - 인증/감사 로그 클라이언트 IP와 User-Agent 정규화
+- 클라이언트 IP 실제 IP 형식 검증
 - 예외 요약 파일 로그
 
 ### 회원

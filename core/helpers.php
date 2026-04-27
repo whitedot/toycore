@@ -442,7 +442,7 @@ function toy_get_string(string $key, int $maxLength): string
 function toy_client_ip(): string
 {
     $ipAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-    if (preg_match('/\A[0-9A-Fa-f:.]{1,45}\z/', $ipAddress) !== 1) {
+    if (filter_var($ipAddress, FILTER_VALIDATE_IP) === false) {
         return '';
     }
 
@@ -462,6 +462,15 @@ function toy_client_user_agent(): string
 function toy_now(): string
 {
     return date('Y-m-d H:i:s');
+}
+
+function toy_send_download_headers(string $contentType, string $filename): void
+{
+    header('Content-Type: ' . $contentType);
+    header('Content-Disposition: attachment; filename="' . str_replace(['"', "\r", "\n"], '', $filename) . '"');
+    header('X-Content-Type-Options: nosniff');
+    header('Cache-Control: no-store, no-cache, must-revalidate');
+    header('Pragma: no-cache');
 }
 
 function toy_normalize_identifier(string $value): string
