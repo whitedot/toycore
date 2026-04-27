@@ -17,6 +17,51 @@ function toy_start_session(): void
     }
 }
 
+function toy_send_security_headers(?array $config = null): void
+{
+    if (headers_sent()) {
+        return;
+    }
+
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: same-origin');
+    header("Content-Security-Policy: default-src 'self'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'");
+
+    if (toy_is_https_request() && (empty($config) || (string) ($config['env'] ?? 'production') === 'production')) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
+function toy_is_https_request(): bool
+{
+    if (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') {
+        return true;
+    }
+
+    return (string) ($_SERVER['SERVER_PORT'] ?? '') === '443';
+}
+
+function toy_current_base_url(): string
+{
+    $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
+    if ($host === '') {
+        return '';
+    }
+
+    return (toy_is_https_request() ? 'https://' : 'http://') . $host;
+}
+
+function toy_is_local_host(string $baseUrl): bool
+{
+    $host = parse_url($baseUrl, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        return false;
+    }
+
+    return in_array(strtolower($host), ['localhost', '127.0.0.1', '::1'], true);
+}
+
 function toy_request_method(): string
 {
     return strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
@@ -438,6 +483,86 @@ function toy_execute_sql_file(PDO $pdo, string $file): void
             $pdo->exec($statement);
         }
     }
+}
+
+function toy_fetch_http_response(string $url): ?array
+{
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 3,
+            'ignore_errors' => true,
+            'header' => "User-Agent: Toycore-Install-Check\r\n",
+        ],
+    ]);
+
+    set_error_handler(static function (): bool {
+        return true;
+    });
+    $body = file_get_contents($url, false, $context);
+    restore_error_handler();
+
+    if ($body === false || empty($http_response_header) || !is_array($http_response_header)) {
+        return null;
+    }
+
+    foreach ($http_response_header as $header) {
+        if (preg_match('/\AHTTP\/\S+\s+(\d{3})\b/', (string) $header, $matches) === 1) {
+            return [
+                'status' => (int) $matches[1],
+                'body' => $body,
+            ];
+        }
+    }
+
+    return null;
+}
+
+function toy_internal_access_check_urls(string $baseUrl): array
+{
+    $baseUrl = rtrim($baseUrl, '/');
+    if ($baseUrl === '') {
+        return [];
+    }
+
+    $checks = [
+        '/AGENTS.md' => '/# AGENTS\.md/',
+        '/database/core/install.sql' => '/CREATE TABLE IF NOT EXISTS toy_sites/',
+        '/modules/member/install.sql' => '/CREATE TABLE IF NOT EXISTS toy_member_accounts/',
+        '/docs/deployment-protection.md' => '/# 배포 보호 기준/',
+        '/.git/HEAD' => '/\A(?:ref: refs\/|[a-f0-9]{40})/',
+    ];
+
+    $urls = [];
+    foreach ($checks as $path => $pattern) {
+        $urls[] = [
+            'url' => $baseUrl . $path,
+            'pattern' => $pattern,
+        ];
+    }
+
+    return $urls;
+}
+
+function toy_public_internal_access_findings(string $baseUrl): array
+{
+    $findings = [];
+    foreach (toy_internal_access_check_urls($baseUrl) as $check) {
+        $response = toy_fetch_http_response((string) $check['url']);
+        if (
+            is_array($response)
+            && (int) $response['status'] >= 200
+            && (int) $response['status'] < 400
+            && preg_match((string) $check['pattern'], (string) $response['body']) === 1
+        ) {
+            $findings[] = [
+                'url' => (string) $check['url'],
+                'status' => (int) $response['status'],
+            ];
+        }
+    }
+
+    return $findings;
 }
 
 function toy_record_schema_version(PDO $pdo, string $scope, string $moduleKey, string $version): void

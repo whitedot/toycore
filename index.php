@@ -15,6 +15,7 @@ if (PHP_SAPI === 'cli-server') {
 }
 
 require TOY_ROOT . '/core/helpers.php';
+toy_send_security_headers();
 
 set_exception_handler(function (Throwable $exception): void {
     toy_render_error(500, '서버 오류가 발생했습니다.', $exception);
@@ -40,6 +41,7 @@ if (!toy_is_installed()) {
 
 $config = toy_load_config();
 toy_apply_runtime_config($config);
+toy_send_security_headers($config);
 
 try {
     $pdo = toy_db($config);

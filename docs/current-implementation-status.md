@@ -8,6 +8,8 @@
 
 - 설치 상태 분기
 - 웹 설치 화면
+- 운영 설치 시 내부 파일 직접 접근 노출 점검
+- 운영 설치 시 HTTPS URL 확인
 - `config/config.php` 생성
 - `storage/installed.lock` 생성
 - core/member/admin 설치 SQL 실행
@@ -31,6 +33,7 @@
 - redirect helper
 - 기본 mail helper
 - HMAC hash helper
+- 기본 보안 응답 헤더
 - 감사 로그 helper
 - 예외 요약 파일 로그
 
@@ -47,6 +50,7 @@
 - 이메일 인증 token 생성/검증/사용 처리
 - DB 기반 로그인 세션 기록
 - 로그인 실패 로그 기반 시도 제한
+- 로그인 실패 제한 기준 모듈 설정화
 - 로그인 세션 최종 활동 시간 갱신 주기 완화
 - 선택 프로필 저장/조회
 - 회원 탈퇴 상태 처리

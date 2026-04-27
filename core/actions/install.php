@@ -38,12 +38,32 @@ if (toy_request_method() === 'POST') {
         $errors[] = 'timezone 값이 올바르지 않습니다.';
     }
 
+    if ($values['base_url'] !== '' && filter_var($values['base_url'], FILTER_VALIDATE_URL) === false) {
+        $errors[] = 'Base URL 형식이 올바르지 않습니다.';
+    }
+
     if (strlen($adminPassword) < 8) {
         $errors[] = '관리자 비밀번호는 8자 이상이어야 합니다.';
     }
 
     if ($adminPassword !== $adminPasswordConfirm) {
         $errors[] = '관리자 비밀번호 확인이 일치하지 않습니다.';
+    }
+
+    if ($errors === []) {
+        $checkBaseUrl = $values['base_url'] !== '' ? rtrim($values['base_url'], '/') : toy_current_base_url();
+        if ($checkBaseUrl !== '' && !toy_is_local_host($checkBaseUrl)) {
+            if (parse_url($checkBaseUrl, PHP_URL_SCHEME) !== 'https') {
+                $errors[] = '운영 설치는 HTTPS URL에서 진행하세요.';
+            }
+
+            $publicFindings = toy_public_internal_access_findings($checkBaseUrl);
+            if ($publicFindings !== []) {
+                foreach ($publicFindings as $finding) {
+                    $errors[] = '내부 파일이 웹에서 직접 열립니다: ' . (string) $finding['url'];
+                }
+            }
+        }
     }
 
     if ($errors === []) {

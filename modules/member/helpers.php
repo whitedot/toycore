@@ -219,7 +219,7 @@ function toy_member_session_is_current(PDO $pdo, int $accountId): bool
         ]);
         $session = $stmt->fetch();
     } catch (PDOException $exception) {
-        return true;
+        return false;
     }
 
     if (!is_array($session) || $session['revoked_at'] !== null || (string) $session['expires_at'] < toy_now()) {
@@ -677,26 +677,35 @@ function toy_member_log_auth(PDO $pdo, ?int $accountId, string $eventType, strin
 
 function toy_member_login_throttle_status(PDO $pdo, ?int $accountId): array
 {
-    $windowStartedAt = date('Y-m-d H:i:s', time() - 900);
+    $windowSeconds = (int) toy_module_setting($pdo, 'member', 'login_throttle_window_seconds', 900);
+    $accountLimit = (int) toy_module_setting($pdo, 'member', 'login_throttle_account_limit', 5);
+    $ipLimit = (int) toy_module_setting($pdo, 'member', 'login_throttle_ip_limit', 20);
+
+    $windowSeconds = min(86400, max(60, $windowSeconds));
+    $accountLimit = min(100, max(1, $accountLimit));
+    $ipLimit = min(500, max(1, $ipLimit));
+
+    $windowStartedAt = date('Y-m-d H:i:s', time() - $windowSeconds);
     $ipAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
 
     if ($accountId !== null) {
         $stmt = $pdo->prepare(
             'SELECT COUNT(*) AS failure_count
              FROM toy_member_auth_logs
-             WHERE event_type = :event_type
+             WHERE event_type IN (:login_event_type, :blocked_event_type)
                AND result = :result
                AND account_id = :account_id
                AND created_at >= :created_at'
         );
         $stmt->execute([
-            'event_type' => 'login',
+            'login_event_type' => 'login',
+            'blocked_event_type' => 'login_blocked',
             'result' => 'failure',
             'account_id' => $accountId,
             'created_at' => $windowStartedAt,
         ]);
         $row = $stmt->fetch();
-        if (is_array($row) && (int) $row['failure_count'] >= 5) {
+        if (is_array($row) && (int) $row['failure_count'] >= $accountLimit) {
             return ['limited' => true, 'reason' => 'account'];
         }
     }
@@ -705,19 +714,20 @@ function toy_member_login_throttle_status(PDO $pdo, ?int $accountId): array
         $stmt = $pdo->prepare(
             'SELECT COUNT(*) AS failure_count
              FROM toy_member_auth_logs
-             WHERE event_type = :event_type
+             WHERE event_type IN (:login_event_type, :blocked_event_type)
                AND result = :result
                AND ip_address = :ip_address
                AND created_at >= :created_at'
         );
         $stmt->execute([
-            'event_type' => 'login',
+            'login_event_type' => 'login',
+            'blocked_event_type' => 'login_blocked',
             'result' => 'failure',
             'ip_address' => $ipAddress,
             'created_at' => $windowStartedAt,
         ]);
         $row = $stmt->fetch();
-        if (is_array($row) && (int) $row['failure_count'] >= 20) {
+        if (is_array($row) && (int) $row['failure_count'] >= $ipLimit) {
             return ['limited' => true, 'reason' => 'ip'];
         }
     }
