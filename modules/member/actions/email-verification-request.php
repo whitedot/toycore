@@ -14,27 +14,42 @@ if (toy_request_method() !== 'POST') {
 toy_require_csrf();
 
 if ($account['email_verified_at'] === null) {
-    $token = toy_member_create_email_verification($pdo, $config, (int) $account['id'], (string) $account['email']);
-    $verificationUrl = toy_absolute_url($site, '/email/verify?token=' . rawurlencode($token));
-    $mailSent = toy_send_mail(
-        $site,
-        (string) $account['email'],
-        '이메일 인증 안내',
-        "아래 링크를 열어 이메일 인증을 완료하세요.\n\n" . $verificationUrl
-    );
-    if (!$mailSent || !empty($config['debug'])) {
-        $_SESSION['toy_debug_email_verification_url'] = $verificationUrl;
+    $throttle = toy_member_email_verification_throttle_status($pdo, (int) $account['id']);
+
+    if (!empty($throttle['limited'])) {
+        toy_member_log_auth($pdo, (int) $account['id'], 'email_verification_request_blocked', 'failure');
+        toy_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'member',
+            'event_type' => 'member.email_verification.blocked',
+            'target_type' => 'member_account',
+            'target_id' => (string) $account['id'],
+            'result' => 'failure',
+            'message' => 'Member email verification request blocked by throttle.',
+        ]);
+    } else {
+        $token = toy_member_create_email_verification($pdo, $config, (int) $account['id'], (string) $account['email']);
+        $verificationUrl = toy_absolute_url($site, '/email/verify?token=' . rawurlencode($token));
+        $mailSent = toy_send_mail(
+            $site,
+            (string) $account['email'],
+            '이메일 인증 안내',
+            "아래 링크를 열어 이메일 인증을 완료하세요.\n\n" . $verificationUrl
+        );
+        if (!$mailSent || !empty($config['debug'])) {
+            $_SESSION['toy_debug_email_verification_url'] = $verificationUrl;
+        }
+        toy_member_log_auth($pdo, (int) $account['id'], 'email_verification_request', 'success');
+        toy_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'member',
+            'event_type' => 'member.email_verification.requested',
+            'target_type' => 'member_account',
+            'target_id' => (string) $account['id'],
+            'result' => 'success',
+            'message' => 'Member email verification requested.',
+        ]);
     }
-    toy_member_log_auth($pdo, (int) $account['id'], 'email_verification_request', 'success');
-    toy_audit_log($pdo, [
-        'actor_account_id' => (int) $account['id'],
-        'actor_type' => 'member',
-        'event_type' => 'member.email_verification.requested',
-        'target_type' => 'member_account',
-        'target_id' => (string) $account['id'],
-        'result' => 'success',
-        'message' => 'Member email verification requested.',
-    ]);
 }
 
 toy_redirect('/account');

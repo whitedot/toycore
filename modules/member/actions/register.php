@@ -48,6 +48,23 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        $throttle = toy_member_register_throttle_status($pdo);
+        if (!empty($throttle['limited'])) {
+            toy_member_log_auth($pdo, null, 'register_blocked', 'failure');
+            toy_audit_log($pdo, [
+                'actor_account_id' => null,
+                'actor_type' => 'member',
+                'event_type' => 'member.register.blocked',
+                'target_type' => 'member_account',
+                'target_id' => '',
+                'result' => 'failure',
+                'message' => 'Member registration blocked by throttle.',
+            ]);
+            $errors[] = '가입 요청이 많습니다. 잠시 후 다시 시도하세요.';
+        }
+    }
+
+    if ($errors === []) {
         try {
             $accountId = toy_member_create_account($pdo, $config, [
                 'email' => $values['email'],

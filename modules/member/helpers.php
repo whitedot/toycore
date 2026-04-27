@@ -790,3 +790,91 @@ function toy_member_password_reset_throttle_status(PDO $pdo, ?int $accountId): a
 
     return ['limited' => false, 'reason' => ''];
 }
+
+function toy_member_email_verification_throttle_status(PDO $pdo, int $accountId): array
+{
+    $windowSeconds = (int) toy_module_setting($pdo, 'member', 'email_verification_throttle_window_seconds', 900);
+    $accountLimit = (int) toy_module_setting($pdo, 'member', 'email_verification_throttle_account_limit', 3);
+    $ipLimit = (int) toy_module_setting($pdo, 'member', 'email_verification_throttle_ip_limit', 20);
+
+    $windowSeconds = min(86400, max(60, $windowSeconds));
+    $accountLimit = min(50, max(1, $accountLimit));
+    $ipLimit = min(200, max(1, $ipLimit));
+
+    $windowStartedAt = date('Y-m-d H:i:s', time() - $windowSeconds);
+    $ipAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS request_count
+         FROM toy_member_auth_logs
+         WHERE event_type IN (:request_event_type, :blocked_event_type)
+           AND account_id = :account_id
+           AND created_at >= :created_at'
+    );
+    $stmt->execute([
+        'request_event_type' => 'email_verification_request',
+        'blocked_event_type' => 'email_verification_request_blocked',
+        'account_id' => $accountId,
+        'created_at' => $windowStartedAt,
+    ]);
+    $row = $stmt->fetch();
+    if (is_array($row) && (int) $row['request_count'] >= $accountLimit) {
+        return ['limited' => true, 'reason' => 'account'];
+    }
+
+    if ($ipAddress !== '') {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) AS request_count
+             FROM toy_member_auth_logs
+             WHERE event_type IN (:request_event_type, :blocked_event_type)
+               AND ip_address = :ip_address
+               AND created_at >= :created_at'
+        );
+        $stmt->execute([
+            'request_event_type' => 'email_verification_request',
+            'blocked_event_type' => 'email_verification_request_blocked',
+            'ip_address' => $ipAddress,
+            'created_at' => $windowStartedAt,
+        ]);
+        $row = $stmt->fetch();
+        if (is_array($row) && (int) $row['request_count'] >= $ipLimit) {
+            return ['limited' => true, 'reason' => 'ip'];
+        }
+    }
+
+    return ['limited' => false, 'reason' => ''];
+}
+
+function toy_member_register_throttle_status(PDO $pdo): array
+{
+    $windowSeconds = (int) toy_module_setting($pdo, 'member', 'register_throttle_window_seconds', 900);
+    $ipLimit = (int) toy_module_setting($pdo, 'member', 'register_throttle_ip_limit', 10);
+
+    $windowSeconds = min(86400, max(60, $windowSeconds));
+    $ipLimit = min(200, max(1, $ipLimit));
+
+    $ipAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    if ($ipAddress === '') {
+        return ['limited' => false, 'reason' => ''];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS request_count
+         FROM toy_member_auth_logs
+         WHERE event_type IN (:register_event_type, :blocked_event_type)
+           AND ip_address = :ip_address
+           AND created_at >= :created_at'
+    );
+    $stmt->execute([
+        'register_event_type' => 'register',
+        'blocked_event_type' => 'register_blocked',
+        'ip_address' => $ipAddress,
+        'created_at' => date('Y-m-d H:i:s', time() - $windowSeconds),
+    ]);
+    $row = $stmt->fetch();
+    if (is_array($row) && (int) $row['request_count'] >= $ipLimit) {
+        return ['limited' => true, 'reason' => 'ip'];
+    }
+
+    return ['limited' => false, 'reason' => ''];
+}
