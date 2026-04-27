@@ -94,7 +94,12 @@ function toy_db(array $config): PDO
 
 function toy_load_site(PDO $pdo): ?array
 {
-    $stmt = $pdo->query('SELECT * FROM toy_sites ORDER BY id ASC LIMIT 1');
+    $stmt = $pdo->query(
+        'SELECT id, site_key, name, base_url, timezone, default_locale, status, created_at, updated_at
+         FROM toy_sites
+         ORDER BY id ASC
+         LIMIT 1'
+    );
     $site = $stmt->fetch();
     return is_array($site) ? $site : null;
 }

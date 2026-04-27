@@ -28,6 +28,17 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Prioritize clear module boundaries over adding core features.
 - Do not grow the initial implementation into a full CMS.
 
+## Core Boundary Rules
+
+- Keep the core as a small execution foundation, not a management system.
+- Core may provide request entry, install/update flow, DB connection, settings lookup, module lookup, security helpers, translation helpers, output slots, and shared operational helpers.
+- Core must not own domain concepts such as posts, pages, products, orders, points, coupons, comments, categories, menus, SEO scoring, analytics, or content workflows.
+- Put domain tables, domain admin screens, domain permissions, and domain policies in the module that owns the domain.
+- Do not add fields to core or member tables just because a future community, commerce, content, marketing, or analytics module may need them.
+- If several modules need a capability, first define a narrow helper or contract. Promote it to core only when it is truly generic and has no domain policy.
+- Admin screens should coordinate core and module operations, but domain-specific management belongs to the owning module.
+- Prefer explicit module-owned extension tables connected by stable identifiers such as `account_id` over widening shared tables.
+
 ## PHP Style
 
 - Keep request flow readable as procedural PHP.

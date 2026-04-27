@@ -14,7 +14,12 @@ if ($requestId <= 0) {
     exit;
 }
 
-$stmt = $pdo->prepare('SELECT * FROM toy_privacy_requests WHERE id = :id LIMIT 1');
+$stmt = $pdo->prepare(
+    'SELECT id, account_id, request_type, status, requester_snapshot, request_message, admin_note, handled_by_account_id, handled_at, created_at, updated_at
+     FROM toy_privacy_requests
+     WHERE id = :id
+     LIMIT 1'
+);
 $stmt->execute(['id' => $requestId]);
 $privacyRequest = $stmt->fetch();
 

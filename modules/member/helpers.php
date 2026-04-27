@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+function toy_member_account_select_columns(): string
+{
+    return 'id, account_identifier_hash, login_id_hash, email, email_hash, password_hash, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at';
+}
+
 function toy_member_create_account(PDO $pdo, array $config, array $data): int
 {
     $email = toy_normalize_identifier((string) ($data['email'] ?? ''));
@@ -90,7 +95,12 @@ function toy_member_find_by_identifier(PDO $pdo, array $config, string $identifi
     $normalizedIdentifier = toy_normalize_identifier($identifier);
     $identifierHash = toy_hmac_hash($normalizedIdentifier, $config);
 
-    $stmt = $pdo->prepare('SELECT * FROM toy_member_accounts WHERE account_identifier_hash = :hash LIMIT 1');
+    $stmt = $pdo->prepare(
+        'SELECT ' . toy_member_account_select_columns() . '
+         FROM toy_member_accounts
+         WHERE account_identifier_hash = :hash
+         LIMIT 1'
+    );
     $stmt->execute(['hash' => $identifierHash]);
     $account = $stmt->fetch();
 
@@ -109,7 +119,12 @@ function toy_member_current_account(PDO $pdo): ?array
         return null;
     }
 
-    $stmt = $pdo->prepare('SELECT * FROM toy_member_accounts WHERE id = :id LIMIT 1');
+    $stmt = $pdo->prepare(
+        'SELECT ' . toy_member_account_select_columns() . '
+         FROM toy_member_accounts
+         WHERE id = :id
+         LIMIT 1'
+    );
     $stmt->execute(['id' => (int) $accountId]);
     $account = $stmt->fetch();
 
@@ -192,7 +207,7 @@ function toy_member_session_is_current(PDO $pdo, int $accountId): bool
 
     try {
         $stmt = $pdo->prepare(
-            'SELECT id, expires_at, revoked_at
+            'SELECT id, expires_at, revoked_at, last_seen_at
              FROM toy_member_sessions
              WHERE account_id = :account_id
                AND session_token_hash = :session_token_hash
@@ -211,11 +226,14 @@ function toy_member_session_is_current(PDO $pdo, int $accountId): bool
         return false;
     }
 
-    $stmt = $pdo->prepare('UPDATE toy_member_sessions SET last_seen_at = :last_seen_at WHERE id = :id');
-    $stmt->execute([
-        'last_seen_at' => toy_now(),
-        'id' => (int) $session['id'],
-    ]);
+    $lastSeenAt = strtotime((string) $session['last_seen_at']);
+    if ($lastSeenAt === false || $lastSeenAt <= time() - 300) {
+        $stmt = $pdo->prepare('UPDATE toy_member_sessions SET last_seen_at = :last_seen_at WHERE id = :id');
+        $stmt->execute([
+            'last_seen_at' => toy_now(),
+            'id' => (int) $session['id'],
+        ]);
+    }
 
     return true;
 }
@@ -407,7 +425,8 @@ function toy_member_find_password_reset(PDO $pdo, array $config, string $token):
 
     $tokenHash = toy_hmac_hash($token, $config);
     $stmt = $pdo->prepare(
-        'SELECT r.*, a.email, a.status
+        'SELECT r.id, r.account_id, r.reset_token_hash, r.expires_at, r.used_at, r.created_at,
+                a.email, a.status
          FROM toy_member_password_resets r
          INNER JOIN toy_member_accounts a ON a.id = r.account_id
          WHERE r.reset_token_hash = :reset_token_hash
@@ -461,7 +480,8 @@ function toy_member_find_email_verification(PDO $pdo, array $config, string $tok
 
     $tokenHash = toy_hmac_hash($token, $config);
     $stmt = $pdo->prepare(
-        'SELECT v.*, a.status
+        'SELECT v.id, v.account_id, v.email, v.verification_token_hash, v.expires_at, v.verified_at, v.created_at,
+                a.status
          FROM toy_member_email_verifications v
          INNER JOIN toy_member_accounts a ON a.id = v.account_id
          WHERE v.verification_token_hash = :verification_token_hash
@@ -514,7 +534,7 @@ function toy_member_record_consent(PDO $pdo, int $accountId, string $consentKey,
 function toy_member_latest_consents(PDO $pdo, int $accountId): array
 {
     $stmt = $pdo->prepare(
-        'SELECT c.*
+        'SELECT c.id, c.account_id, c.consent_key, c.consent_version, c.consented, c.ip_address, c.user_agent, c.created_at
          FROM toy_member_consents c
          INNER JOIN (
             SELECT consent_key, MAX(id) AS max_id
@@ -653,4 +673,54 @@ function toy_member_log_auth(PDO $pdo, ?int $accountId, string $eventType, strin
         'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
         'created_at' => toy_now(),
     ]);
+}
+
+function toy_member_login_throttle_status(PDO $pdo, ?int $accountId): array
+{
+    $windowStartedAt = date('Y-m-d H:i:s', time() - 900);
+    $ipAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+
+    if ($accountId !== null) {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) AS failure_count
+             FROM toy_member_auth_logs
+             WHERE event_type = :event_type
+               AND result = :result
+               AND account_id = :account_id
+               AND created_at >= :created_at'
+        );
+        $stmt->execute([
+            'event_type' => 'login',
+            'result' => 'failure',
+            'account_id' => $accountId,
+            'created_at' => $windowStartedAt,
+        ]);
+        $row = $stmt->fetch();
+        if (is_array($row) && (int) $row['failure_count'] >= 5) {
+            return ['limited' => true, 'reason' => 'account'];
+        }
+    }
+
+    if ($ipAddress !== '') {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) AS failure_count
+             FROM toy_member_auth_logs
+             WHERE event_type = :event_type
+               AND result = :result
+               AND ip_address = :ip_address
+               AND created_at >= :created_at'
+        );
+        $stmt->execute([
+            'event_type' => 'login',
+            'result' => 'failure',
+            'ip_address' => $ipAddress,
+            'created_at' => $windowStartedAt,
+        ]);
+        $row = $stmt->fetch();
+        if (is_array($row) && (int) $row['failure_count'] >= 20) {
+            return ['limited' => true, 'reason' => 'ip'];
+        }
+    }
+
+    return ['limited' => false, 'reason' => ''];
 }
