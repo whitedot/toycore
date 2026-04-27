@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = '로그인';
+$pageTitle = '비밀번호 재설정';
 ?>
 <!doctype html>
 <html lang="ko">
@@ -8,11 +8,18 @@ $pageTitle = '로그인';
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo toy_e($pageTitle); ?></title>
-    <meta name="robots" content="noindex">
 </head>
 <body>
     <main>
         <h1><?php echo toy_e($pageTitle); ?></h1>
+
+        <?php if ($notice !== '') { ?>
+            <p><?php echo toy_e($notice); ?></p>
+        <?php } ?>
+
+        <?php if ($resetUrl !== '' && !empty($config['debug'])) { ?>
+            <p><a href="<?php echo toy_e($resetUrl); ?>">재설정 링크</a></p>
+        <?php } ?>
 
         <?php if ($errors !== []) { ?>
             <ul>
@@ -22,23 +29,16 @@ $pageTitle = '로그인';
             </ul>
         <?php } ?>
 
-        <form method="post" action="/login">
+        <form method="post" action="/password/reset">
             <?php echo toy_csrf_field(); ?>
-            <input type="hidden" name="next" value="<?php echo toy_e($next); ?>">
             <p>
                 <label>이메일<br>
-                    <input type="email" name="identifier" value="<?php echo toy_e($identifier); ?>" required>
+                    <input type="email" name="email" value="<?php echo toy_e($email); ?>" required>
                 </label>
             </p>
-            <p>
-                <label>비밀번호<br>
-                    <input type="password" name="password" required>
-                </label>
-            </p>
-            <button type="submit">로그인</button>
+            <button type="submit">재설정 요청</button>
         </form>
-        <p><a href="/register">회원가입</a></p>
-        <p><a href="/password/reset">비밀번호 재설정</a></p>
+        <p><a href="/login">로그인</a></p>
     </main>
 </body>
 </html>

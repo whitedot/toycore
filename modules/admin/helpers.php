@@ -15,6 +15,15 @@ function toy_admin_grant_role(PDO $pdo, int $accountId, string $roleKey): void
     ]);
 }
 
+function toy_admin_revoke_role(PDO $pdo, int $accountId, string $roleKey): void
+{
+    $stmt = $pdo->prepare('DELETE FROM toy_admin_account_roles WHERE account_id = :account_id AND role_key = :role_key');
+    $stmt->execute([
+        'account_id' => $accountId,
+        'role_key' => $roleKey,
+    ]);
+}
+
 function toy_admin_current_roles(PDO $pdo, int $accountId): array
 {
     $stmt = $pdo->prepare('SELECT role_key FROM toy_admin_account_roles WHERE account_id = :account_id ORDER BY role_key ASC');
@@ -40,4 +49,11 @@ function toy_admin_require_role(PDO $pdo, int $accountId, array $allowedRoles): 
         toy_render_error(403, '관리자 권한이 필요합니다.');
         exit;
     }
+}
+
+function toy_admin_owner_count(PDO $pdo): int
+{
+    $stmt = $pdo->query("SELECT COUNT(*) AS count_value FROM toy_admin_account_roles WHERE role_key = 'owner'");
+    $row = $stmt->fetch();
+    return is_array($row) ? (int) $row['count_value'] : 0;
 }

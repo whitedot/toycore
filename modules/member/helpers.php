@@ -10,6 +10,7 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
     $locale = trim((string) ($data['locale'] ?? 'ko'));
     $status = trim((string) ($data['status'] ?? 'active'));
     $emailVerifiedAt = $data['email_verified_at'] ?? null;
+    $allowExistingUpdate = !empty($data['allow_existing_update']);
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         throw new InvalidArgumentException('Email is invalid.');
@@ -31,6 +32,10 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
     $stmt = $pdo->prepare('SELECT id FROM toy_member_accounts WHERE email_hash = :email_hash LIMIT 1');
     $stmt->execute(['email_hash' => $emailHash]);
     $existing = $stmt->fetch();
+
+    if (is_array($existing) && !$allowExistingUpdate) {
+        throw new RuntimeException('Account already exists.');
+    }
 
     if (is_array($existing)) {
         $stmt = $pdo->prepare(
@@ -110,10 +115,20 @@ function toy_member_require_login(PDO $pdo): array
 {
     $account = toy_member_current_account($pdo);
     if ($account === null) {
-        toy_redirect('/login');
+        $next = toy_request_path();
+        toy_redirect('/login?next=' . rawurlencode($next));
     }
 
     return $account;
+}
+
+function toy_member_safe_next_path(string $path): string
+{
+    if ($path === '' || $path[0] !== '/' || str_starts_with($path, '//') || strpos($path, '\\') !== false) {
+        return '/account';
+    }
+
+    return $path;
 }
 
 function toy_member_login(PDO $pdo, array $account): void
@@ -128,6 +143,228 @@ function toy_member_login(PDO $pdo, array $account): void
         'updated_at' => toy_now(),
         'id' => (int) $account['id'],
     ]);
+}
+
+function toy_member_update_password(PDO $pdo, int $accountId, string $password): void
+{
+    $stmt = $pdo->prepare('UPDATE toy_member_accounts SET password_hash = :password_hash, updated_at = :updated_at WHERE id = :id');
+    $stmt->execute([
+        'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+        'updated_at' => toy_now(),
+        'id' => $accountId,
+    ]);
+}
+
+function toy_member_update_status(PDO $pdo, int $accountId, string $status): void
+{
+    $stmt = $pdo->prepare('UPDATE toy_member_accounts SET status = :status, updated_at = :updated_at WHERE id = :id');
+    $stmt->execute([
+        'status' => $status,
+        'updated_at' => toy_now(),
+        'id' => $accountId,
+    ]);
+}
+
+function toy_member_create_password_reset(PDO $pdo, array $config, int $accountId): string
+{
+    $token = bin2hex(random_bytes(32));
+    $tokenHash = toy_hmac_hash($token, $config);
+    $expiresAt = date('Y-m-d H:i:s', time() + 3600);
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_member_password_resets (account_id, reset_token_hash, expires_at, created_at)
+         VALUES (:account_id, :reset_token_hash, :expires_at, :created_at)'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'reset_token_hash' => $tokenHash,
+        'expires_at' => $expiresAt,
+        'created_at' => toy_now(),
+    ]);
+
+    return $token;
+}
+
+function toy_member_find_password_reset(PDO $pdo, array $config, string $token): ?array
+{
+    if (preg_match('/\A[a-f0-9]{64}\z/', $token) !== 1) {
+        return null;
+    }
+
+    $tokenHash = toy_hmac_hash($token, $config);
+    $stmt = $pdo->prepare(
+        'SELECT r.*, a.email, a.status
+         FROM toy_member_password_resets r
+         INNER JOIN toy_member_accounts a ON a.id = r.account_id
+         WHERE r.reset_token_hash = :reset_token_hash
+         LIMIT 1'
+    );
+    $stmt->execute(['reset_token_hash' => $tokenHash]);
+    $reset = $stmt->fetch();
+
+    if (!is_array($reset) || $reset['used_at'] !== null || (string) $reset['expires_at'] < toy_now()) {
+        return null;
+    }
+
+    return $reset;
+}
+
+function toy_member_mark_password_reset_used(PDO $pdo, int $resetId): void
+{
+    $stmt = $pdo->prepare('UPDATE toy_member_password_resets SET used_at = :used_at WHERE id = :id');
+    $stmt->execute([
+        'used_at' => toy_now(),
+        'id' => $resetId,
+    ]);
+}
+
+function toy_member_create_email_verification(PDO $pdo, array $config, int $accountId, string $email): string
+{
+    $token = bin2hex(random_bytes(32));
+    $tokenHash = toy_hmac_hash($token, $config);
+    $expiresAt = date('Y-m-d H:i:s', time() + 86400);
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_member_email_verifications (account_id, email, verification_token_hash, expires_at, created_at)
+         VALUES (:account_id, :email, :verification_token_hash, :expires_at, :created_at)'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'email' => toy_normalize_identifier($email),
+        'verification_token_hash' => $tokenHash,
+        'expires_at' => $expiresAt,
+        'created_at' => toy_now(),
+    ]);
+
+    return $token;
+}
+
+function toy_member_find_email_verification(PDO $pdo, array $config, string $token): ?array
+{
+    if (preg_match('/\A[a-f0-9]{64}\z/', $token) !== 1) {
+        return null;
+    }
+
+    $tokenHash = toy_hmac_hash($token, $config);
+    $stmt = $pdo->prepare(
+        'SELECT v.*, a.status
+         FROM toy_member_email_verifications v
+         INNER JOIN toy_member_accounts a ON a.id = v.account_id
+         WHERE v.verification_token_hash = :verification_token_hash
+         LIMIT 1'
+    );
+    $stmt->execute(['verification_token_hash' => $tokenHash]);
+    $verification = $stmt->fetch();
+
+    if (!is_array($verification) || $verification['verified_at'] !== null || (string) $verification['expires_at'] < toy_now()) {
+        return null;
+    }
+
+    return $verification;
+}
+
+function toy_member_mark_email_verified(PDO $pdo, int $verificationId, int $accountId): void
+{
+    $now = toy_now();
+    $stmt = $pdo->prepare('UPDATE toy_member_email_verifications SET verified_at = :verified_at WHERE id = :id');
+    $stmt->execute([
+        'verified_at' => $now,
+        'id' => $verificationId,
+    ]);
+
+    $stmt = $pdo->prepare('UPDATE toy_member_accounts SET email_verified_at = :email_verified_at, updated_at = :updated_at WHERE id = :id');
+    $stmt->execute([
+        'email_verified_at' => $now,
+        'updated_at' => $now,
+        'id' => $accountId,
+    ]);
+}
+
+function toy_member_record_consent(PDO $pdo, int $accountId, string $consentKey, string $version, bool $consented): void
+{
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_member_consents (account_id, consent_key, consent_version, consented, ip_address, user_agent, created_at)
+         VALUES (:account_id, :consent_key, :consent_version, :consented, :ip_address, :user_agent, :created_at)'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'consent_key' => $consentKey,
+        'consent_version' => $version,
+        'consented' => $consented ? 1 : 0,
+        'ip_address' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+        'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+        'created_at' => toy_now(),
+    ]);
+}
+
+function toy_member_latest_consents(PDO $pdo, int $accountId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT c.*
+         FROM toy_member_consents c
+         INNER JOIN (
+            SELECT consent_key, MAX(id) AS max_id
+            FROM toy_member_consents
+            WHERE account_id = :account_id
+            GROUP BY consent_key
+         ) latest ON latest.max_id = c.id
+         ORDER BY c.consent_key ASC'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    return $stmt->fetchAll();
+}
+
+function toy_member_privacy_export_data(PDO $pdo, int $accountId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT id, email, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at
+         FROM toy_member_accounts
+         WHERE id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $accountId]);
+    $account = $stmt->fetch();
+
+    if (!is_array($account)) {
+        throw new RuntimeException('Account not found.');
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT consent_key, consent_version, consented, created_at
+         FROM toy_member_consents
+         WHERE account_id = :account_id
+         ORDER BY id ASC'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $consents = $stmt->fetchAll();
+
+    $stmt = $pdo->prepare(
+        'SELECT event_type, result, ip_address, user_agent, created_at
+         FROM toy_member_auth_logs
+         WHERE account_id = :account_id
+         ORDER BY id DESC
+         LIMIT 100'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $authLogs = $stmt->fetchAll();
+
+    $stmt = $pdo->prepare(
+        'SELECT id, request_type, status, request_message, admin_note, handled_at, created_at, updated_at
+         FROM toy_privacy_requests
+         WHERE account_id = :account_id
+         ORDER BY id ASC'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $privacyRequests = $stmt->fetchAll();
+
+    return [
+        'exported_at' => toy_now(),
+        'account' => $account,
+        'consents' => $consents,
+        'auth_logs' => $authLogs,
+        'privacy_requests' => $privacyRequests,
+    ];
 }
 
 function toy_member_logout(): void

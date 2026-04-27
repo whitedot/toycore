@@ -32,6 +32,16 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        $stmt = $pdo->prepare('SELECT status FROM toy_member_accounts WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $targetAccountId]);
+        $targetAccount = $stmt->fetch();
+
+        if (!is_array($targetAccount)) {
+            $errors[] = '회원을 찾을 수 없습니다.';
+        }
+    }
+
+    if ($errors === []) {
         $stmt = $pdo->prepare(
             'UPDATE toy_member_accounts
              SET status = :status, updated_at = :updated_at
@@ -41,6 +51,20 @@ if (toy_request_method() === 'POST') {
             'status' => $status,
             'updated_at' => toy_now(),
             'id' => $targetAccountId,
+        ]);
+
+        toy_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'member.status.updated',
+            'target_type' => 'member_account',
+            'target_id' => (string) $targetAccountId,
+            'result' => 'success',
+            'message' => 'Member status updated.',
+            'metadata' => [
+                'before_status' => (string) $targetAccount['status'],
+                'after_status' => $status,
+            ],
         ]);
 
         $notice = '회원 상태를 저장했습니다.';

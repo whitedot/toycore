@@ -1,0 +1,89 @@
+<?php
+
+declare(strict_types=1);
+
+require_once TOY_ROOT . '/modules/member/helpers.php';
+
+$account = toy_member_current_account($pdo);
+if ($account !== null) {
+    toy_redirect('/account');
+}
+
+$errors = [];
+$values = [
+    'email' => '',
+    'display_name' => '',
+];
+
+if (toy_request_method() === 'POST') {
+    toy_require_csrf();
+
+    $values = [
+        'email' => toy_post_string('email', 255),
+        'display_name' => toy_post_string('display_name', 120),
+    ];
+    $password = toy_post_string('password', 255);
+    $passwordConfirm = toy_post_string('password_confirm', 255);
+    $termsConsent = ($_POST['terms_consent'] ?? '') === '1';
+    $privacyConsent = ($_POST['privacy_consent'] ?? '') === '1';
+
+    if (!filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
+        $errors[] = '이메일 형식이 올바르지 않습니다.';
+    }
+
+    if ($values['display_name'] === '') {
+        $errors[] = '표시 이름을 입력하세요.';
+    }
+
+    if (strlen($password) < 8) {
+        $errors[] = '비밀번호는 8자 이상이어야 합니다.';
+    }
+
+    if ($password !== $passwordConfirm) {
+        $errors[] = '비밀번호 확인이 일치하지 않습니다.';
+    }
+
+    if (!$termsConsent || !$privacyConsent) {
+        $errors[] = '필수 약관과 개인정보 처리방침에 동의하세요.';
+    }
+
+    if ($errors === []) {
+        try {
+            $accountId = toy_member_create_account($pdo, $config, [
+                'email' => $values['email'],
+                'password' => $password,
+                'display_name' => $values['display_name'],
+                'locale' => (string) ($site['default_locale'] ?? 'ko'),
+                'status' => 'active',
+            ]);
+
+            $verificationToken = toy_member_create_email_verification($pdo, $config, $accountId, $values['email']);
+            $_SESSION['toy_debug_email_verification_url'] = '/email/verify?token=' . rawurlencode($verificationToken);
+            toy_member_record_consent($pdo, $accountId, 'terms', '2026.04.001', true);
+            toy_member_record_consent($pdo, $accountId, 'privacy', '2026.04.001', true);
+
+            toy_member_log_auth($pdo, $accountId, 'register', 'success');
+            toy_audit_log($pdo, [
+                'actor_account_id' => $accountId,
+                'actor_type' => 'member',
+                'event_type' => 'member.registered',
+                'target_type' => 'member_account',
+                'target_id' => (string) $accountId,
+                'result' => 'success',
+                'message' => 'Member registered.',
+            ]);
+
+            $newAccount = toy_member_find_by_identifier($pdo, $config, $values['email']);
+            if ($newAccount !== null) {
+                toy_member_login($pdo, $newAccount);
+            }
+
+            toy_redirect('/account');
+        } catch (Throwable $exception) {
+            toy_member_log_auth($pdo, null, 'register', 'failure');
+            $errors[] = '이미 사용 중인 이메일이거나 가입을 처리할 수 없습니다.';
+        }
+    }
+}
+
+include TOY_ROOT . '/modules/member/views/register.php';

@@ -29,3 +29,44 @@ CREATE TABLE IF NOT EXISTS toy_member_auth_logs (
     KEY idx_toy_member_auth_logs_account (account_id),
     KEY idx_toy_member_auth_logs_created (created_at)
 );
+
+CREATE TABLE IF NOT EXISTS toy_member_password_resets (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    reset_token_hash CHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_toy_member_password_resets_token (reset_token_hash),
+    KEY idx_toy_member_password_resets_account (account_id),
+    KEY idx_toy_member_password_resets_expires (expires_at)
+);
+
+CREATE TABLE IF NOT EXISTS toy_member_email_verifications (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    verification_token_hash CHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    verified_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_toy_member_email_verifications_token (verification_token_hash),
+    KEY idx_toy_member_email_verifications_account (account_id),
+    KEY idx_toy_member_email_verifications_expires (expires_at)
+);
+
+CREATE TABLE IF NOT EXISTS toy_member_consents (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    consent_key VARCHAR(80) NOT NULL,
+    consent_version VARCHAR(40) NOT NULL,
+    consented TINYINT(1) NOT NULL DEFAULT 0,
+    ip_address VARCHAR(45) NOT NULL DEFAULT '',
+    user_agent TEXT NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_toy_member_consents_account (account_id),
+    KEY idx_toy_member_consents_key (consent_key, consent_version)
+);

@@ -42,7 +42,9 @@ web entry
 
 웹에서 직접 접근 가능한 진입점은 루트 `index.php`입니다. 저가형 공유호스팅에서 별도 DocumentRoot 변경이 어렵다는 전제를 우선해, 도메인이 프로젝트 루트를 가리키면 `index.php`가 바로 실행되는 구조로 둡니다.
 
-단, 코어는 Apache `.htaccess` 같은 특정 서버용 보호 파일을 기본 배포 산출물로 제공하지 않습니다. `config/`, `storage/`, `database/`, `core/`, `modules/`, `docs/`, `examples/`, `.git/`, `AGENTS.md`, `README.md`가 URL로 직접 열리지 않도록 하는 책임은 배포 환경의 접근 차단 규칙에 둡니다. 이 조건을 만족하지 못하는 환경에서는 운영 설치를 진행하지 않는 것이 기본 원칙입니다.
+단, 코어는 Apache `.htaccess` 같은 특정 서버용 보호 파일을 기본 배포 산출물로 제공하지 않습니다. `config/`, `storage/`, `database/`, `core/`, `modules/`, `docs/`, `examples/`, `.git/`, `.tools/`, `AGENTS.md`, `README.md`가 URL로 직접 열리지 않도록 하는 책임은 배포 환경의 접근 차단 규칙에 둡니다. 이 조건을 만족하지 못하는 환경에서는 운영 설치를 진행하지 않는 것이 기본 원칙입니다.
+
+배포 전 보호 기준은 [배포 보호 기준](deployment-protection.md)에 따릅니다.
 
 최초 진입점은 코어가 책임집니다. `page` 같은 특정 모듈이 `/` 요청 자체를 항상 소유하지 않습니다. 홈 화면의 콘텐츠 제공자는 사이트 설정으로 결정하고, 설정된 모듈이 활성 상태일 때만 해당 모듈 action 파일을 include합니다.
 

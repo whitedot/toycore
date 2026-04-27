@@ -143,15 +143,31 @@ modules/member/
 - install.sql
 - actions/
   - login.php
+  - register.php
+  - account.php
+  - withdraw.php
+  - email-verification-request.php
+  - email-verify.php
+  - privacy-requests.php
+  - privacy-export.php
+  - password-reset-request.php
+  - password-reset.php
   - logout.php
 - views/
   - login.php
+  - register.php
+  - account.php
+  - withdraw.php
+  - email-verified.php
+  - privacy-requests.php
+  - password-reset-request.php
+  - password-reset.php
 - helpers.php
 - lang/
   - ko.php
 ```
 
-구현되지 않은 회원 action 파일은 미리 만들지 않습니다. 공개 회원가입, 계정 화면, 비밀번호 재설정, 이메일 인증, 탈퇴 화면은 각 단계에서 실제 action이 생길 때 추가합니다.
+구현되지 않은 회원 action 파일은 미리 만들지 않습니다. 새 회원 기능은 각 단계에서 실제 action이 생길 때 추가합니다.
 
 `helpers.php`는 코어가 자동으로 불러오는 파일이 아닙니다. 코어 또는 `admin` 모듈이 인증 확인이 필요한 시점에 명시적으로 include합니다.
 
@@ -164,6 +180,9 @@ MVP 테이블:
 ```text
 toy_member_accounts
 toy_member_auth_logs
+toy_member_password_resets
+toy_member_email_verifications
+toy_member_consents
 ```
 
 후속 테이블:
@@ -171,9 +190,6 @@ toy_member_auth_logs
 ```text
 toy_member_profiles
 toy_member_sessions
-toy_member_consents
-toy_member_email_verifications
-toy_member_password_resets
 ```
 
 확장을 위해 `member` 테이블에 도메인별 컬럼을 계속 추가하지 않습니다. 예를 들어 쇼핑몰 회원 등급, 커뮤니티 활동 점수, 배송 기본 주소는 `toy_member_accounts`나 `toy_member_profiles`에 넣지 않고 해당 모듈 테이블에 둡니다.
@@ -528,8 +544,6 @@ return [
 ];
 ```
 
-후속 path 후보:
-
 ```php
 <?php
 
@@ -538,15 +552,18 @@ return [
     'POST /register' => 'actions/register.php',
     'GET /account' => 'actions/account.php',
     'POST /account' => 'actions/account.php',
-    'GET /account/password' => 'actions/password-change.php',
-    'POST /account/password' => 'actions/password-change.php',
+    'GET /account/privacy-requests' => 'actions/privacy-requests.php',
+    'POST /account/privacy-requests' => 'actions/privacy-requests.php',
+    'GET /account/privacy-export' => 'actions/privacy-export.php',
+    'POST /account/email-verification' => 'actions/email-verification-request.php',
+    'GET /email/verify' => 'actions/email-verify.php',
     'GET /password/reset' => 'actions/password-reset-request.php',
     'POST /password/reset' => 'actions/password-reset-request.php',
     'GET /password/reset/confirm' => 'actions/password-reset.php',
     'POST /password/reset/confirm' => 'actions/password-reset.php',
-    'GET /email/verify' => 'actions/email-verify.php',
     'GET /account/withdraw' => 'actions/withdraw.php',
     'POST /account/withdraw' => 'actions/withdraw.php',
+    'POST /logout' => 'actions/logout.php',
 ];
 ```
 

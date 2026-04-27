@@ -14,6 +14,15 @@ toy_require_csrf();
 $account = toy_member_current_account($pdo);
 if ($account !== null) {
     toy_member_log_auth($pdo, (int) $account['id'], 'logout', 'success');
+    toy_audit_log($pdo, [
+        'actor_account_id' => (int) $account['id'],
+        'actor_type' => 'member',
+        'event_type' => 'member.logout',
+        'target_type' => 'member_account',
+        'target_id' => (string) $account['id'],
+        'result' => 'success',
+        'message' => 'Member logged out.',
+    ]);
 }
 
 toy_member_logout();

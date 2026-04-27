@@ -6,26 +6,46 @@ require_once TOY_ROOT . '/modules/member/helpers.php';
 
 $account = toy_member_current_account($pdo);
 if ($account !== null) {
-    toy_redirect('/admin');
+    toy_redirect('/account');
 }
 
 $errors = [];
 $identifier = '';
+$next = toy_member_safe_next_path(toy_get_string('next', 255));
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
 
     $identifier = toy_post_string('identifier', 255);
     $password = toy_post_string('password', 255);
+    $next = toy_member_safe_next_path(toy_post_string('next', 255));
     $account = toy_member_find_by_identifier($pdo, $config, $identifier);
 
     if ($account !== null && $account['status'] === 'active' && password_verify($password, (string) $account['password_hash'])) {
         toy_member_login($pdo, $account);
         toy_member_log_auth($pdo, (int) $account['id'], 'login', 'success');
-        toy_redirect('/admin');
+        toy_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'member',
+            'event_type' => 'member.login',
+            'target_type' => 'member_account',
+            'target_id' => (string) $account['id'],
+            'result' => 'success',
+            'message' => 'Member login succeeded.',
+        ]);
+        toy_redirect($next);
     }
 
     toy_member_log_auth($pdo, $account !== null ? (int) $account['id'] : null, 'login', 'failure');
+    toy_audit_log($pdo, [
+        'actor_account_id' => $account !== null ? (int) $account['id'] : null,
+        'actor_type' => 'member',
+        'event_type' => 'member.login',
+        'target_type' => 'member_account',
+        'target_id' => $account !== null ? (string) $account['id'] : '',
+        'result' => 'failure',
+        'message' => 'Member login failed.',
+    ]);
     $errors[] = '로그인 정보가 올바르지 않습니다.';
 }
 

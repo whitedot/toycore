@@ -257,3 +257,36 @@ function toy_render_error(int $statusCode, string $message, ?Throwable $exceptio
     $pageTitle = (string) $statusCode;
     include TOY_ROOT . '/core/views/error.php';
 }
+
+function toy_audit_log(PDO $pdo, array $data): void
+{
+    try {
+        $metadata = $data['metadata'] ?? null;
+        $metadataJson = null;
+        if (is_array($metadata) && $metadata !== []) {
+            $encoded = json_encode($metadata, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $metadataJson = is_string($encoded) ? $encoded : null;
+        }
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO toy_audit_logs
+                (actor_account_id, actor_type, event_type, target_type, target_id, result, ip_address, user_agent, message, metadata_json, created_at)
+             VALUES
+                (:actor_account_id, :actor_type, :event_type, :target_type, :target_id, :result, :ip_address, :user_agent, :message, :metadata_json, :created_at)'
+        );
+        $stmt->execute([
+            'actor_account_id' => isset($data['actor_account_id']) ? (int) $data['actor_account_id'] : null,
+            'actor_type' => (string) ($data['actor_type'] ?? 'system'),
+            'event_type' => (string) ($data['event_type'] ?? ''),
+            'target_type' => (string) ($data['target_type'] ?? ''),
+            'target_id' => (string) ($data['target_id'] ?? ''),
+            'result' => (string) ($data['result'] ?? 'success'),
+            'ip_address' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+            'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            'message' => (string) ($data['message'] ?? ''),
+            'metadata_json' => $metadataJson,
+            'created_at' => toy_now(),
+        ]);
+    } catch (Throwable $ignored) {
+    }
+}

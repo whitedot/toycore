@@ -16,7 +16,12 @@ $adminPageTitle = $adminPageTitle ?? '관리자';
         <nav>
             <a href="/admin">대시보드</a>
             <a href="/admin/settings">설정</a>
+            <a href="/admin/modules">모듈</a>
             <a href="/admin/members">회원</a>
+            <a href="/admin/roles">권한</a>
+            <a href="/admin/audit-logs">감사 로그</a>
+            <a href="/admin/privacy-requests">개인정보 요청</a>
+            <a href="/admin/retention">보관 정리</a>
             <form method="post" action="/logout" style="display:inline">
                 <?php echo toy_csrf_field(); ?>
                 <button type="submit">로그아웃</button>

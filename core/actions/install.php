@@ -134,9 +134,22 @@ if (toy_request_method() === 'POST') {
                 'locale' => $values['default_locale'],
                 'status' => 'active',
                 'email_verified_at' => $now,
+                'allow_existing_update' => true,
             ]);
 
             toy_admin_grant_role($pdo, $accountId, 'owner');
+            toy_audit_log($pdo, [
+                'actor_account_id' => $accountId,
+                'actor_type' => 'system',
+                'event_type' => 'install.completed',
+                'target_type' => 'site',
+                'target_id' => 'default',
+                'result' => 'success',
+                'message' => 'Initial installation completed.',
+                'metadata' => [
+                    'modules' => ['member', 'admin'],
+                ],
+            ]);
 
             $storageDir = TOY_ROOT . '/storage';
             if (!is_dir($storageDir) && !mkdir($storageDir, 0755, true)) {
@@ -147,7 +160,7 @@ if (toy_request_method() === 'POST') {
                 throw new RuntimeException('installed.lock cannot be written.');
             }
 
-            toy_redirect('/login');
+            toy_redirect('/login?next=/admin');
         } catch (Throwable $exception) {
             $errors[] = '설치 중 오류가 발생했습니다. DB 정보와 권한을 확인하세요.';
             if (!empty($config['debug'])) {

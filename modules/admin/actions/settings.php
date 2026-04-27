@@ -50,6 +50,14 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        $previousValues = [
+            'name' => (string) ($site['name'] ?? ''),
+            'base_url' => (string) ($site['base_url'] ?? ''),
+            'timezone' => (string) ($site['timezone'] ?? ''),
+            'default_locale' => (string) ($site['default_locale'] ?? ''),
+            'status' => (string) ($site['status'] ?? ''),
+        ];
+
         $stmt = $pdo->prepare(
             'UPDATE toy_sites
              SET name = :name,
@@ -68,6 +76,20 @@ if (toy_request_method() === 'POST') {
             'status' => $values['status'],
             'updated_at' => toy_now(),
             'id' => (int) ($site['id'] ?? 0),
+        ]);
+
+        toy_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'site.settings.updated',
+            'target_type' => 'site',
+            'target_id' => (string) ($site['id'] ?? ''),
+            'result' => 'success',
+            'message' => 'Site settings updated.',
+            'metadata' => [
+                'before' => $previousValues,
+                'after' => $values,
+            ],
         ]);
 
         $site = toy_load_site($pdo);
