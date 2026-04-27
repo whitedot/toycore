@@ -43,15 +43,30 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 ## Commit Messages
 
 - Write commit messages in Korean.
-- Use the format `prefix: message`.
-- Keep the prefix short and lowercase, such as `docs`, `core`, `member`, `admin`, `install`, `fix`, or `chore`.
-- Keep the message concise and describe the actual change.
+- Use the format `type: message`.
+- Use common Conventional Commits-style types only:
+  - `feat`: user-facing feature or capability addition
+  - `fix`: bug fix or behavioral correction
+  - `docs`: documentation-only change
+  - `chore`: repository maintenance, tooling, or housekeeping
+  - `refactor`: internal restructuring without behavior change
+  - `test`: test-only change
+  - `style`: formatting-only change
+  - `perf`: performance improvement
+  - `build`: build or dependency change
+  - `ci`: CI configuration change
+  - `revert`: revert a previous commit
+- Do not use project-area prefixes such as `core`, `member`, `admin`, or `install` as the commit type.
+- Put the affected area in the Korean message or body when useful.
+- Keep the subject concise and describe the actual change.
+- Add a Korean body for non-trivial changes, especially when multiple files or behaviors are affected.
 
 Examples:
 
 - `docs: 루트 진입점 배포 기준 정리`
-- `member: 로그인 실패 기록 정책 보완`
+- `feat: 회원 로그인 실패 기록 정책 보완`
 - `fix: 설치 상태 확인 조건 수정`
+- `chore: 로컬 개발 도구 설정 정리`
 
 ## Core Decisions
 
