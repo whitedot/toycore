@@ -514,13 +514,20 @@ function toy_member_find_password_reset(PDO $pdo, array $config, string $token):
     return $reset;
 }
 
-function toy_member_mark_password_reset_used(PDO $pdo, int $resetId): void
+function toy_member_mark_password_reset_used(PDO $pdo, int $resetId): bool
 {
-    $stmt = $pdo->prepare('UPDATE toy_member_password_resets SET used_at = :used_at WHERE id = :id');
+    $stmt = $pdo->prepare(
+        'UPDATE toy_member_password_resets
+         SET used_at = :used_at
+         WHERE id = :id
+           AND used_at IS NULL'
+    );
     $stmt->execute([
         'used_at' => toy_now(),
         'id' => $resetId,
     ]);
+
+    return $stmt->rowCount() === 1;
 }
 
 function toy_member_create_email_verification(PDO $pdo, array $config, int $accountId, string $email): string

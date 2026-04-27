@@ -39,24 +39,41 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
-        toy_member_update_password($pdo, (int) $reset['account_id'], $password);
-        toy_member_mark_password_reset_used($pdo, (int) $reset['id']);
-        $revokedSessions = toy_member_revoke_account_sessions($pdo, (int) $reset['account_id']);
-        toy_member_log_auth($pdo, (int) $reset['account_id'], 'password_reset', 'success');
-        toy_audit_log($pdo, [
-            'actor_account_id' => (int) $reset['account_id'],
-            'actor_type' => 'member',
-            'event_type' => 'member.password_reset.completed',
-            'target_type' => 'member_account',
-            'target_id' => (string) $reset['account_id'],
-            'result' => 'success',
-            'message' => 'Member password reset completed.',
-            'metadata' => [
-                'revoked_sessions' => $revokedSessions,
-            ],
-        ]);
+        try {
+            $pdo->beginTransaction();
 
-        $notice = '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.';
+            if (!toy_member_mark_password_reset_used($pdo, (int) $reset['id'])) {
+                $pdo->rollBack();
+                toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
+                exit;
+            }
+
+            toy_member_update_password($pdo, (int) $reset['account_id'], $password);
+            $revokedSessions = toy_member_revoke_account_sessions($pdo, (int) $reset['account_id']);
+            $pdo->commit();
+
+            toy_member_log_auth($pdo, (int) $reset['account_id'], 'password_reset', 'success');
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $reset['account_id'],
+                'actor_type' => 'member',
+                'event_type' => 'member.password_reset.completed',
+                'target_type' => 'member_account',
+                'target_id' => (string) $reset['account_id'],
+                'result' => 'success',
+                'message' => 'Member password reset completed.',
+                'metadata' => [
+                    'revoked_sessions' => $revokedSessions,
+                ],
+            ]);
+
+            $notice = '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.';
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            throw $exception;
+        }
     }
 }
 
