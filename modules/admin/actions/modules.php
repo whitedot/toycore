@@ -10,25 +10,29 @@ toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $requiredModules = ['member', 'admin'];
 $allowedStatuses = ['enabled', 'disabled'];
+$allowedSettingTypes = ['string', 'int', 'bool', 'json'];
 $errors = [];
 $notice = '';
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
 
+    $intent = toy_post_string('intent', 40);
     $moduleKey = toy_post_string('module_key', 60);
-    $status = toy_post_string('status', 30);
 
     if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
         $errors[] = '모듈 키가 올바르지 않습니다.';
     }
 
-    if (!in_array($status, $allowedStatuses, true)) {
-        $errors[] = '모듈 상태 값이 올바르지 않습니다.';
-    }
+    if ($intent === 'status') {
+        $status = toy_post_string('status', 30);
+        if (!in_array($status, $allowedStatuses, true)) {
+            $errors[] = '모듈 상태 값이 올바르지 않습니다.';
+        }
 
-    if (in_array($moduleKey, $requiredModules, true) && $status !== 'enabled') {
-        $errors[] = '기본 모듈은 비활성화할 수 없습니다.';
+        if (in_array($moduleKey, $requiredModules, true) && $status !== 'enabled') {
+            $errors[] = '기본 모듈은 비활성화할 수 없습니다.';
+        }
     }
 
     if ($errors === []) {
@@ -41,7 +45,90 @@ if (toy_request_method() === 'POST') {
         }
     }
 
-    if ($errors === []) {
+    if ($errors === [] && $intent === 'module_setting') {
+        $settingKey = toy_post_string('setting_key', 120);
+        $settingValue = toy_post_string('setting_value', 5000);
+        $valueType = toy_post_string('value_type', 20);
+
+        if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
+            $errors[] = '설정 key 형식이 올바르지 않습니다.';
+        }
+
+        if (!in_array($valueType, $allowedSettingTypes, true)) {
+            $errors[] = '설정 타입이 올바르지 않습니다.';
+        }
+
+        if ($valueType === 'json' && json_decode($settingValue, true) === null && json_last_error() !== JSON_ERROR_NONE) {
+            $errors[] = 'JSON 설정값이 올바르지 않습니다.';
+        }
+
+        if ($errors === []) {
+            $stmt = $pdo->prepare(
+                'INSERT INTO toy_module_settings
+                    (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+                 VALUES
+                    (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+                 ON DUPLICATE KEY UPDATE
+                    setting_value = VALUES(setting_value),
+                    value_type = VALUES(value_type),
+                    updated_at = VALUES(updated_at)'
+            );
+            $stmt->execute([
+                'module_id' => (int) $module['id'],
+                'setting_key' => $settingKey,
+                'setting_value' => $settingValue,
+                'value_type' => $valueType,
+                'created_at' => toy_now(),
+                'updated_at' => toy_now(),
+            ]);
+
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'module.setting.saved',
+                'target_type' => 'module_setting',
+                'target_id' => $moduleKey . ':' . $settingKey,
+                'result' => 'success',
+                'message' => 'Module setting saved.',
+                'metadata' => [
+                    'module_key' => $moduleKey,
+                    'setting_key' => $settingKey,
+                    'value_type' => $valueType,
+                ],
+            ]);
+
+            $notice = '모듈 설정 항목을 저장했습니다.';
+        }
+    } elseif ($errors === [] && $intent === 'delete_module_setting') {
+        $settingKey = toy_post_string('setting_key', 120);
+        if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
+            $errors[] = '설정 key 형식이 올바르지 않습니다.';
+        }
+
+        if ($errors === []) {
+            $stmt = $pdo->prepare('DELETE FROM toy_module_settings WHERE module_id = :module_id AND setting_key = :setting_key');
+            $stmt->execute([
+                'module_id' => (int) $module['id'],
+                'setting_key' => $settingKey,
+            ]);
+
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'module.setting.deleted',
+                'target_type' => 'module_setting',
+                'target_id' => $moduleKey . ':' . $settingKey,
+                'result' => 'success',
+                'message' => 'Module setting deleted.',
+                'metadata' => [
+                    'module_key' => $moduleKey,
+                    'setting_key' => $settingKey,
+                ],
+            ]);
+
+            $notice = '모듈 설정 항목을 삭제했습니다.';
+        }
+    } elseif ($errors === [] && $intent === 'status') {
         $stmt = $pdo->prepare(
             'UPDATE toy_modules
              SET status = :status, updated_at = :updated_at
@@ -68,13 +155,26 @@ if (toy_request_method() === 'POST') {
         ]);
 
         $notice = '모듈 상태를 저장했습니다.';
+    } elseif ($errors === []) {
+        $errors[] = '요청한 작업을 처리할 수 없습니다.';
     }
 }
 
 $modules = [];
-$stmt = $pdo->query('SELECT module_key, name, version, status, is_bundled, installed_at, updated_at FROM toy_modules ORDER BY id ASC');
+$stmt = $pdo->query('SELECT id, module_key, name, version, status, is_bundled, installed_at, updated_at FROM toy_modules ORDER BY id ASC');
 foreach ($stmt->fetchAll() as $row) {
     $modules[] = $row;
+}
+
+$moduleSettings = [];
+$stmt = $pdo->query(
+    'SELECT m.module_key, s.setting_key, s.setting_value, s.value_type, s.updated_at
+     FROM toy_module_settings s
+     INNER JOIN toy_modules m ON m.id = s.module_id
+     ORDER BY m.module_key ASC, s.setting_key ASC'
+);
+foreach ($stmt->fetchAll() as $row) {
+    $moduleSettings[] = $row;
 }
 
 include TOY_ROOT . '/modules/admin/views/modules.php';
