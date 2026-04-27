@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Member',
-    'version' => '2026.04.004',
+    'version' => '2026.04.005',
     'description' => 'Member account and authentication module.',
     'settings' => [
         'login_identifier' => 'email',

@@ -119,7 +119,7 @@ if (toy_request_method() === 'POST') {
             ]);
 
             $modules = [
-                ['member', 'Member', '2026.04.004'],
+                ['member', 'Member', '2026.04.005'],
                 ['admin', 'Admin', '2026.04.001'],
             ];
 
@@ -145,6 +145,7 @@ if (toy_request_method() === 'POST') {
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.002');
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.003');
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.004');
+            toy_record_schema_version($pdo, 'module', 'member', '2026.04.005');
             toy_record_schema_version($pdo, 'module', 'admin', '2026.04.001');
 
             require TOY_ROOT . '/modules/member/helpers.php';

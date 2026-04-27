@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS toy_member_auth_logs (
     created_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     KEY idx_toy_member_auth_logs_account (account_id),
+    KEY idx_toy_member_auth_logs_account_event_created (account_id, event_type, created_at),
+    KEY idx_toy_member_auth_logs_ip_event_created (ip_address, event_type, created_at),
     KEY idx_toy_member_auth_logs_ip_created (ip_address, created_at),
     KEY idx_toy_member_auth_logs_created (created_at)
 );
