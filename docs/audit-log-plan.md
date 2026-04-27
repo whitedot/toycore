@@ -21,7 +21,7 @@ toy_audit_logs
 ```text
 id
 site_id
-actor_account_id
+actor_account_id (nullable, logical reference)
 actor_type
 event_type
 target_type
@@ -35,6 +35,8 @@ created_at
 ```
 
 ## 기록 대상
+
+`actor_account_id`는 `member` 모듈의 계정을 가리킬 수 있지만, 코어의 `toy_audit_logs` 테이블은 `toy_member_accounts`에 DB FK를 강제하지 않습니다. 설치 순서와 모듈 경계를 유지하기 위해 계정 참조는 nullable 논리 참조로 처리합니다.
 
 코어:
 

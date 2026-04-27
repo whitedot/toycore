@@ -4,6 +4,8 @@ Toycore의 기본환경은 사이트 설정과 모듈 시스템을 중심으로 
 
 회원 인증은 대부분의 사이트에서 기본적으로 사용되지만, 코어에 고정된 기능이 아니라 `member` 모듈로 취급합니다. 따라서 회원 관련 테이블은 기본 배포에 포함될 수 있으나, 구조상으로는 모듈 테이블과 모듈 설정을 통해 활성화되는 기능으로 봅니다.
 
+이 ERD는 코어 전용 테이블만이 아니라 기본 배포(`core + member + admin`)에서 함께 설치되는 테이블까지 보여줍니다. `member`와 `admin`은 기본 제공 모듈이지만 코어에 내장된 테이블 소유권을 갖지는 않습니다.
+
 ## 설계 원칙
 
 - 사이트 환경은 코어가 항상 읽을 수 있는 최소 설정으로 유지
@@ -58,7 +60,7 @@ erDiagram
         varchar name
         varchar version
         varchar status
-        tinyint is_core
+        tinyint is_bundled
         datetime installed_at
         datetime updated_at
     }
@@ -97,7 +99,7 @@ erDiagram
     toy_audit_logs {
         bigint id PK
         bigint site_id FK
-        bigint actor_account_id FK
+        bigint actor_account_id "nullable, logical reference"
         varchar actor_type
         varchar event_type
         varchar target_type
@@ -248,9 +250,10 @@ erDiagram
 
 예시:
 
-| module_key | name | is_core |
+| module_key | name | is_bundled |
 | --- | --- | --- |
 | `member` | 회원 | `1` |
+| `admin` | 관리자 | `1` |
 | `board` | 게시판 | `0` |
 | `page` | 페이지 | `0` |
 
@@ -295,6 +298,8 @@ erDiagram
 ### `toy_audit_logs`
 
 관리자 작업, 설정 변경, 모듈 활성화, 업데이트 실행 같은 운영상 중요한 이벤트를 기록합니다.
+
+`actor_account_id`는 `member` 모듈 계정을 가리킬 수 있지만, 코어 테이블이 `toy_member_accounts`에 직접 DB FK로 묶이지 않도록 nullable 논리 참조로 둡니다. 계정 존재 여부와 표시 이름 해석은 `member`/`admin` 모듈 쪽에서 처리합니다.
 
 기록 금지:
 
@@ -347,6 +352,8 @@ erDiagram
 
 개인정보 열람, 정정, 삭제, 처리 제한, 이동권, 처리 반대, 동의 철회 같은 요청을 기록합니다.
 
+기본 배포에서는 `admin` 모듈의 개인정보 요청 처리 기능이 이 테이블을 설치하고 관리합니다. 규모가 커져 `privacy` 모듈로 분리하는 경우에도 동일한 데이터 보존 원칙을 유지합니다. 코어는 이 테이블을 직접 소유하지 않고, 개인정보 요청 이력이 계정 삭제/익명화 이후에도 보존될 수 있어야 한다는 기반 원칙만 제공합니다.
+
 `account_id`는 계정이 남아 있는 동안 연결할 수 있지만, 삭제/익명화 이후에도 요청 이력이 보존될 수 있도록 nullable로 설계합니다. 요청 당시 식별에 필요한 최소 정보는 `requester_email_hash`와 `requester_snapshot`에 저장합니다.
 
 권장 값:
@@ -362,13 +369,15 @@ erDiagram
 
 ```text
 toy_modules
-- member: installed, core module
+- member: installed, default bundled module
+- admin: installed, default bundled module
 
 toy_site_modules
 - default site + member: enabled
+- default site + admin: enabled
 ```
 
-이 구조에서는 회원 인증이 기본적으로 켜져 있지만, 코드 관점에서는 여전히 `member` 모듈로 분리됩니다.
+이 구조에서는 회원 인증과 관리자 화면이 기본적으로 켜져 있지만, 코드 관점에서는 여전히 `member`와 `admin` 모듈로 분리됩니다.
 
 ## 구현 시 고려사항
 
