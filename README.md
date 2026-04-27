@@ -42,6 +42,10 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 - [진입점 및 홈 라우팅 계획](docs/routing-entry-plan.md)
 - [캐시 계획](docs/cache-plan.md)
 
+## 예제
+
+- [절차형 요청 흐름 예제](examples/procedural-flow-sample.php.txt)
+
 ## 프로젝트 관점
 
 이 프로젝트는 최신 개발 흐름을 부정하기 위한 것이 아닙니다. 대신 AI와 자동화 도구를 활용하더라도, 결과물은 사람이 직접 읽고 고칠 수 있어야 한다는 관점에서 출발합니다.
