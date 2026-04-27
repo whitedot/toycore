@@ -4,6 +4,16 @@ declare(strict_types=1);
 
 define('TOY_ROOT', __DIR__);
 
+if (PHP_SAPI === 'cli-server') {
+    $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+    if (is_string($requestPath)) {
+        $staticPath = realpath(TOY_ROOT . $requestPath);
+        if (is_string($staticPath) && str_starts_with($staticPath, TOY_ROOT . DIRECTORY_SEPARATOR) && is_file($staticPath)) {
+            return false;
+        }
+    }
+}
+
 require TOY_ROOT . '/core/helpers.php';
 
 set_exception_handler(function (Throwable $exception): void {

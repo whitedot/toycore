@@ -6,6 +6,8 @@ return [
     'POST /admin/settings' => 'actions/settings.php',
     'GET /admin/modules' => 'actions/modules.php',
     'POST /admin/modules' => 'actions/modules.php',
+    'GET /admin/updates' => 'actions/updates.php',
+    'POST /admin/updates' => 'actions/updates.php',
     'GET /admin/members' => 'actions/members.php',
     'POST /admin/members' => 'actions/members.php',
     'GET /admin/roles' => 'actions/roles.php',

@@ -57,3 +57,93 @@ function toy_admin_owner_count(PDO $pdo): int
     $row = $stmt->fetch();
     return is_array($row) ? (int) $row['count_value'] : 0;
 }
+
+function toy_admin_update_files(string $directory): array
+{
+    if (!is_dir($directory)) {
+        return [];
+    }
+
+    $paths = glob($directory . '/*.sql');
+    if ($paths === false) {
+        return [];
+    }
+
+    sort($paths, SORT_STRING);
+
+    $updates = [];
+    foreach ($paths as $path) {
+        $version = basename($path, '.sql');
+        if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $version) !== 1) {
+            continue;
+        }
+
+        $updates[] = [
+            'version' => $version,
+            'path' => $path,
+        ];
+    }
+
+    return $updates;
+}
+
+function toy_admin_applied_schema_versions(PDO $pdo): array
+{
+    $stmt = $pdo->query('SELECT scope, module_key, version FROM toy_schema_versions');
+    $applied = [];
+
+    foreach ($stmt->fetchAll() as $row) {
+        $key = (string) $row['scope'] . '|' . (string) $row['module_key'] . '|' . (string) $row['version'];
+        $applied[$key] = true;
+    }
+
+    return $applied;
+}
+
+function toy_admin_pending_updates(PDO $pdo): array
+{
+    $applied = toy_admin_applied_schema_versions($pdo);
+    $pending = [];
+
+    foreach (toy_admin_update_files(TOY_ROOT . '/database/core/updates') as $update) {
+        $key = 'core||' . $update['version'];
+        if (!isset($applied[$key])) {
+            $pending[] = [
+                'scope' => 'core',
+                'module_key' => '',
+                'label' => 'core',
+                'version' => $update['version'],
+                'path' => $update['path'],
+            ];
+        }
+    }
+
+    $stmt = $pdo->query("SELECT module_key FROM toy_modules WHERE status = 'enabled' ORDER BY module_key ASC");
+    foreach ($stmt->fetchAll() as $module) {
+        $moduleKey = (string) $module['module_key'];
+        if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+            continue;
+        }
+
+        foreach (toy_admin_update_files(TOY_ROOT . '/modules/' . $moduleKey . '/updates') as $update) {
+            $key = 'module|' . $moduleKey . '|' . $update['version'];
+            if (!isset($applied[$key])) {
+                $pending[] = [
+                    'scope' => 'module',
+                    'module_key' => $moduleKey,
+                    'label' => $moduleKey,
+                    'version' => $update['version'],
+                    'path' => $update['path'],
+                ];
+            }
+        }
+    }
+
+    return $pending;
+}
+
+function toy_admin_apply_update(PDO $pdo, array $update): void
+{
+    toy_execute_sql_file($pdo, (string) $update['path']);
+    toy_record_schema_version($pdo, (string) $update['scope'], (string) $update['module_key'], (string) $update['version']);
+}

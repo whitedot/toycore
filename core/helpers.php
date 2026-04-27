@@ -127,6 +127,11 @@ function toy_e(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function toy_stylesheet_tag(): string
+{
+    return '<link rel="stylesheet" href="/assets/toycore.css">';
+}
+
 function toy_redirect(string $url): void
 {
     header('Location: ' . $url, true, 302);
@@ -198,6 +203,37 @@ function toy_normalize_identifier(string $value): string
     return strtolower(trim($value));
 }
 
+function toy_absolute_url(?array $site, string $path): string
+{
+    $baseUrl = is_array($site) ? rtrim((string) ($site['base_url'] ?? ''), '/') : '';
+    if ($baseUrl === '') {
+        return $path;
+    }
+
+    return $baseUrl . '/' . ltrim($path, '/');
+}
+
+function toy_send_mail(?array $site, string $to, string $subject, string $body): bool
+{
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL) || !function_exists('mail')) {
+        return false;
+    }
+
+    $baseUrl = is_array($site) ? (string) ($site['base_url'] ?? '') : '';
+    $host = parse_url($baseUrl, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    }
+
+    $from = 'no-reply@' . preg_replace('/[^A-Za-z0-9.-]/', '', $host);
+    $headers = [
+        'From: ' . $from,
+        'Content-Type: text/plain; charset=UTF-8',
+    ];
+
+    return mail($to, $subject, $body, implode("\r\n", $headers));
+}
+
 function toy_hmac_hash(string $value, array $config): string
 {
     $appKey = (string) ($config['app_key'] ?? '');
@@ -225,6 +261,20 @@ function toy_execute_sql_file(PDO $pdo, string $file): void
             $pdo->exec($statement);
         }
     }
+}
+
+function toy_record_schema_version(PDO $pdo, string $scope, string $moduleKey, string $version): void
+{
+    $stmt = $pdo->prepare(
+        'INSERT IGNORE INTO toy_schema_versions (scope, module_key, version, applied_at)
+         VALUES (:scope, :module_key, :version, :applied_at)'
+    );
+    $stmt->execute([
+        'scope' => $scope,
+        'module_key' => $moduleKey,
+        'version' => $version,
+        'applied_at' => toy_now(),
+    ]);
 }
 
 function toy_write_config(array $config): void

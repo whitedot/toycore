@@ -36,6 +36,7 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 - [감사 로그 계획](docs/audit-log-plan.md)
 - [보안 체크리스트](docs/security-checklist.md)
 - [배포 보호 기준](docs/deployment-protection.md)
+- [서버별 배포 예시](docs/deployment-examples.md)
 - [현재 구현 상태](docs/current-implementation-status.md)
 - [모듈 작성 가이드](docs/module-guide.md)
 - [회원 모듈 상세 계획](docs/member-plan.md)

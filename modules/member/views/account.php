@@ -8,6 +8,7 @@ $pageTitle = '내 계정';
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo toy_e($pageTitle); ?></title>
+    <?php echo toy_stylesheet_tag(); ?>
 </head>
 <body>
     <main>
@@ -54,6 +55,7 @@ $pageTitle = '내 계정';
             <h2>비밀번호 변경</h2>
             <form method="post" action="/account">
                 <?php echo toy_csrf_field(); ?>
+                <input type="hidden" name="intent" value="password">
                 <p>
                     <label>현재 비밀번호<br>
                         <input type="password" name="current_password" required>
@@ -70,6 +72,35 @@ $pageTitle = '내 계정';
                     </label>
                 </p>
                 <button type="submit">비밀번호 변경</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>선택 프로필</h2>
+            <form method="post" action="/account">
+                <?php echo toy_csrf_field(); ?>
+                <input type="hidden" name="intent" value="profile">
+                <p>
+                    <label>닉네임<br>
+                        <input type="text" name="nickname" value="<?php echo toy_e($profile['nickname']); ?>" maxlength="80">
+                    </label>
+                </p>
+                <p>
+                    <label>전화번호<br>
+                        <input type="text" name="phone" value="<?php echo toy_e($profile['phone']); ?>" maxlength="40">
+                    </label>
+                </p>
+                <p>
+                    <label>생년월일<br>
+                        <input type="date" name="birth_date" value="<?php echo toy_e($profile['birth_date']); ?>">
+                    </label>
+                </p>
+                <p>
+                    <label>소개<br>
+                        <textarea name="profile_text" maxlength="1000"><?php echo toy_e($profile['profile_text']); ?></textarea>
+                    </label>
+                </p>
+                <button type="submit">프로필 저장</button>
             </form>
         </section>
 

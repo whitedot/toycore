@@ -39,14 +39,16 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <th>상태</th>
             <th>이메일 인증</th>
             <th>최근 로그인</th>
+            <th>활성 세션</th>
             <th>생성일</th>
             <th>변경</th>
+            <th>세션</th>
         </tr>
     </thead>
     <tbody>
         <?php if ($members === []) { ?>
             <tr>
-                <td colspan="8">회원이 없습니다.</td>
+                <td colspan="10">회원이 없습니다.</td>
             </tr>
         <?php } ?>
         <?php foreach ($members as $member) { ?>
@@ -57,10 +59,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) $member['status']); ?></td>
                 <td><?php echo toy_e((string) ($member['email_verified_at'] ?? '')); ?></td>
                 <td><?php echo toy_e((string) ($member['last_login_at'] ?? '')); ?></td>
+                <td><?php echo toy_e((string) $member['active_session_count']); ?></td>
                 <td><?php echo toy_e((string) $member['created_at']); ?></td>
                 <td>
                     <form method="post" action="/admin/members">
                         <?php echo toy_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="status">
                         <input type="hidden" name="account_id" value="<?php echo toy_e((string) $member['id']); ?>">
                         <select name="status">
                             <?php foreach ($allowedStatuses as $status) { ?>
@@ -70,6 +74,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </select>
                         <button type="submit">저장</button>
+                    </form>
+                </td>
+                <td>
+                    <form method="post" action="/admin/members">
+                        <?php echo toy_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="revoke_sessions">
+                        <input type="hidden" name="account_id" value="<?php echo toy_e((string) $member['id']); ?>">
+                        <button type="submit">폐기</button>
                     </form>
                 </td>
             </tr>

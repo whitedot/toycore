@@ -183,6 +183,30 @@ CREATE TABLE IF NOT EXISTS toy_member_accounts (
 );
 ```
 
+## 개인정보 내보내기 확장
+
+회원 모듈은 계정, 인증, 동의처럼 자신이 소유한 데이터만 기본 JSON 내보내기에 포함합니다. 게시판, 커머스, 예약 같은 확장 모듈의 개인정보는 각 모듈이 직접 export 계약을 제공합니다.
+
+확장 모듈은 필요한 경우 다음 파일을 둡니다.
+
+```text
+modules/{module_key}/privacy-export.php
+```
+
+파일은 callable을 반환합니다.
+
+```php
+<?php
+
+return function (PDO $pdo, int $accountId): array {
+    return [
+        'items' => [],
+    ];
+};
+```
+
+회원 모듈은 활성 모듈의 `privacy-export.php`만 명시적으로 include하고, 반환값을 `module_exports.{module_key}` 아래에 넣습니다. 확장 모듈은 회원 테이블에 도메인 컬럼을 추가하지 않고 `account_id`로 자기 테이블의 데이터를 조회합니다.
+
 ## 활성화 방식
 
 모듈 활성 여부는 초기 구현에서 `toy_modules.status`로 판단합니다.

@@ -58,7 +58,16 @@ if (toy_request_method() === 'POST') {
             ]);
 
             $verificationToken = toy_member_create_email_verification($pdo, $config, $accountId, $values['email']);
-            $_SESSION['toy_debug_email_verification_url'] = '/email/verify?token=' . rawurlencode($verificationToken);
+            $verificationUrl = toy_absolute_url($site, '/email/verify?token=' . rawurlencode($verificationToken));
+            $mailSent = toy_send_mail(
+                $site,
+                $values['email'],
+                '이메일 인증 안내',
+                "아래 링크를 열어 이메일 인증을 완료하세요.\n\n" . $verificationUrl
+            );
+            if (!$mailSent || !empty($config['debug'])) {
+                $_SESSION['toy_debug_email_verification_url'] = $verificationUrl;
+            }
             toy_member_record_consent($pdo, $accountId, 'terms', '2026.04.001', true);
             toy_member_record_consent($pdo, $accountId, 'privacy', '2026.04.001', true);
 

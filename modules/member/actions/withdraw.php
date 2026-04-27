@@ -22,6 +22,8 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        toy_member_delete_profile($pdo, (int) $account['id']);
+        toy_member_revoke_account_sessions($pdo, (int) $account['id']);
         toy_member_update_status($pdo, (int) $account['id'], 'withdrawn');
         toy_member_log_auth($pdo, (int) $account['id'], 'withdraw', 'success');
         toy_audit_log($pdo, [
@@ -34,7 +36,7 @@ if (toy_request_method() === 'POST') {
             'message' => 'Member account withdrawn.',
         ]);
 
-        toy_member_logout();
+        toy_member_logout($pdo);
         toy_redirect('/login');
     }
 }

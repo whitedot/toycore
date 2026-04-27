@@ -9,6 +9,7 @@ $adminPageTitle = $adminPageTitle ?? '관리자';
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title><?php echo toy_e($adminPageTitle); ?></title>
+    <?php echo toy_stylesheet_tag(); ?>
 </head>
 <body>
     <header>
@@ -17,6 +18,7 @@ $adminPageTitle = $adminPageTitle ?? '관리자';
             <a href="/admin">대시보드</a>
             <a href="/admin/settings">설정</a>
             <a href="/admin/modules">모듈</a>
+            <a href="/admin/updates">업데이트</a>
             <a href="/admin/members">회원</a>
             <a href="/admin/roles">권한</a>
             <a href="/admin/audit-logs">감사 로그</a>

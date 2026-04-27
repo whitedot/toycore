@@ -21,7 +21,13 @@ if (toy_request_method() === 'POST') {
         $account = toy_member_find_by_identifier($pdo, $config, $email);
         if ($account !== null && $account['status'] === 'active') {
             $token = toy_member_create_password_reset($pdo, $config, (int) $account['id']);
-            $resetUrl = '/password/reset/confirm?token=' . rawurlencode($token);
+            $resetUrl = toy_absolute_url($site, '/password/reset/confirm?token=' . rawurlencode($token));
+            toy_send_mail(
+                $site,
+                (string) $account['email'],
+                '비밀번호 재설정 안내',
+                "아래 링크를 열어 비밀번호를 재설정하세요.\n\n" . $resetUrl
+            );
             toy_member_log_auth($pdo, (int) $account['id'], 'password_reset_request', 'success');
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],

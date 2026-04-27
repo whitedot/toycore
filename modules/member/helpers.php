@@ -104,6 +104,11 @@ function toy_member_current_account(PDO $pdo): ?array
         return null;
     }
 
+    if (!toy_member_session_is_current($pdo, (int) $accountId)) {
+        toy_member_logout();
+        return null;
+    }
+
     $stmt = $pdo->prepare('SELECT * FROM toy_member_accounts WHERE id = :id LIMIT 1');
     $stmt->execute(['id' => (int) $accountId]);
     $account = $stmt->fetch();
@@ -136,6 +141,10 @@ function toy_member_login(PDO $pdo, array $account): void
     session_regenerate_id(true);
     $_SESSION['toy_account_id'] = (int) $account['id'];
     $_SESSION['toy_csrf_token'] = bin2hex(random_bytes(32));
+    $sessionTokenHash = toy_member_create_session($pdo, (int) $account['id']);
+    if ($sessionTokenHash !== '') {
+        $_SESSION['toy_session_token_hash'] = $sessionTokenHash;
+    }
 
     $stmt = $pdo->prepare('UPDATE toy_member_accounts SET last_login_at = :last_login_at, updated_at = :updated_at WHERE id = :id');
     $stmt->execute([
@@ -143,6 +152,120 @@ function toy_member_login(PDO $pdo, array $account): void
         'updated_at' => toy_now(),
         'id' => (int) $account['id'],
     ]);
+}
+
+function toy_member_create_session(PDO $pdo, int $accountId): string
+{
+    $sessionTokenHash = hash('sha256', bin2hex(random_bytes(32)));
+    $now = toy_now();
+    $expiresAt = date('Y-m-d H:i:s', time() + 86400);
+
+    try {
+        $stmt = $pdo->prepare(
+            'INSERT INTO toy_member_sessions
+                (account_id, session_token_hash, remember_token_hash, ip_address, user_agent, expires_at, created_at, last_seen_at)
+             VALUES
+                (:account_id, :session_token_hash, NULL, :ip_address, :user_agent, :expires_at, :created_at, :last_seen_at)'
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'session_token_hash' => $sessionTokenHash,
+            'ip_address' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+            'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            'expires_at' => $expiresAt,
+            'created_at' => $now,
+            'last_seen_at' => $now,
+        ]);
+    } catch (PDOException $exception) {
+        return '';
+    }
+
+    return $sessionTokenHash;
+}
+
+function toy_member_session_is_current(PDO $pdo, int $accountId): bool
+{
+    $sessionTokenHash = $_SESSION['toy_session_token_hash'] ?? '';
+    if (!is_string($sessionTokenHash) || preg_match('/\A[a-f0-9]{64}\z/', $sessionTokenHash) !== 1) {
+        return !toy_member_sessions_table_exists($pdo);
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT id, expires_at, revoked_at
+             FROM toy_member_sessions
+             WHERE account_id = :account_id
+               AND session_token_hash = :session_token_hash
+             LIMIT 1'
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'session_token_hash' => $sessionTokenHash,
+        ]);
+        $session = $stmt->fetch();
+    } catch (PDOException $exception) {
+        return true;
+    }
+
+    if (!is_array($session) || $session['revoked_at'] !== null || (string) $session['expires_at'] < toy_now()) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare('UPDATE toy_member_sessions SET last_seen_at = :last_seen_at WHERE id = :id');
+    $stmt->execute([
+        'last_seen_at' => toy_now(),
+        'id' => (int) $session['id'],
+    ]);
+
+    return true;
+}
+
+function toy_member_sessions_table_exists(PDO $pdo): bool
+{
+    try {
+        $pdo->query('SELECT 1 FROM toy_member_sessions LIMIT 1');
+        return true;
+    } catch (PDOException $exception) {
+        return false;
+    }
+}
+
+function toy_member_revoke_current_session(PDO $pdo): void
+{
+    $sessionTokenHash = $_SESSION['toy_session_token_hash'] ?? '';
+    if (!is_string($sessionTokenHash) || preg_match('/\A[a-f0-9]{64}\z/', $sessionTokenHash) !== 1) {
+        return;
+    }
+
+    try {
+        $stmt = $pdo->prepare('UPDATE toy_member_sessions SET revoked_at = :revoked_at WHERE session_token_hash = :session_token_hash AND revoked_at IS NULL');
+        $stmt->execute([
+            'revoked_at' => toy_now(),
+            'session_token_hash' => $sessionTokenHash,
+        ]);
+    } catch (PDOException $exception) {
+        return;
+    }
+}
+
+function toy_member_revoke_account_sessions(PDO $pdo, int $accountId): int
+{
+    try {
+        $stmt = $pdo->prepare(
+            'UPDATE toy_member_sessions
+             SET revoked_at = :revoked_at
+             WHERE account_id = :account_id
+               AND revoked_at IS NULL'
+        );
+        $stmt->execute([
+            'revoked_at' => toy_now(),
+            'account_id' => $accountId,
+        ]);
+    } catch (PDOException $exception) {
+        return 0;
+    }
+
+    return $stmt->rowCount();
 }
 
 function toy_member_update_password(PDO $pdo, int $accountId, string $password): void
@@ -163,6 +286,80 @@ function toy_member_update_status(PDO $pdo, int $accountId, string $status): voi
         'updated_at' => toy_now(),
         'id' => $accountId,
     ]);
+}
+
+function toy_member_empty_profile(): array
+{
+    return [
+        'nickname' => '',
+        'phone' => '',
+        'birth_date' => '',
+        'avatar_path' => '',
+        'profile_text' => '',
+    ];
+}
+
+function toy_member_profile(PDO $pdo, int $accountId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT nickname, phone, birth_date, avatar_path, profile_text
+         FROM toy_member_profiles
+         WHERE account_id = :account_id
+         LIMIT 1'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $profile = $stmt->fetch();
+
+    if (!is_array($profile)) {
+        return toy_member_empty_profile();
+    }
+
+    return [
+        'nickname' => (string) $profile['nickname'],
+        'phone' => (string) $profile['phone'],
+        'birth_date' => is_string($profile['birth_date']) ? $profile['birth_date'] : '',
+        'avatar_path' => (string) $profile['avatar_path'],
+        'profile_text' => (string) ($profile['profile_text'] ?? ''),
+    ];
+}
+
+function toy_member_save_profile(PDO $pdo, int $accountId, array $profile): void
+{
+    $now = toy_now();
+    $birthDate = trim((string) ($profile['birth_date'] ?? ''));
+    if ($birthDate === '') {
+        $birthDate = null;
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_member_profiles
+            (account_id, nickname, phone, birth_date, avatar_path, profile_text, created_at, updated_at)
+         VALUES
+            (:account_id, :nickname, :phone, :birth_date, :avatar_path, :profile_text, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            nickname = VALUES(nickname),
+            phone = VALUES(phone),
+            birth_date = VALUES(birth_date),
+            avatar_path = VALUES(avatar_path),
+            profile_text = VALUES(profile_text),
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'nickname' => trim((string) ($profile['nickname'] ?? '')),
+        'phone' => trim((string) ($profile['phone'] ?? '')),
+        'birth_date' => $birthDate,
+        'avatar_path' => trim((string) ($profile['avatar_path'] ?? '')),
+        'profile_text' => trim((string) ($profile['profile_text'] ?? '')),
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+}
+
+function toy_member_delete_profile(PDO $pdo, int $accountId): void
+{
+    $stmt = $pdo->prepare('DELETE FROM toy_member_profiles WHERE account_id = :account_id');
+    $stmt->execute(['account_id' => $accountId]);
 }
 
 function toy_member_create_password_reset(PDO $pdo, array $config, int $accountId): string
@@ -330,6 +527,8 @@ function toy_member_privacy_export_data(PDO $pdo, int $accountId): array
         throw new RuntimeException('Account not found.');
     }
 
+    $profile = toy_member_profile($pdo, $accountId);
+
     $stmt = $pdo->prepare(
         'SELECT consent_key, consent_version, consented, created_at
          FROM toy_member_consents
@@ -349,6 +548,19 @@ function toy_member_privacy_export_data(PDO $pdo, int $accountId): array
     $stmt->execute(['account_id' => $accountId]);
     $authLogs = $stmt->fetchAll();
 
+    $sessions = [];
+    if (toy_member_sessions_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT ip_address, user_agent, expires_at, revoked_at, created_at, last_seen_at
+             FROM toy_member_sessions
+             WHERE account_id = :account_id
+             ORDER BY id DESC
+             LIMIT 100'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $sessions = $stmt->fetchAll();
+    }
+
     $stmt = $pdo->prepare(
         'SELECT id, request_type, status, request_message, admin_note, handled_at, created_at, updated_at
          FROM toy_privacy_requests
@@ -361,14 +573,45 @@ function toy_member_privacy_export_data(PDO $pdo, int $accountId): array
     return [
         'exported_at' => toy_now(),
         'account' => $account,
+        'profile' => $profile,
         'consents' => $consents,
         'auth_logs' => $authLogs,
+        'sessions' => $sessions,
         'privacy_requests' => $privacyRequests,
+        'module_exports' => toy_member_module_privacy_exports($pdo, $accountId),
     ];
 }
 
-function toy_member_logout(): void
+function toy_member_module_privacy_exports(PDO $pdo, int $accountId): array
 {
+    $exports = [];
+    foreach (toy_enabled_module_keys($pdo) as $moduleKey) {
+        if ($moduleKey === 'member' || preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+            continue;
+        }
+
+        $exportFile = TOY_ROOT . '/modules/' . $moduleKey . '/privacy-export.php';
+        if (!is_file($exportFile)) {
+            continue;
+        }
+
+        $moduleExport = include $exportFile;
+        if (is_callable($moduleExport)) {
+            $exports[$moduleKey] = $moduleExport($pdo, $accountId);
+        } elseif (is_array($moduleExport)) {
+            $exports[$moduleKey] = $moduleExport;
+        }
+    }
+
+    return $exports;
+}
+
+function toy_member_logout(?PDO $pdo = null): void
+{
+    if ($pdo instanceof PDO) {
+        toy_member_revoke_current_session($pdo);
+    }
+
     $_SESSION = [];
 
     if (ini_get('session.use_cookies')) {

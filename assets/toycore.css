@@ -1,0 +1,131 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f6f7f9;
+    color: #20242a;
+    font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+}
+
+a {
+    color: #2458a6;
+}
+
+header,
+main {
+    width: min(1080px, calc(100% - 32px));
+    margin: 0 auto;
+}
+
+header {
+    padding: 20px 0 10px;
+}
+
+main {
+    padding: 24px 0 48px;
+}
+
+h1,
+h2 {
+    margin: 0 0 16px;
+    line-height: 1.25;
+}
+
+section,
+form,
+table,
+dl,
+ul {
+    margin: 0 0 24px;
+}
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+nav a,
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+nav a,
+button {
+    border: 1px solid #b9c2d0;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #20242a;
+    padding: 7px 10px;
+    text-decoration: none;
+}
+
+button {
+    cursor: pointer;
+}
+
+input,
+select,
+textarea {
+    width: min(100%, 420px);
+    border: 1px solid #b9c2d0;
+    border-radius: 6px;
+    background: #ffffff;
+    padding: 8px 10px;
+}
+
+textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+}
+
+th,
+td {
+    border: 1px solid #d8dde6;
+    padding: 9px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background: #eceff4;
+}
+
+dl {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 8px 16px;
+}
+
+dt {
+    font-weight: 700;
+}
+
+dd {
+    margin: 0;
+}
+
+@media (max-width: 720px) {
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    dl {
+        grid-template-columns: 1fr;
+    }
+}

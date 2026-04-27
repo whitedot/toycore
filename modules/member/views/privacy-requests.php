@@ -8,6 +8,7 @@ $pageTitle = '개인정보 요청';
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo toy_e($pageTitle); ?></title>
+    <?php echo toy_stylesheet_tag(); ?>
 </head>
 <body>
     <main>

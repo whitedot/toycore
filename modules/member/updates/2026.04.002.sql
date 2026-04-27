@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS toy_member_profiles (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    nickname VARCHAR(80) NOT NULL DEFAULT '',
+    phone VARCHAR(40) NOT NULL DEFAULT '',
+    birth_date DATE NULL,
+    avatar_path VARCHAR(255) NOT NULL DEFAULT '',
+    profile_text TEXT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_toy_member_profiles_account (account_id)
+);

@@ -25,5 +25,5 @@ if ($account !== null) {
     ]);
 }
 
-toy_member_logout();
+toy_member_logout($pdo);
 toy_redirect('/login');

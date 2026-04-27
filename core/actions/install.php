@@ -99,7 +99,7 @@ if (toy_request_method() === 'POST') {
             ]);
 
             $modules = [
-                ['member', 'Member', '2026.04.001'],
+                ['member', 'Member', '2026.04.003'],
                 ['admin', 'Admin', '2026.04.001'],
             ];
 
@@ -122,6 +122,8 @@ if (toy_request_method() === 'POST') {
 
             toy_record_schema_version($pdo, 'core', '', '2026.04.001');
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.001');
+            toy_record_schema_version($pdo, 'module', 'member', '2026.04.002');
+            toy_record_schema_version($pdo, 'module', 'member', '2026.04.003');
             toy_record_schema_version($pdo, 'module', 'admin', '2026.04.001');
 
             require TOY_ROOT . '/modules/member/helpers.php';
@@ -171,17 +173,3 @@ if (toy_request_method() === 'POST') {
 }
 
 include TOY_ROOT . '/core/views/install.php';
-
-function toy_record_schema_version(PDO $pdo, string $scope, string $moduleKey, string $version): void
-{
-    $stmt = $pdo->prepare(
-        'INSERT IGNORE INTO toy_schema_versions (scope, module_key, version, applied_at)
-         VALUES (:scope, :module_key, :version, :applied_at)'
-    );
-    $stmt->execute([
-        'scope' => $scope,
-        'module_key' => $moduleKey,
-        'version' => $version,
-        'applied_at' => toy_now(),
-    ]);
-}
