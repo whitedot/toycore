@@ -11,6 +11,7 @@ Toycore의 기본환경은 사이트 설정과 모듈 시스템을 중심으로 
 - 회원 인증은 기본 제공 모듈이지만 코어와 직접 결합하지 않음
 - 저가형 웹호스팅을 고려해 단순한 관계와 일반적인 SQL 타입 사용
 - 설정값은 확장성을 위해 key-value 구조를 기본으로 사용
+- 다국어와 개인정보 처리 요구를 초기 구조에 포함
 
 ## ERD
 
@@ -22,8 +23,20 @@ erDiagram
         varchar name
         varchar base_url
         varchar timezone
-        varchar locale
+        varchar default_locale
         varchar status
+        datetime created_at
+        datetime updated_at
+    }
+
+    toy_site_locales {
+        bigint id PK
+        bigint site_id FK
+        varchar locale
+        varchar name
+        tinyint is_default
+        tinyint is_enabled
+        int sort_order
         datetime created_at
         datetime updated_at
     }
@@ -80,6 +93,7 @@ erDiagram
         varchar email
         varchar password_hash
         varchar display_name
+        varchar locale
         varchar status
         datetime email_verified_at
         datetime last_login_at
@@ -120,7 +134,35 @@ erDiagram
         datetime created_at
     }
 
+    toy_member_consents {
+        bigint id PK
+        bigint account_id FK
+        varchar consent_key
+        varchar consent_version
+        tinyint is_granted
+        varchar ip_address
+        text user_agent
+        datetime granted_at
+        datetime withdrawn_at
+        datetime created_at
+    }
+
+    toy_privacy_requests {
+        bigint id PK
+        bigint site_id FK
+        bigint account_id FK
+        varchar request_type
+        varchar status
+        text request_note
+        text response_note
+        datetime requested_at
+        datetime completed_at
+        datetime created_at
+        datetime updated_at
+    }
+
     toy_sites ||--o{ toy_site_settings : has
+    toy_sites ||--o{ toy_site_locales : supports
     toy_sites ||--o{ toy_site_modules : enables
     toy_modules ||--o{ toy_site_modules : assigned
     toy_sites ||--o{ toy_module_settings : has
@@ -131,6 +173,9 @@ erDiagram
     toy_member_accounts ||--o{ toy_member_sessions : creates
     toy_sites ||--o{ toy_member_auth_logs : records
     toy_member_accounts ||--o{ toy_member_auth_logs : records
+    toy_member_accounts ||--o{ toy_member_consents : grants
+    toy_sites ||--o{ toy_privacy_requests : receives
+    toy_member_accounts ||--o{ toy_privacy_requests : submits
 ```
 
 ## 테이블 설명
@@ -145,8 +190,22 @@ erDiagram
 - `name`: 사이트 이름
 - `base_url`: 사이트 기본 URL
 - `timezone`: 기본 시간대
-- `locale`: 기본 언어와 지역
+- `default_locale`: 기본 언어와 지역
 - `status`: `active`, `inactive`, `maintenance`
+
+### `toy_site_locales`
+
+사이트에서 지원하는 locale 목록을 저장합니다. 다국어를 사용하지 않는 사이트도 기본 locale 하나는 가질 수 있습니다.
+
+권장 유니크 키:
+
+- `site_id`, `locale`
+
+주요 값:
+
+- `locale`: `ko`, `ko-KR`, `en`, `en-US` 같은 locale 코드
+- `is_default`: 사이트 기본 locale 여부
+- `is_enabled`: 선택 가능한 locale 여부
 
 ### `toy_site_settings`
 
@@ -205,6 +264,8 @@ erDiagram
 - `site_id`, `login_id`
 - `site_id`, `email`
 
+`locale`은 회원이 선호하는 화면 언어를 저장합니다. 값이 없으면 사이트 기본 locale을 사용합니다.
+
 ### `toy_member_profiles`
 
 회원의 부가 정보를 저장합니다. 인증에 필요한 핵심 계정 정보와 프로필 정보를 분리해, 필수 인증 로직이 프로필 확장에 영향을 덜 받도록 합니다.
@@ -216,6 +277,26 @@ erDiagram
 ### `toy_member_auth_logs`
 
 로그인, 로그아웃, 로그인 실패, 비밀번호 변경 같은 인증 관련 이벤트를 기록합니다. 보안 문제 추적과 관리자 확인 용도로 사용합니다.
+
+### `toy_member_consents`
+
+회원의 약관, 개인정보 처리방침, 마케팅 수신 같은 동의 상태를 기록합니다. 동의 문서의 버전과 동의/철회 시점을 저장해 나중에 어떤 내용에 동의했는지 확인할 수 있게 합니다.
+
+권장 인덱스:
+
+- `account_id`, `consent_key`
+- `account_id`, `consent_key`, `consent_version`
+
+### `toy_privacy_requests`
+
+개인정보 열람, 정정, 삭제, 처리 제한, 이동권, 처리 반대, 동의 철회 같은 요청을 기록합니다.
+
+권장 값:
+
+- `request_type`: `access`, `rectification`, `erasure`, `restriction`, `portability`, `objection`, `withdrawal`
+- `status`: `requested`, `reviewing`, `completed`, `rejected`, `cancelled`
+
+초기 구현에서는 자동 처리보다 관리자 검토와 처리 이력 보존을 우선합니다.
 
 ## 초기 모듈 상태 예시
 
@@ -236,6 +317,9 @@ toy_site_modules
 - 비밀번호는 반드시 `password_hash()` 결과만 저장
 - 세션 토큰은 원문 대신 해시 저장을 우선 검토
 - 설정값의 `value_type`은 `string`, `int`, `bool`, `json` 정도로 제한
+- locale은 사이트 기본값, 회원 설정값, 요청값의 우선순위를 정해 처리
+- 동의 기록은 문서 버전과 시점을 함께 저장
+- 개인정보 삭제 요청은 물리 삭제, 비활성화, 익명화 정책을 구분
 - `created_at`, `updated_at`은 모든 주요 테이블에 일관되게 사용
 - 삭제가 많은 데이터는 실제 삭제와 소프트 삭제 중 운영 정책을 먼저 결정
 - 저가형 웹호스팅 호환성을 위해 트리거, 저장 프로시저, 복잡한 DB 기능 의존은 최소화
