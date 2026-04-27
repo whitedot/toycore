@@ -27,6 +27,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th scope="col">범위</th>
                     <th scope="col">버전</th>
                     <th scope="col">파일</th>
+                    <th scope="col">Checksum</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,6 +36,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $update['label']); ?></td>
                         <td><?php echo toy_e((string) $update['version']); ?></td>
                         <td><?php echo toy_e(str_replace(TOY_ROOT . '/', '', (string) $update['path'])); ?></td>
+                        <td><code><?php echo toy_e(substr((string) ($update['checksum'] ?? ''), 0, 16)); ?></code></td>
                     </tr>
                 <?php } ?>
             </tbody>
@@ -42,6 +44,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
         <form method="post" action="/admin/updates">
             <?php echo toy_csrf_field(); ?>
+            <p>
+                <label>
+                    <input type="checkbox" name="backup_confirmed" value="1" required>
+                    DB와 파일 백업을 확인했습니다.
+                </label>
+            </p>
             <button type="submit">업데이트 적용</button>
         </form>
     <?php } ?>
@@ -52,7 +60,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <h2>적용한 업데이트</h2>
         <ul>
             <?php foreach ($appliedUpdates as $update) { ?>
-                <li><?php echo toy_e((string) $update['label'] . ' ' . (string) $update['version']); ?></li>
+                <li>
+                    <?php echo toy_e((string) $update['label'] . ' ' . (string) $update['version']); ?>
+                    <code><?php echo toy_e(substr((string) ($update['checksum'] ?? ''), 0, 16)); ?></code>
+                </li>
             <?php } ?>
         </ul>
     </section>

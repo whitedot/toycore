@@ -81,10 +81,21 @@ function toy_admin_update_files(string $directory): array
         $updates[] = [
             'version' => $version,
             'path' => $path,
+            'checksum' => toy_admin_update_checksum($path),
         ];
     }
 
     return $updates;
+}
+
+function toy_admin_update_checksum(string $path): string
+{
+    if (!is_file($path)) {
+        return '';
+    }
+
+    $checksum = hash_file('sha256', $path);
+    return is_string($checksum) ? $checksum : '';
 }
 
 function toy_admin_applied_schema_versions(PDO $pdo): array
@@ -114,6 +125,7 @@ function toy_admin_pending_updates(PDO $pdo): array
                 'label' => 'core',
                 'version' => $update['version'],
                 'path' => $update['path'],
+                'checksum' => $update['checksum'],
             ];
         }
     }
@@ -134,6 +146,7 @@ function toy_admin_pending_updates(PDO $pdo): array
                     'label' => $moduleKey,
                     'version' => $update['version'],
                     'path' => $update['path'],
+                    'checksum' => $update['checksum'],
                 ];
             }
         }
