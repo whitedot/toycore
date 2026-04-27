@@ -91,7 +91,6 @@ Install Required
 파일 로그:
 
 ```text
-storage/logs/app.log
 storage/logs/error.log
 ```
 
@@ -101,7 +100,7 @@ DB 감사 로그:
 toy_audit_logs
 ```
 
-파일 로그는 시스템 오류 중심, DB 감사 로그는 관리자 작업과 설정 변경 중심으로 사용합니다.
+파일 로그는 시스템 오류 중심, DB 감사 로그는 관리자 작업과 설정 변경 중심으로 사용합니다. 현재 구현은 `storage/logs/error.log`에 예외 요약을 기록합니다.
 
 ## 오류 처리 흐름
 

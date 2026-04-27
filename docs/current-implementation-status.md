@@ -26,6 +26,7 @@
 - redirect helper
 - HMAC hash helper
 - 감사 로그 helper
+- 예외 요약 파일 로그
 
 ### 회원
 
@@ -63,6 +64,7 @@
 - 사용 완료 token 정리
 - 오래된 인증 로그/감사 로그 정리
 - 배포 보호 기준 문서화
+- `storage/logs/error.log` 오류 기록
 
 ## 남은 작업
 

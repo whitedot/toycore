@@ -6,6 +6,18 @@ define('TOY_ROOT', __DIR__);
 
 require TOY_ROOT . '/core/helpers.php';
 
+set_exception_handler(function (Throwable $exception): void {
+    toy_render_error(500, '서버 오류가 발생했습니다.', $exception);
+});
+
+set_error_handler(function (int $severity, string $message, string $file, int $line): bool {
+    if ((error_reporting() & $severity) === 0) {
+        return false;
+    }
+
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+
 toy_start_session();
 
 $method = toy_request_method();

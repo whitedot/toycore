@@ -58,7 +58,13 @@ function toy_apply_runtime_config(array $config): void
 {
     $debug = !empty($config['debug']);
     ini_set('display_errors', $debug ? '1' : '0');
+    ini_set('log_errors', '1');
     error_reporting(E_ALL);
+
+    $logDir = TOY_ROOT . '/storage/logs';
+    if ((is_dir($logDir) || mkdir($logDir, 0755, true)) && is_writable($logDir)) {
+        ini_set('error_log', $logDir . '/error.log');
+    }
 
     if (!empty($config['timezone']) && is_string($config['timezone'])) {
         date_default_timezone_set($config['timezone']);
@@ -244,6 +250,10 @@ function toy_write_config(array $config): void
 function toy_render_error(int $statusCode, string $message, ?Throwable $exception = null): void
 {
     http_response_code($statusCode);
+    if ($exception instanceof Throwable) {
+        toy_log_exception($exception, 'render_error_' . $statusCode);
+    }
+
     $config = [];
     if (is_file(TOY_ROOT . '/config/config.php')) {
         try {
@@ -256,6 +266,26 @@ function toy_render_error(int $statusCode, string $message, ?Throwable $exceptio
     $debug = !empty($config['debug']);
     $pageTitle = (string) $statusCode;
     include TOY_ROOT . '/core/views/error.php';
+}
+
+function toy_log_exception(Throwable $exception, string $context): void
+{
+    $logDir = TOY_ROOT . '/storage/logs';
+    if (!is_dir($logDir) && !mkdir($logDir, 0755, true)) {
+        return;
+    }
+
+    $line = sprintf(
+        "[%s] %s %s: %s in %s:%d\n",
+        toy_now(),
+        $context,
+        get_class($exception),
+        $exception->getMessage(),
+        $exception->getFile(),
+        $exception->getLine()
+    );
+
+    file_put_contents($logDir . '/error.log', $line, FILE_APPEND | LOCK_EX);
 }
 
 function toy_audit_log(PDO $pdo, array $data): void
