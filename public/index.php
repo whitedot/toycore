@@ -180,7 +180,10 @@ elseif ($enabled_modules['member'] === true && $method === 'GET' && $path === '/
 
     if (isset($_SESSION['toy_member_id'])) {
         $page_body .= '<p>' . h(t($text, $locale, $site_default_locale, 'logged_in')) . '</p>';
-        $page_body .= '<p><a href="/logout">' . h(t($text, $locale, $site_default_locale, 'logout')) . '</a></p>';
+        $page_body .= '<form method="post" action="/logout">';
+        $page_body .= '<input type="hidden" name="_csrf" value="' . h($csrf_token) . '">';
+        $page_body .= '<button type="submit">' . h(t($text, $locale, $site_default_locale, 'logout')) . '</button>';
+        $page_body .= '</form>';
     }
 
     $page_body .= '<form method="post" action="/login">';
@@ -206,6 +209,7 @@ elseif ($enabled_modules['member'] === true && $method === 'POST' && $path === '
          * password_hash 검증, toy_member_auth_logs 기록 후 세션을 재생성합니다.
          */
         session_regenerate_id(true);
+        $_SESSION['toy_csrf_token'] = bin2hex(random_bytes(32));
         $_SESSION['toy_member_id'] = 1;
 
         header('Location: /login', true, 302);
@@ -213,12 +217,21 @@ elseif ($enabled_modules['member'] === true && $method === 'POST' && $path === '
     }
 }
 
-elseif ($enabled_modules['member'] === true && $method === 'GET' && $path === '/logout') {
-    unset($_SESSION['toy_member_id']);
-    session_regenerate_id(true);
+elseif ($enabled_modules['member'] === true && $method === 'POST' && $path === '/logout') {
+    $posted_csrf = $_POST['_csrf'] ?? '';
 
-    header('Location: /login', true, 302);
-    exit;
+    if (!is_string($posted_csrf) || !hash_equals($csrf_token, $posted_csrf)) {
+        $status_code = 400;
+        $page_title = t($text, $locale, $site_default_locale, 'invalid_csrf');
+        $page_body = '<h1>' . h($page_title) . '</h1>';
+    } else {
+        unset($_SESSION['toy_member_id']);
+        session_regenerate_id(true);
+        $_SESSION['toy_csrf_token'] = bin2hex(random_bytes(32));
+
+        header('Location: /login', true, 302);
+        exit;
+    }
 }
 
 else {

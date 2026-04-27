@@ -152,7 +152,7 @@ erDiagram
     toy_member_auth_logs {
         bigint id PK
         bigint site_id FK
-        bigint account_id FK
+        bigint account_id FK "nullable"
         varchar event_type
         varchar result
         varchar ip_address
@@ -292,7 +292,7 @@ erDiagram
 주요 값:
 
 - `scope`: `core`, `module`
-- `module_key`: 모듈 업데이트일 때만 사용
+- `module_key`: 코어 업데이트는 빈 문자열, 모듈 업데이트는 모듈 키 사용
 - `version`: 정렬 가능한 버전 문자열
 
 ### `toy_audit_logs`
@@ -338,6 +338,8 @@ erDiagram
 ### `toy_member_auth_logs`
 
 로그인, 로그아웃, 로그인 실패, 비밀번호 변경 같은 인증 관련 이벤트를 기록합니다. 보안 문제 추적과 관리자 확인 용도로 사용합니다.
+
+`account_id`는 로그인 성공이나 계정이 확인된 이벤트에서는 연결하지만, 존재하지 않는 계정으로 로그인 실패가 발생할 수 있으므로 nullable로 둡니다. 실패 시도 식별이 필요하면 계정 존재 여부나 원문 login ID를 노출하지 않도록 제한된 hash 또는 요약값만 별도 정책으로 저장합니다.
 
 ### `toy_member_consents`
 

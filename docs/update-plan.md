@@ -32,13 +32,15 @@ applied_at
 
 ```text
 scope = core
-module_key = null
+module_key = ''
 version = 2026.04.001
 
 scope = module
 module_key = member
 version = 2026.04.001
 ```
+
+코어 버전 기록은 `module_key`에 `NULL`을 쓰지 않고 빈 문자열을 사용합니다. MySQL/MariaDB의 UNIQUE 인덱스에서 `NULL` 중복이 허용되는 문제를 피하기 위해 `scope`, `module_key`, `version`은 모두 비교 가능한 값으로 저장합니다.
 
 ## 파일 구조
 

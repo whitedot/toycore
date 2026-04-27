@@ -105,7 +105,7 @@ disabled
 return [
     'GET /login' => 'handlers/login.php',
     'POST /login' => 'handlers/login.php',
-    'GET /logout' => 'handlers/logout.php',
+    'POST /logout' => 'handlers/logout.php',
 ];
 ```
 
