@@ -588,14 +588,22 @@ function toy_member_find_email_verification(PDO $pdo, array $config, string $tok
     return $verification;
 }
 
-function toy_member_mark_email_verified(PDO $pdo, int $verificationId, int $accountId): void
+function toy_member_mark_email_verified(PDO $pdo, int $verificationId, int $accountId): bool
 {
     $now = toy_now();
-    $stmt = $pdo->prepare('UPDATE toy_member_email_verifications SET verified_at = :verified_at WHERE id = :id');
+    $stmt = $pdo->prepare(
+        'UPDATE toy_member_email_verifications
+         SET verified_at = :verified_at
+         WHERE id = :id
+           AND verified_at IS NULL'
+    );
     $stmt->execute([
         'verified_at' => $now,
         'id' => $verificationId,
     ]);
+    if ($stmt->rowCount() !== 1) {
+        return false;
+    }
 
     $stmt = $pdo->prepare('UPDATE toy_member_accounts SET email_verified_at = :email_verified_at, updated_at = :updated_at WHERE id = :id');
     $stmt->execute([
@@ -603,6 +611,8 @@ function toy_member_mark_email_verified(PDO $pdo, int $verificationId, int $acco
         'updated_at' => $now,
         'id' => $accountId,
     ]);
+
+    return true;
 }
 
 function toy_member_record_consent(PDO $pdo, int $accountId, string $consentKey, string $version, bool $consented): void

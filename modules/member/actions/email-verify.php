@@ -12,7 +12,23 @@ if ($verification === null || $verification['status'] !== 'active') {
     exit;
 }
 
-toy_member_mark_email_verified($pdo, (int) $verification['id'], (int) $verification['account_id']);
+$pdo->beginTransaction();
+try {
+    if (!toy_member_mark_email_verified($pdo, (int) $verification['id'], (int) $verification['account_id'])) {
+        $pdo->rollBack();
+        toy_render_error(400, '이메일 인증 링크가 올바르지 않거나 만료되었습니다.');
+        exit;
+    }
+
+    $pdo->commit();
+} catch (Throwable $exception) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
+    throw $exception;
+}
+
 toy_member_log_auth($pdo, (int) $verification['account_id'], 'email_verification', 'success');
 toy_audit_log($pdo, [
     'actor_account_id' => (int) $verification['account_id'],
