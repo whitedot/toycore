@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 require_once TOY_ROOT . '/modules/member/helpers.php';
 
+if (toy_request_method() !== 'POST') {
+    toy_render_error(405, '허용되지 않는 요청입니다.');
+    exit;
+}
+
+toy_require_csrf();
+
 $account = toy_member_require_login($pdo);
 $export = toy_member_privacy_export_data($pdo, (int) $account['id']);
 

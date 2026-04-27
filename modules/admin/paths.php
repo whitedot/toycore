@@ -15,7 +15,7 @@ return [
     'GET /admin/audit-logs' => 'actions/audit-logs.php',
     'GET /admin/privacy-requests' => 'actions/privacy-requests.php',
     'POST /admin/privacy-requests' => 'actions/privacy-requests.php',
-    'GET /admin/privacy-requests/export' => 'actions/privacy-request-export.php',
+    'POST /admin/privacy-requests/export' => 'actions/privacy-request-export.php',
     'GET /admin/retention' => 'actions/retention.php',
     'POST /admin/retention' => 'actions/retention.php',
 ];

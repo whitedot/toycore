@@ -5,10 +5,17 @@ declare(strict_types=1);
 require_once TOY_ROOT . '/modules/member/helpers.php';
 require_once TOY_ROOT . '/modules/admin/helpers.php';
 
+if (toy_request_method() !== 'POST') {
+    toy_render_error(405, '허용되지 않는 요청입니다.');
+    exit;
+}
+
+toy_require_csrf();
+
 $account = toy_member_require_login($pdo);
 toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
-$requestId = (int) toy_get_string('id', 20);
+$requestId = (int) toy_post_string('id', 20);
 if ($requestId <= 0) {
     toy_render_error(400, '개인정보 요청을 선택하세요.');
     exit;

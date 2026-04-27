@@ -146,7 +146,10 @@ $pageTitle = '내 계정';
             <button type="submit">로그아웃</button>
         </form>
         <p><a href="/account/privacy-requests">개인정보 요청</a></p>
-        <p><a href="/account/privacy-export">개인정보 JSON 내보내기</a></p>
+        <form method="post" action="/account/privacy-export">
+            <?php echo toy_csrf_field(); ?>
+            <button type="submit">개인정보 JSON 내보내기</button>
+        </form>
         <p><a href="/account/withdraw">회원 탈퇴</a></p>
     </main>
 </body>

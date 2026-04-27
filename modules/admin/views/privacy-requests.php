@@ -59,7 +59,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) ($request['request_message'] ?? '')); ?></td>
                 <td><?php echo toy_e((string) ($request['handled_at'] ?? '')); ?></td>
                 <td>
-                    <p><a href="/admin/privacy-requests/export?id=<?php echo toy_e((string) $request['id']); ?>">JSON</a></p>
+                    <form method="post" action="/admin/privacy-requests/export">
+                        <?php echo toy_csrf_field(); ?>
+                        <input type="hidden" name="id" value="<?php echo toy_e((string) $request['id']); ?>">
+                        <button type="submit">JSON</button>
+                    </form>
                     <form method="post" action="/admin/privacy-requests">
                         <?php echo toy_csrf_field(); ?>
                         <input type="hidden" name="request_id" value="<?php echo toy_e((string) $request['id']); ?>">

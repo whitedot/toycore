@@ -11,7 +11,7 @@ return [
     'POST /account/withdraw' => 'actions/withdraw.php',
     'GET /account/privacy-requests' => 'actions/privacy-requests.php',
     'POST /account/privacy-requests' => 'actions/privacy-requests.php',
-    'GET /account/privacy-export' => 'actions/privacy-export.php',
+    'POST /account/privacy-export' => 'actions/privacy-export.php',
     'POST /account/email-verification' => 'actions/email-verification-request.php',
     'GET /email/verify' => 'actions/email-verify.php',
     'GET /password/reset' => 'actions/password-reset-request.php',
