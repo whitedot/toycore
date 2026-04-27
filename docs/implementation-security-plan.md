@@ -58,6 +58,7 @@ public entry
 
 - 설정 조회
 - locale 결정과 번역 문자열 조회
+- 기본 SEO 메타 출력 기반
 - DB 헬퍼
 - 요청/응답 헬퍼
 - 라우팅
@@ -191,6 +192,29 @@ return [
 DB에 저장되는 사용자 콘텐츠의 다국어화는 별도 모듈 책임으로 둡니다. 코어는 사이트 기본 locale, 지원 locale 목록, 회원 선호 locale을 관리합니다.
 
 코어는 `toy_page_translations` 같은 콘텐츠 번역 테이블을 강제하지 않습니다. 필요한 모듈이 자신의 데이터 구조에 맞게 번역 테이블을 설계합니다.
+
+## SEO 대응 방향
+
+Toycore의 코어는 SEO 출력 기반만 제공합니다. 콘텐츠별 SEO 판단은 각 모듈의 책임입니다.
+
+코어 담당:
+
+- 사이트 기본 title/description 설정
+- canonical URL helper
+- robots 기본값
+- `<head>` 영역에 SEO 값을 출력할 수 있는 공통 변수 규칙
+- 로그인, 관리자, 오류 페이지의 `noindex` 기본 처리
+
+모듈 담당:
+
+- 콘텐츠별 title
+- 콘텐츠별 description
+- 콘텐츠별 canonical
+- Open Graph 값
+- 구조화 데이터
+- sitemap에 포함할 URL 목록
+
+코어는 모든 콘텐츠 테이블에 SEO 컬럼을 강제하지 않습니다. `page`, `board`, `shop` 같은 모듈이 자신에게 맞는 SEO 필드와 URL 정책을 설계합니다.
 
 ### 다국어 설계 원칙
 
@@ -471,6 +495,7 @@ withdrawal    : 동의 철회
 - `docs/module-guide.md`: 모듈 작성 규칙
 - `docs/privacy-gdpr-plan.md`: 개인정보와 GDPR 대응 계획
 - `docs/i18n-plan.md`: 다국어 처리 계획
+- `docs/seo-plan.md`: SEO 대응 계획
 
 ## 우선순위
 
@@ -481,9 +506,10 @@ withdrawal    : 동의 철회
 5. 회원 인증 모듈
 6. 동의 기록과 개인정보 요청 기록
 7. CSRF와 escape 헬퍼
-8. 관리자 설정 화면
-9. 권한 체계
-10. 업로드와 확장 모듈
+8. 기본 SEO 메타 출력
+9. 관리자 설정 화면
+10. 권한 체계
+11. 업로드와 확장 모듈
 
 ## 당장 결정해야 할 사항
 
@@ -495,3 +521,4 @@ withdrawal    : 동의 철회
 - 기본 지원 locale과 fallback locale
 - GDPR 대응 기능을 기본 코어에 포함할지 privacy 모듈로 분리할지
 - 탈퇴 회원의 게시물/콘텐츠를 삭제할지 익명화할지
+- sitemap과 Open Graph를 코어 기본 기능으로 둘지 별도 SEO 모듈로 둘지

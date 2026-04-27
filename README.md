@@ -30,6 +30,7 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 - [모듈 작성 가이드](docs/module-guide.md)
 - [다국어 처리 계획](docs/i18n-plan.md)
 - [개인정보 및 GDPR 대응 계획](docs/privacy-gdpr-plan.md)
+- [SEO 대응 계획](docs/seo-plan.md)
 
 ## 프로젝트 관점
 
