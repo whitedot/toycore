@@ -6,7 +6,7 @@ require_once TOY_ROOT . '/modules/member/helpers.php';
 require_once TOY_ROOT . '/modules/admin/helpers.php';
 
 $account = toy_member_require_login($pdo);
-toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+toy_admin_require_role($pdo, (int) $account['id'], ['owner']);
 
 $errors = [];
 $notice = '';
