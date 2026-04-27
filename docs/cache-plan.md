@@ -52,7 +52,7 @@ return [
     'name' => 'Toycore',
     'default_locale' => 'ko',
     'home.module' => 'page',
-    'home.handler' => 'home',
+    'home.action' => 'home',
 ];
 ```
 

@@ -101,7 +101,7 @@ Open Graph는 다음처럼 역할을 분리합니다.
 - locale별 sitemap
 - locale별 Open Graph locale
 
-이 항목은 URL prefix 기반 다국어 라우팅이 확정된 뒤 설계합니다. 실제 locale별 canonical, `hreflang`, locale별 sitemap URL은 콘텐츠 관계를 아는 모듈이 제공합니다.
+이 항목은 URL prefix 기반 다국어 요청 분기가 확정된 뒤 설계합니다. 실제 locale별 canonical, `hreflang`, locale별 sitemap URL은 콘텐츠 관계를 아는 모듈이 제공합니다.
 
 ## Sitemap
 

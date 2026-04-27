@@ -1,8 +1,8 @@
-# 진입점 및 홈 라우팅 계획
+# 진입점 및 홈 요청 분기 계획
 
-Toycore의 최초 진입점은 코어가 책임집니다. 특정 모듈이 `public/index.php`나 `/` 요청 자체를 소유하지 않습니다.
+Toycore의 최초 진입점은 코어가 책임집니다. 특정 모듈이 `www/index.php`나 `/` 요청 자체를 소유하지 않습니다.
 
-라우팅은 전역 라우트 등록 API가 아니라, 코어의 명시적 분기와 검증된 include를 기본으로 합니다.
+요청 분기는 전역 path 등록 API가 아니라, 코어의 명시적 분기와 검증된 include를 기본으로 합니다.
 
 ## 결론
 
@@ -17,19 +17,19 @@ Toycore의 최초 진입점은 코어가 책임집니다. 특정 모듈이 `publ
 
 ## 코어가 담당하는 것
 
-- `public/index.php` 진입
+- `www/index.php` 진입
 - 부트스트랩 실행
 - 사이트 설정 로드
 - 현재 path 확인
 - 활성 모듈 확인
-- 홈 라우트 설정 조회
+- 홈 path 설정 조회
 - 설정된 홈 모듈이 활성 상태인지 확인
-- 현재 요청에 맞는 handler 경로 검증
+- 현재 요청에 맞는 action 파일 경로 검증
 - 404, 점검 모드, 설치 오류, 기본 홈 화면 처리
 
 ## 모듈이 담당하는 것
 
-모듈은 자신이 제공하는 콘텐츠와 handler를 담당합니다.
+모듈은 자신이 제공하는 콘텐츠와 action 파일을 담당합니다.
 
 예시:
 
@@ -46,7 +46,7 @@ Toycore의 최초 진입점은 코어가 책임집니다. 특정 모듈이 `publ
 
 ```text
 home.module = page
-home.handler = home
+home.action = home
 home.value = home
 ```
 
@@ -63,7 +63,7 @@ GET /
 -> 코어가 사이트 설정 확인
 -> home.module 확인
 -> 해당 모듈 활성 상태 확인
--> 모듈 handler include
+-> 모듈 action 파일 include
 -> 모듈이 콘텐츠 출력
 ```
 
@@ -74,7 +74,7 @@ if ($path === '/') {
     $home_module = toy_setting('home.module', 'core');
 
     if ($home_module === 'page' && toy_module_enabled('page')) {
-        include TOY_ROOT . '/modules/page/handlers/home.php';
+        include TOY_ROOT . '/modules/page/actions/home.php';
         exit;
     }
 
@@ -83,20 +83,20 @@ if ($path === '/') {
 }
 ```
 
-이 예시는 방향을 보여주기 위한 것입니다. 실제 구현에서는 include 경로를 조립하기 전에 모듈 키와 handler 이름을 허용 목록 또는 정해진 규칙으로 검증합니다.
+이 예시는 방향을 보여주기 위한 것입니다. 실제 구현에서는 include 경로를 조립하기 전에 모듈 키와 action 파일 이름을 허용 목록 또는 정해진 규칙으로 검증합니다.
 
 ## 일반 path 처리 방식
 
 홈 이외의 path도 같은 원칙을 따릅니다.
 
-모듈은 실행형 라우트 등록을 하지 않고, 처리 가능한 method/path 목록만 배열로 제공합니다.
+모듈은 실행형 path 등록을 하지 않고, 처리 가능한 method/path 목록만 배열로 제공합니다.
 
 ```php
 <?php
 
 return [
-    'GET /login' => 'handlers/login.php',
-    'POST /login' => 'handlers/login.php',
+    'GET /login' => 'actions/login.php',
+    'POST /login' => 'actions/login.php',
 ];
 ```
 
@@ -107,16 +107,16 @@ return [
 2. 활성 모듈 목록 확인
 3. 활성 모듈의 paths.php 배열 읽기
 4. 현재 method/path와 일치하는 항목 찾기
-5. handler 상대 경로 검증
-6. 검증된 handler include
+5. action 파일 상대 경로 검증
+6. 검증된 action 파일 include
 ```
 
 금지하는 방향:
 
-- `toy_route()` 같은 전역 등록 함수 중심 라우팅
-- 모듈 include 시점에 라우트가 암묵적으로 등록되는 구조
+- `toy_route()` 같은 전역 등록 함수 중심 요청 분기
+- 모듈 include 시점에 path가 암묵적으로 등록되는 구조
 - 파일명, 클래스명, attribute 자동 스캔
-- 활성화되지 않은 모듈의 handler include
+- 활성화되지 않은 모듈의 action 파일 include
 - 설정값을 검증 없이 파일 경로로 조립
 
 ## page 모듈의 위치
@@ -139,7 +139,7 @@ return [
 우선순위:
 
 ```text
-1. 설정된 home.module이 활성 상태면 해당 모듈 handler 실행
+1. 설정된 home.module이 활성 상태면 해당 모듈 action 파일 실행
 2. 설정이 없으면 core 기본 home 출력
 3. 설정은 있으나 모듈이 비활성/누락이면 관리자에게 알 수 있는 기본 오류 화면 출력
 ```

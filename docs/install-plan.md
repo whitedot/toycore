@@ -23,7 +23,7 @@ Toycore는 저가형 웹호스팅에서도 설치할 수 있어야 하므로 CLI
 ## 설치 흐름
 
 ```text
-1. public/index.php 진입
+1. www/index.php 진입
 2. 설정 파일 존재 여부 확인
 3. 미설치 상태면 install 화면 include
 4. 환경 점검

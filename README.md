@@ -39,7 +39,7 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 - [다국어 처리 계획](docs/i18n-plan.md)
 - [개인정보 및 GDPR 대응 계획](docs/privacy-gdpr-plan.md)
 - [SEO 대응 계획](docs/seo-plan.md)
-- [진입점 및 홈 라우팅 계획](docs/routing-entry-plan.md)
+- [진입점 및 홈 요청 분기 계획](docs/entry-request-plan.md)
 - [캐시 계획](docs/cache-plan.md)
 
 ## 예제
