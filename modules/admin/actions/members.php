@@ -73,6 +73,7 @@ if (toy_request_method() === 'POST') {
             'updated_at' => toy_now(),
             'id' => $targetAccountId,
         ]);
+        $revokedSessions = $status === 'active' ? 0 : toy_member_revoke_account_sessions($pdo, $targetAccountId);
 
         toy_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
@@ -85,6 +86,7 @@ if (toy_request_method() === 'POST') {
             'metadata' => [
                 'before_status' => (string) $targetAccount['status'],
                 'after_status' => $status,
+                'revoked_sessions' => $revokedSessions,
             ],
         ]);
 
