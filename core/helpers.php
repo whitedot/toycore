@@ -29,7 +29,7 @@ function toy_send_security_headers(?array $config = null): void
 
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
-    header('Referrer-Policy: same-origin');
+    header('Referrer-Policy: no-referrer');
     header("Content-Security-Policy: default-src 'self'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'");
     header('Cache-Control: no-store, no-cache, must-revalidate');
     header('Pragma: no-cache');
