@@ -5,6 +5,10 @@ declare(strict_types=1);
 function toy_start_session(): void
 {
     if (session_status() === PHP_SESSION_NONE) {
+        ini_set('session.use_strict_mode', '1');
+        ini_set('session.use_only_cookies', '1');
+        ini_set('session.cookie_httponly', '1');
+        ini_set('session.cookie_samesite', 'Lax');
         session_name('toy_session');
         session_set_cookie_params([
             'lifetime' => 0,
