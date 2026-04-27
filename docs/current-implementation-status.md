@@ -20,6 +20,8 @@
 - 설치 전/설치 후 분기
 - 현재 locale 결정
 - 기본 번역 helper
+- 사이트/모듈 설정 조회 helper
+- 요청 단위 설정 조회 메모리 캐시
 - 활성 모듈 `paths.php` 기반 action include
 - action 상대 경로 검증
 - 기본 home/error view

@@ -164,6 +164,15 @@ vendor/package
 4. toy_module_settings에 기본 설정 등록
 ```
 
+모듈 설정을 읽을 때는 코어 helper를 사용합니다.
+
+```php
+$settings = toy_module_settings($pdo, 'member');
+$loginIdentifier = toy_module_setting($pdo, 'member', 'login_identifier', 'email');
+```
+
+이 helper는 요청 단위로 값을 메모리에 보관하지만, 파일 캐시나 외부 캐시 서버를 필수로 요구하지 않습니다.
+
 설치 SQL은 가능한 한 일반적인 MySQL/MariaDB 문법을 사용합니다.
 
 ```sql

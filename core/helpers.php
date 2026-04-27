@@ -113,6 +113,90 @@ function toy_enabled_module_keys(PDO $pdo): array
     return $moduleKeys;
 }
 
+function toy_site_settings(PDO $pdo, bool $publicOnly = false): array
+{
+    static $cache = [];
+
+    $cacheKey = $publicOnly ? 'public' : 'all';
+    if (isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
+    if ($publicOnly) {
+        $stmt = $pdo->query('SELECT setting_key, setting_value, value_type FROM toy_site_settings WHERE is_public = 1 ORDER BY setting_key ASC');
+    } else {
+        $stmt = $pdo->query('SELECT setting_key, setting_value, value_type FROM toy_site_settings ORDER BY setting_key ASC');
+    }
+
+    $settings = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $settings[(string) $row['setting_key']] = toy_cast_setting_value($row['setting_value'], (string) $row['value_type']);
+    }
+
+    $cache[$cacheKey] = $settings;
+    return $settings;
+}
+
+function toy_site_setting(PDO $pdo, string $key, mixed $default = null): mixed
+{
+    $settings = toy_site_settings($pdo);
+    return array_key_exists($key, $settings) ? $settings[$key] : $default;
+}
+
+function toy_module_settings(PDO $pdo, string $moduleKey): array
+{
+    static $cache = [];
+
+    if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+        return [];
+    }
+
+    if (isset($cache[$moduleKey])) {
+        return $cache[$moduleKey];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT s.setting_key, s.setting_value, s.value_type
+         FROM toy_module_settings s
+         INNER JOIN toy_modules m ON m.id = s.module_id
+         WHERE m.module_key = :module_key
+         ORDER BY s.setting_key ASC'
+    );
+    $stmt->execute(['module_key' => $moduleKey]);
+
+    $settings = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $settings[(string) $row['setting_key']] = toy_cast_setting_value($row['setting_value'], (string) $row['value_type']);
+    }
+
+    $cache[$moduleKey] = $settings;
+    return $settings;
+}
+
+function toy_module_setting(PDO $pdo, string $moduleKey, string $key, mixed $default = null): mixed
+{
+    $settings = toy_module_settings($pdo, $moduleKey);
+    return array_key_exists($key, $settings) ? $settings[$key] : $default;
+}
+
+function toy_cast_setting_value(mixed $value, string $type): mixed
+{
+    if ($type === 'int') {
+        return (int) $value;
+    }
+
+    if ($type === 'bool') {
+        return in_array((string) $value, ['1', 'true', 'yes', 'on'], true);
+    }
+
+    if ($type === 'json') {
+        $decoded = json_decode((string) $value, true);
+        return json_last_error() === JSON_ERROR_NONE ? $decoded : null;
+    }
+
+    return $value === null ? '' : (string) $value;
+}
+
 function toy_set_locale(string $locale): void
 {
     if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $locale) !== 1) {
