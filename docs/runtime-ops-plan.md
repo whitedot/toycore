@@ -24,7 +24,7 @@ install
 설정 위치:
 
 ```text
-config/local.php
+config/config.php
 ```
 
 예시:
@@ -106,7 +106,7 @@ toy_audit_logs
 ## 오류 처리 흐름
 
 ```text
-1. www/index.php 진입
+1. index.php 진입
 2. 설정 로드 시도
 3. 설치 상태 확인
 4. 에러 핸들러 등록
