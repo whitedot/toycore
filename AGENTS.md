@@ -23,6 +23,10 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Prefer PHP, vanilla JavaScript, and plain CSS.
 - Assume low-cost shared web hosting as a supported deployment environment.
 - Treat member authentication as a module, even when it is provided as a default module.
+- Prefer a readable core over a clever core.
+- Make request flow visible by reading files, not hidden behind automatic registration.
+- Prioritize clear module boundaries over adding core features.
+- Do not grow the initial implementation into a full CMS.
 
 ## PHP Style
 
