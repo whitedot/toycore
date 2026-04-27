@@ -184,6 +184,24 @@ function toy_member_login(PDO $pdo, array $account): void
     ]);
 }
 
+function toy_member_verify_login_password(?array $account, string $password): bool
+{
+    $passwordHash = is_array($account)
+        ? (string) ($account['password_hash'] ?? '')
+        : toy_member_dummy_password_hash();
+
+    $passwordMatches = password_verify($password, $passwordHash);
+
+    return $passwordMatches
+        && is_array($account)
+        && (string) ($account['status'] ?? '') === 'active';
+}
+
+function toy_member_dummy_password_hash(): string
+{
+    return '$2y$10$rXJfqk3XCcK2njbFv2w3XuJ3Ny/E6.46vRsuNcSOHg65o0bfe4enK';
+}
+
 function toy_member_create_session(PDO $pdo, int $accountId): string
 {
     $sessionTokenHash = hash('sha256', bin2hex(random_bytes(32)));

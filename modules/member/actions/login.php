@@ -34,7 +34,7 @@ if (toy_request_method() === 'POST') {
             'message' => 'Member login blocked by throttle.',
         ]);
         $errors[] = '로그인 시도가 많습니다. 잠시 후 다시 시도하세요.';
-    } elseif ($account !== null && $account['status'] === 'active' && password_verify($password, (string) $account['password_hash'])) {
+    } elseif (toy_member_verify_login_password($account, $password)) {
         toy_member_login($pdo, $account);
         toy_member_log_auth($pdo, (int) $account['id'], 'login', 'success');
         toy_audit_log($pdo, [
