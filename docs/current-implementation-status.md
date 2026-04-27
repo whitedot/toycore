@@ -34,6 +34,7 @@
 - 기본 mail helper
 - HMAC hash helper
 - 기본 보안 응답 헤더
+- 동적 PHP 응답 캐시 방지 헤더
 - 감사 로그 helper
 - 예외 요약 파일 로그
 

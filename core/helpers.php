@@ -27,6 +27,8 @@ function toy_send_security_headers(?array $config = null): void
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: same-origin');
     header("Content-Security-Policy: default-src 'self'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'");
+    header('Cache-Control: no-store, no-cache, must-revalidate');
+    header('Pragma: no-cache');
 
     if (toy_is_https_request() && (empty($config) || (string) ($config['env'] ?? 'production') === 'production')) {
         header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
