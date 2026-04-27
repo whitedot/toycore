@@ -1,0 +1,497 @@
+# 구현 방향 및 보안 계획
+
+Toycore는 절차형 PHP, 바닐라 JavaScript, plain CSS를 기반으로 하는 웹 솔루션 코어입니다. 목표는 복잡한 프레임워크 없이도 저가형 웹호스팅에서 설치하고 운영할 수 있는 구조를 제공하는 것입니다.
+
+이 문서는 Toycore의 구현 방향, 모듈 경계, 보안 이슈, 운영 관점의 우선순위를 정리합니다.
+
+## 기준
+
+- 프로젝트 접두사는 `toy_`를 사용한다.
+- 회원 인증은 기본 제공하되 `member` 모듈로 취급한다.
+- 코어는 모든 기능을 직접 포함하지 않고, 모듈을 등록하고 실행하는 최소 기반을 담당한다.
+- 보안 기준은 OWASP ASVS와 OWASP Cheat Sheet Series를 참고한다.
+- 저가형 웹호스팅 호환성을 위해 서버 데몬, 큐 워커, 복잡한 배포 파이프라인에 의존하지 않는다.
+
+참고 기준:
+
+- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/)
+- [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
+- [OWASP Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
+- [OWASP CSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
+- [OWASP File Upload Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html)
+- [European Commission GDPR principles](https://commission.europa.eu/law/law-topic/data-protection/rules-business-and-organisations/principles-gdpr_en)
+- [European Data Protection Board: GDPR FAQ](https://www.edpb.europa.eu/sme-data-protection-guide/faq-frequently-asked-questions/answer/what-gdpr_en)
+- [European Data Protection Board: individuals' rights](https://www.edpb.europa.eu/sme-data-protection-guide/respect-individuals-rights_en)
+
+## 전체 구조
+
+Toycore는 다음 계층으로 나눕니다.
+
+```text
+public entry
+-> bootstrap
+-> request/router
+-> module dispatcher
+-> procedural handlers
+-> view/template
+-> response
+```
+
+### `public`
+
+웹에서 직접 접근 가능한 진입점입니다. 가능한 한 `public/index.php` 하나를 중심으로 요청을 받고, 업로드 파일이나 설정 파일이 웹 루트에서 직접 실행되지 않도록 합니다.
+
+### `bootstrap`
+
+공통 초기화 영역입니다.
+
+- 경로 상수 정의
+- 설정 로드
+- DB 연결
+- 세션 초기화
+- 에러 처리 정책 적용
+- 활성 모듈 로드
+
+### `core`
+
+코어는 기능 구현보다 실행 기반을 담당합니다.
+
+- 설정 조회
+- locale 결정과 번역 문자열 조회
+- DB 헬퍼
+- 요청/응답 헬퍼
+- 라우팅
+- 모듈 등록과 활성화 확인
+- 인증 상태 조회 인터페이스
+- CSRF, escape, redirect 같은 보안 헬퍼
+
+### `modules`
+
+기능별 구현 영역입니다. 회원 인증도 `modules/member`에 둡니다.
+
+모듈은 다음 구성을 기본으로 합니다.
+
+```text
+modules/{module_key}/
+- module.php
+- routes.php
+- handlers/
+- views/
+- install.sql
+```
+
+## 모듈 처리 방식
+
+Toycore의 모듈 시스템은 라라벨 같은 프레임워크의 패키지, 서비스 프로바이더, 마이그레이션, 이벤트 컨테이너 방식을 따르지 않습니다.
+
+모듈은 다음 세 가지 정보로만 연결합니다.
+
+- 파일 위치 약속
+- DB에 저장된 설치/활성 상태
+- 절차형 PHP 함수와 handler
+
+### 설치
+
+모듈 설치는 SQL 파일과 단순 PHP 설치 스크립트로 처리합니다.
+
+```text
+modules/{module_key}/install.sql
+modules/{module_key}/module.php
+```
+
+설치 과정:
+
+```text
+1. install.sql 실행
+2. toy_modules에 module_key 등록
+3. toy_site_modules에 사이트별 활성 상태 저장
+4. toy_module_settings에 기본 설정 저장
+```
+
+설치 과정은 웹 설치 화면이나 관리자 화면에서 실행할 수 있어야 하며, CLI 도구를 필수로 요구하지 않습니다.
+
+### 활성화
+
+활성화는 `toy_site_modules.status` 값을 기준으로 판단합니다.
+
+```text
+enabled  : 해당 사이트에서 모듈 사용
+disabled : 해당 사이트에서 모듈 미사용
+```
+
+요청 처리 시 코어는 현재 사이트의 활성 모듈 목록만 읽고, 활성 모듈의 route 파일만 include합니다.
+
+```php
+$modules = toy_get_enabled_modules($siteId);
+
+foreach ($modules as $module) {
+    $routes = TOY_MODULES_PATH . '/' . $module['module_key'] . '/routes.php';
+
+    if (is_file($routes)) {
+        require $routes;
+    }
+}
+```
+
+이 코드는 개념 예시이며, 실제 구현에서는 `module_key`를 허용된 형식으로 검증한 뒤 경로를 조립합니다.
+
+### 명시적으로 피할 방식
+
+Toycore는 다음 방식을 기본 구현에 도입하지 않습니다.
+
+- Composer 패키지 자동 발견
+- Laravel Service Provider 유사 구조
+- Artisan 같은 CLI 필수 설치/운영 명령
+- ORM 모델 중심 설계
+- PHP 클래스 기반 마이그레이션 필수화
+- 의존성 주입 컨테이너
+- 이벤트 버스 기반의 숨은 실행 흐름
+- annotation, attribute, reflection 기반 라우트 자동 등록
+
+필요한 규칙은 코드 생성이나 자동 탐색보다 명시적인 파일과 DB 상태로 표현합니다.
+
+## 다국어 처리 방향
+
+Toycore는 처음부터 다국어 구조를 고려합니다. 다만 복잡한 번역 플랫폼을 전제로 하지 않고, 파일 기반 번역과 DB 기반 설정을 함께 사용합니다.
+
+코어 다국어 기능은 UI 문구, locale 결정, fallback, 회원 선호 언어까지로 제한합니다. 게시글, 페이지, 상품 같은 사용자 콘텐츠의 다국어화는 각 모듈의 책임으로 둡니다.
+
+### Locale 결정 순서
+
+요청에서 사용할 locale은 다음 순서로 결정합니다.
+
+```text
+1. 명시적 URL 또는 query 값
+2. 로그인 회원의 저장된 locale
+3. 사이트 기본 locale
+4. 브라우저 Accept-Language
+5. 시스템 기본값
+```
+
+초기 구현에서는 사이트 기본 locale과 회원 locale을 우선 지원하고, URL 기반 다국어 라우팅은 후순위로 둡니다.
+
+### 번역 문자열
+
+코어와 모듈은 각자 번역 파일을 가질 수 있습니다.
+
+```text
+lang/{locale}/core.php
+modules/{module_key}/lang/{locale}.php
+```
+
+번역은 명시적인 key-value 배열로 관리합니다.
+
+```php
+return [
+    'login.title' => '로그인',
+    'login.submit' => '로그인',
+];
+```
+
+DB에 저장되는 사용자 콘텐츠의 다국어화는 별도 모듈 책임으로 둡니다. 코어는 사이트 기본 locale, 지원 locale 목록, 회원 선호 locale을 관리합니다.
+
+코어는 `toy_page_translations` 같은 콘텐츠 번역 테이블을 강제하지 않습니다. 필요한 모듈이 자신의 데이터 구조에 맞게 번역 테이블을 설계합니다.
+
+### 다국어 설계 원칙
+
+- 날짜, 시간은 저장 시 UTC 또는 명확한 timezone 기준을 사용하고 출력 시 locale/timezone을 반영
+- 번역 키는 화면 문구에 직접 의존하지 않고 안정적인 key로 작성
+- 관리자 화면에서 지원 locale 목록을 설정할 수 있게 설계
+- 없는 번역은 기본 locale로 fallback
+- URL 구조 다국어화는 `/ko/...`, `/en/...` 같은 방식으로 확장 가능하게 남김
+
+## GDPR 및 개인정보 처리 방향
+
+Toycore는 GDPR 대응을 법률 자문 없이 완성할 수 있다고 가정하지 않습니다. 대신 GDPR 적용 가능성이 있는 사이트가 최소한의 구조적 대응을 할 수 있도록 데이터 최소화, 동의 기록, 권리 요청, 보관 기간, 삭제/익명화 흐름을 코어 설계에 포함합니다.
+
+GDPR 적용 여부는 운영 주체, 대상 사용자, 서비스 지역에 따라 달라집니다. EDPB는 GDPR이 EEA 내 조직뿐 아니라 EU 내 개인을 대상으로 하는 조직에도 적용될 수 있다고 설명합니다.
+
+### 개인정보 처리 원칙
+
+- 수집 목적을 명확히 정하고 필요한 데이터만 저장
+- 필수 데이터와 선택 데이터를 구분
+- 동의가 필요한 항목은 동의 시점, 버전, IP, User-Agent를 기록
+- 개인정보 조회, 정정, 삭제, 처리 제한, 이동권 요청을 처리할 수 있는 기록 구조 마련
+- 탈퇴와 삭제는 즉시 물리 삭제만 전제로 하지 않고, 법적 보관 필요 여부에 따라 익명화와 보관을 구분
+- 로그와 백업의 보관 기간을 문서화
+- 관리자 화면에서 개인정보 원문 노출을 최소화
+
+### 회원 데이터 분류
+
+회원 모듈은 데이터를 다음처럼 분류합니다.
+
+| 분류 | 예시 | 처리 방향 |
+| --- | --- | --- |
+| 계정 필수 | login_id, email, password_hash | 인증 목적에 한정 |
+| 프로필 선택 | nickname, phone, birth_date, avatar_path | 선택 수집, 수정/삭제 가능 |
+| 보안 로그 | login IP, User-Agent, auth result | 보관 기간 설정 |
+| 동의 기록 | privacy policy, terms, marketing | 버전과 시점 보관 |
+| 운영 로그 | 관리자 변경 이력 | 필요한 범위로 제한 |
+
+### 권리 요청 처리
+
+GDPR 대응을 위해 다음 요청 유형을 기록할 수 있어야 합니다.
+
+```text
+access        : 개인정보 열람
+rectification : 정정
+erasure       : 삭제
+restriction   : 처리 제한
+portability   : 이동권/내보내기
+objection     : 처리 반대
+withdrawal    : 동의 철회
+```
+
+초기 구현은 자동 처리보다 관리자 검토 흐름을 우선합니다. 요청을 접수하고, 처리 상태와 처리자를 기록하며, 실제 삭제/내보내기는 보수적으로 구현합니다.
+
+### 삭제와 익명화
+
+탈퇴 또는 삭제 요청 시 다음 정책을 구분합니다.
+
+- 인증 계정은 비활성화 후 개인정보 필드를 익명화
+- 법적/보안상 필요한 로그는 정해진 기간 동안 최소 정보만 보관
+- 세션과 장기 로그인 토큰은 즉시 폐기
+- 게시물 같은 사용자 생성 콘텐츠는 모듈 정책에 따라 작성자 익명화 또는 삭제
+
+### 쿠키와 동의
+
+- 필수 세션 쿠키와 선택 쿠키를 구분
+- 분석, 마케팅, 외부 위젯은 기본 비활성으로 시작
+- 선택 쿠키를 쓰는 모듈은 동의 상태를 확인한 뒤만 동작
+- 동의 문서 버전이 바뀌면 재동의가 필요한지 판단 가능해야 함
+
+## 구현 단계
+
+### 1단계: 설치 가능한 최소 코어
+
+- 디렉터리 구조 확정
+- `public/index.php` 진입점 구성
+- `config/config.php` 또는 `config/local.php` 방식 결정
+- PDO 기반 DB 연결
+- 공통 응답, redirect, escaping 헬퍼 작성
+- 사이트 기본 locale과 지원 locale 설정
+- `toy_sites`, `toy_modules`, `toy_site_modules`, `toy_site_settings`, `toy_module_settings` 설치 SQL 작성
+
+완료 기준:
+
+- 브라우저에서 기본 페이지가 표시됨
+- DB 연결 실패와 설정 누락이 명확한 오류로 처리됨
+- 활성 모듈 목록을 DB에서 읽을 수 있음
+- 기본 locale 기준으로 문구를 출력할 수 있음
+
+### 2단계: 회원 인증 모듈
+
+- `member` 모듈 등록
+- 회원가입, 로그인, 로그아웃
+- 비밀번호 해시 저장
+- 회원 locale과 개인정보 동의 기록
+- 세션 재생성
+- 로그인 실패 기록
+- 기본 회원 상태 관리
+
+완료 기준:
+
+- 회원 가입과 로그인이 동작함
+- 비밀번호 원문은 저장되지 않음
+- 로그인 성공 시 세션 ID가 재생성됨
+- 인증 이벤트가 `toy_member_auth_logs`에 기록됨
+- 개인정보 처리방침/약관 동의 버전이 기록됨
+
+### 3단계: 관리자와 설정 관리
+
+- 관리자 로그인
+- 사이트 기본 설정 조회/수정
+- 지원 locale 관리
+- 모듈 활성화/비활성화
+- 회원 목록과 상태 변경
+- 개인정보 요청 접수/처리 상태 관리
+
+완료 기준:
+
+- 관리자 권한이 없는 사용자는 관리 화면에 접근할 수 없음
+- 설정 변경 요청은 CSRF 검증을 통과해야 함
+- 중요 변경은 로그로 남김
+- 개인정보 요청 처리 이력이 남음
+
+### 4단계: 확장 모듈 기반
+
+- 게시판, 페이지 같은 일반 모듈을 추가할 수 있는 규칙 정리
+- 모듈별 설정 조회 헬퍼
+- 모듈별 view 경로 규칙
+- 모듈별 번역 파일 규칙
+- 모듈 설치 SQL 실행 규칙
+
+완료 기준:
+
+- 새 모듈을 추가해 라우트와 화면을 붙일 수 있음
+- 모듈 비활성화 시 해당 라우트가 차단됨
+- 모듈이 기본 locale 번역 파일을 제공할 수 있음
+
+## 보안 원칙
+
+### 입력값 검증
+
+모든 외부 입력은 신뢰하지 않습니다.
+
+- `$_GET`, `$_POST`, `$_COOKIE`, `$_FILES`, request URI는 모두 검증 대상
+- 숫자 ID는 정수 변환 후 범위 확인
+- enum 값은 허용 목록으로 검증
+- 이메일, URL, 날짜는 전용 검증 함수 사용
+- DB 저장 전 검증과 출력 전 escaping을 별도로 수행
+
+### SQL Injection 방지
+
+- 모든 동적 값은 PDO prepared statement로 처리
+- 테이블명, 컬럼명, 정렬 방향은 바인딩할 수 없으므로 허용 목록으로만 선택
+- 검색 조건 조립은 공통 헬퍼로 제한
+- SQL 문자열 연결은 식별자 선택처럼 불가피한 경우에만 허용
+
+### XSS 방지
+
+- HTML 출력은 기본적으로 `htmlspecialchars()` 래퍼를 사용
+- 속성값, URL, JavaScript 컨텍스트를 구분해 escape
+- 사용자 입력 HTML 허용은 기본 금지
+- 관리자 화면도 XSS 방어 대상에 포함
+- 에디터나 첨부 HTML이 필요하면 별도 sanitizer 도입 전까지 기능 보류
+
+### CSRF 방지
+
+쿠키 기반 인증을 사용하는 모든 상태 변경 요청은 CSRF 토큰을 요구합니다.
+
+- POST, PUT, PATCH, DELETE 성격의 요청은 토큰 검증
+- 토큰은 세션에 저장하고 폼 hidden 필드로 전달
+- 로그인 후 세션 재생성과 함께 토큰도 갱신
+- SameSite 쿠키 설정을 함께 적용하되, CSRF 토큰을 대체하지 않음
+
+### 인증
+
+- 비밀번호는 PHP `password_hash()`와 `password_verify()` 사용
+- 비밀번호 변경, 이메일 변경 같은 민감 작업은 현재 비밀번호 재확인
+- 로그인 실패 횟수 제한 또는 지연 처리
+- 계정 상태는 `active`, `pending`, `suspended`, `deleted`처럼 명확한 값으로 제한
+- 인증 실패 메시지는 계정 존재 여부를 노출하지 않도록 설계
+
+### 세션
+
+- 로그인 성공 시 `session_regenerate_id(true)` 실행
+- 세션 쿠키에 `HttpOnly`, `Secure`, `SameSite` 적용
+- HTTPS가 아닌 개발 환경과 운영 환경의 쿠키 정책 분리
+- 세션 ID를 URL로 받지 않음
+- 장기 로그인 토큰을 구현할 경우 원문 저장 금지, 서버에는 해시만 저장
+- 로그아웃 시 서버 세션과 관련 토큰을 함께 폐기
+
+### 권한
+
+인증과 권한을 분리합니다.
+
+- 로그인 여부 확인: 인증
+- 특정 기능 수행 가능 여부 확인: 권한
+- 관리자 여부는 단순 플래그보다 역할/권한 확장 가능성을 고려
+- 라우트 진입 시 권한 확인
+- 화면에서 버튼을 숨기는 것은 보조 수단이며 서버 검증을 대체하지 않음
+
+### 파일 업로드
+
+초기 코어에서는 파일 업로드를 최소화하거나 보류합니다. 구현 시 다음 기준을 적용합니다.
+
+- 업로드 저장 위치는 가능하면 웹 루트 밖
+- 확장자와 MIME을 모두 확인하되, MIME은 보조 검증으로만 사용
+- 실행 가능한 확장자 업로드 금지
+- 원본 파일명으로 저장하지 않고 서버 생성 이름 사용
+- 파일 크기 제한
+- 이미지 업로드는 실제 이미지 파싱 검증
+- 다운로드는 직접 경로 노출 대신 파일 ID 기반 핸들러 사용
+
+### 설정과 비밀값
+
+- DB 비밀번호, 암호화 키, 메일 계정은 Git에 커밋하지 않음
+- `config/local.php`는 로컬 전용으로 두고 예시는 `config/sample.php`로 제공
+- 운영 모드에서는 에러 상세를 화면에 노출하지 않음
+- 설치 후 기본 관리자 계정과 기본 비밀번호를 강제로 변경
+
+### 로그
+
+- 인증 이벤트, 관리자 변경, 설정 변경은 로그 대상
+- 비밀번호, 세션 토큰, CSRF 토큰은 로그에 남기지 않음
+- IP와 User-Agent는 보안 추적용으로 저장하되 개인정보 보관 정책을 문서화
+- 저가형 호스팅을 고려해 로그 테이블이 무한히 커지지 않도록 보관 기간을 둠
+
+### 개인정보 보호
+
+- 개인정보 필드는 목적과 보관 기간을 문서화
+- 선택 개인정보는 필수 가입 흐름에서 분리
+- 탈퇴, 삭제, 익명화는 회원 모듈의 기본 책임으로 구현
+- 개인정보 내보내기는 JSON 또는 CSV 같은 단순 포맷으로 시작
+- 관리자 접근 로그와 개인정보 조회 로그를 남김
+- 백업에 포함된 개인정보의 보관 기간과 삭제 한계를 문서화
+
+## 주요 리스크
+
+| 리스크 | 영향 | 대응 |
+| --- | --- | --- |
+| 절차형 코드의 확산 | 유지보수 난이도 증가 | 파일 역할과 헬퍼 경계를 문서화 |
+| 모듈과 코어 결합 | 기능 교체 어려움 | 모듈은 등록, 라우트, 설정 규칙으로 연결 |
+| 인증 구현 오류 | 계정 탈취 | OWASP 기준에 맞춘 인증/세션 체크리스트 유지 |
+| XSS | 관리자 세션 탈취, 데이터 변조 | 출력 escape 기본화 |
+| CSRF | 원치 않는 설정 변경 | 모든 상태 변경 요청에 토큰 검증 |
+| 업로드 취약점 | 웹쉘, 저장소 고갈 | 업로드 기능 보수적 도입 |
+| 저가형 호스팅 제약 | 백그라운드 작업 제한 | 동기 처리와 주기적 수동 정리 기능 우선 |
+| DB 마이그레이션 부재 | 설치/업데이트 오류 | SQL 파일과 버전 테이블 도입 |
+| 다국어 후순위 설계 | URL, 설정, 콘텐츠 구조 재작업 | 초기부터 locale 필드와 번역 파일 규칙 도입 |
+| GDPR 미고려 | 삭제/동의/열람 요청 처리 불가 | 동의 로그와 권리 요청 테이블 도입 |
+
+## 품질 기준
+
+- 코어 함수는 작고 명확하게 유지
+- 전역 상태는 설정, DB 연결, 현재 요청 정도로 제한
+- 모든 SQL은 위치를 추적할 수 있게 함수나 파일 단위로 관리
+- 화면 출력은 escape가 기본인 helper를 통해 수행
+- 모듈은 비활성화 상태에서도 코어 부팅을 깨지 않아야 함
+- 설치 SQL은 빈 DB에서 반복 검토 가능해야 함
+
+## 테스트 전략
+
+프레임워크 없는 환경을 고려해 처음부터 복잡한 테스트 도구에 의존하지 않습니다.
+
+- 핵심 보안 헬퍼는 PHP CLI에서 실행 가능한 단위 테스트로 작성
+- 설치 SQL은 로컬 MySQL 또는 MariaDB에서 반복 실행 검증
+- 로그인, 로그아웃, 설정 변경은 브라우저 수동 체크리스트 유지
+- 보안 체크리스트는 기능 추가 시 함께 갱신
+- 추후 프로젝트 규모가 커지면 PHPUnit 도입 검토
+
+## 문서화 전략
+
+문서는 구현보다 앞서 최소 기준을 잡고, 구현 결과에 맞춰 계속 갱신합니다.
+
+- `README.md`: 프로젝트 소개와 주요 문서 링크
+- `AGENTS.md`: 개발 규칙과 네이밍
+- `docs/erd-basic-environment.md`: 기본 테이블 설계
+- `docs/implementation-security-plan.md`: 구현과 보안 계획
+- `docs/security-checklist.md`: 기능별 보안 확인 목록
+- `docs/module-guide.md`: 모듈 작성 규칙
+- `docs/privacy-gdpr-plan.md`: 개인정보와 GDPR 대응 계획
+- `docs/i18n-plan.md`: 다국어 처리 계획
+
+## 우선순위
+
+1. 코어 부팅과 설정 로드
+2. DB 설치 SQL
+3. 모듈 레지스트리
+4. 기본 locale과 번역 helper
+5. 회원 인증 모듈
+6. 동의 기록과 개인정보 요청 기록
+7. CSRF와 escape 헬퍼
+8. 관리자 설정 화면
+9. 권한 체계
+10. 업로드와 확장 모듈
+
+## 당장 결정해야 할 사항
+
+- 지원 PHP 최소 버전
+- MySQL과 MariaDB 중 문서상 기준 DB
+- 단일 사이트 전용으로 시작할지, 내부 구조는 멀티사이트를 유지할지
+- 관리자 권한 모델을 단순 role로 시작할지 permission 테이블까지 둘지
+- 업로드 기능을 코어에 포함할지 별도 모듈로 둘지
+- 기본 지원 locale과 fallback locale
+- GDPR 대응 기능을 기본 코어에 포함할지 privacy 모듈로 분리할지
+- 탈퇴 회원의 게시물/콘텐츠를 삭제할지 익명화할지
