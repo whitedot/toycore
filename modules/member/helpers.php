@@ -286,6 +286,33 @@ function toy_member_revoke_account_sessions(PDO $pdo, int $accountId): int
     return $stmt->rowCount();
 }
 
+function toy_member_revoke_other_sessions(PDO $pdo, int $accountId): int
+{
+    $sessionTokenHash = $_SESSION['toy_session_token_hash'] ?? '';
+    if (!is_string($sessionTokenHash) || preg_match('/\A[a-f0-9]{64}\z/', $sessionTokenHash) !== 1) {
+        return toy_member_revoke_account_sessions($pdo, $accountId);
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'UPDATE toy_member_sessions
+             SET revoked_at = :revoked_at
+             WHERE account_id = :account_id
+               AND session_token_hash <> :session_token_hash
+               AND revoked_at IS NULL'
+        );
+        $stmt->execute([
+            'revoked_at' => toy_now(),
+            'account_id' => $accountId,
+            'session_token_hash' => $sessionTokenHash,
+        ]);
+    } catch (PDOException $exception) {
+        return 0;
+    }
+
+    return $stmt->rowCount();
+}
+
 function toy_member_update_password(PDO $pdo, int $accountId, string $password): void
 {
     $stmt = $pdo->prepare('UPDATE toy_member_accounts SET password_hash = :password_hash, updated_at = :updated_at WHERE id = :id');

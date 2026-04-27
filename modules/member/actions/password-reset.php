@@ -41,6 +41,7 @@ if (toy_request_method() === 'POST') {
     if ($errors === []) {
         toy_member_update_password($pdo, (int) $reset['account_id'], $password);
         toy_member_mark_password_reset_used($pdo, (int) $reset['id']);
+        $revokedSessions = toy_member_revoke_account_sessions($pdo, (int) $reset['account_id']);
         toy_member_log_auth($pdo, (int) $reset['account_id'], 'password_reset', 'success');
         toy_audit_log($pdo, [
             'actor_account_id' => (int) $reset['account_id'],
@@ -50,6 +51,9 @@ if (toy_request_method() === 'POST') {
             'target_id' => (string) $reset['account_id'],
             'result' => 'success',
             'message' => 'Member password reset completed.',
+            'metadata' => [
+                'revoked_sessions' => $revokedSessions,
+            ],
         ]);
 
         $notice = '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.';

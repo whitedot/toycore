@@ -106,6 +106,7 @@ if (toy_request_method() === 'POST') {
 
         if ($errors === []) {
             toy_member_update_password($pdo, (int) $account['id'], $newPassword);
+            $revokedSessions = toy_member_revoke_other_sessions($pdo, (int) $account['id']);
             toy_member_log_auth($pdo, (int) $account['id'], 'password_change', 'success');
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -115,6 +116,9 @@ if (toy_request_method() === 'POST') {
                 'target_id' => (string) $account['id'],
                 'result' => 'success',
                 'message' => 'Member password changed.',
+                'metadata' => [
+                    'revoked_sessions' => $revokedSessions,
+                ],
             ]);
 
             $account = toy_member_current_account($pdo);
