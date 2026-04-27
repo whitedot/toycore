@@ -144,25 +144,14 @@ modules/member/
 - actions/
   - login.php
   - logout.php
-  - register.php
-  - account.php
-  - password-change.php
-  - password-reset-request.php
-  - password-reset.php
-  - email-verify.php
-  - withdraw.php
 - views/
   - login.php
-  - register.php
-  - account.php
-  - password-change.php
-  - password-reset-request.php
-  - password-reset.php
-  - withdraw.php
 - helpers.php
 - lang/
   - ko.php
 ```
+
+구현되지 않은 회원 action 파일은 미리 만들지 않습니다. 공개 회원가입, 계정 화면, 비밀번호 재설정, 이메일 인증, 탈퇴 화면은 각 단계에서 실제 action이 생길 때 추가합니다.
 
 `helpers.php`는 코어가 자동으로 불러오는 파일이 아닙니다. 코어 또는 `admin` 모듈이 인증 확인이 필요한 시점에 명시적으로 include합니다.
 
@@ -170,11 +159,18 @@ modules/member/
 
 `member` 모듈은 다음 테이블을 소유합니다.
 
+MVP 테이블:
+
 ```text
 toy_member_accounts
+toy_member_auth_logs
+```
+
+후속 테이블:
+
+```text
 toy_member_profiles
 toy_member_sessions
-toy_member_auth_logs
 toy_member_consents
 toy_member_email_verifications
 toy_member_password_resets
@@ -254,6 +250,8 @@ updated_at
 로그인 세션과 장기 로그인 토큰을 저장합니다.
 
 토큰 원문은 저장하지 않습니다.
+
+MVP에서는 PHP 기본 세션을 먼저 사용하고, 강제 로그아웃, 세션 목록 관리, 장기 로그인 요구가 확인된 뒤 이 테이블을 도입합니다.
 
 권장 필드:
 
@@ -527,6 +525,15 @@ return [
     'GET /login' => 'actions/login.php',
     'POST /login' => 'actions/login.php',
     'POST /logout' => 'actions/logout.php',
+];
+```
+
+후속 path 후보:
+
+```php
+<?php
+
+return [
     'GET /register' => 'actions/register.php',
     'POST /register' => 'actions/register.php',
     'GET /account' => 'actions/account.php',
@@ -707,23 +714,27 @@ status
 1차 구현:
 
 - 회원 테이블 install.sql
-- 회원 가입
 - 로그인
 - 로그아웃
 - 현재 로그인 계정 helper
-- 공개 계정 요약 helper
 - 인증 로그
+- 설치 과정의 최초 관리자 계정 생성 helper
 
 2차 구현:
 
+- 공개 회원 가입
 - 계정 화면
+- 공개 계정 요약 helper
+- 동의 기록
+
+3차 구현:
+
 - 비밀번호 변경
 - 비밀번호 재설정
 - 이메일 인증
-- 동의 기록
 - 프로필 선택 항목 설정
 
-3차 구현:
+4차 구현:
 
 - 회원 탈퇴
 - 익명화

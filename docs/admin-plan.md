@@ -44,27 +44,17 @@ modules/admin/
 - actions/
   - dashboard.php
   - settings.php
-  - modules.php
-  - members.php
-  - member-edit.php
-  - roles.php
-  - audit-logs.php
-  - privacy-requests.php
 - views/
   - layout-header.php
   - layout-footer.php
   - dashboard.php
   - settings.php
-  - modules.php
-  - members.php
-  - member-edit.php
-  - roles.php
-  - audit-logs.php
-  - privacy-requests.php
 - helpers.php
 - lang/
   - ko.php
 ```
+
+구현되지 않은 관리자 action 파일은 미리 만들지 않습니다. 모듈 관리, 회원 관리, 감사 로그, 개인정보 요청, 역할 관리 화면은 각 단계에서 실제 action이 생길 때 추가합니다.
 
 관리자 레이아웃은 `admin` 모듈의 view로 두고, 코어가 관리자 HTML을 직접 렌더링하지 않습니다.
 
@@ -120,11 +110,19 @@ return [
     'GET /admin' => 'actions/dashboard.php',
     'GET /admin/settings' => 'actions/settings.php',
     'POST /admin/settings' => 'actions/settings.php',
+    'GET /admin/members' => 'actions/members.php',
+    'POST /admin/members' => 'actions/members.php',
+];
+```
+
+후속 path 후보:
+
+```php
+<?php
+
+return [
     'GET /admin/modules' => 'actions/modules.php',
     'POST /admin/modules' => 'actions/modules.php',
-    'GET /admin/members' => 'actions/members.php',
-    'GET /admin/members/edit' => 'actions/member-edit.php',
-    'POST /admin/members/edit' => 'actions/member-edit.php',
     'GET /admin/audit-logs' => 'actions/audit-logs.php',
     'GET /admin/privacy-requests' => 'actions/privacy-requests.php',
     'POST /admin/privacy-requests' => 'actions/privacy-requests.php',
@@ -140,7 +138,7 @@ GET /admin
 -> member helper include
 -> admin helper include
 -> 로그인 상태 확인
--> admin.access 권한 확인
+-> owner/admin/manager role 확인
 -> noindex header/meta 설정
 -> dashboard view 출력
 ```
@@ -153,10 +151,11 @@ GET /admin
 
 ```text
 1. member 모듈이 최초 계정 생성
-2. admin 모듈이 owner 역할 생성
-3. admin 모듈이 최초 계정에 owner 역할 부여
-4. 감사 로그에 설치 완료와 최초 관리자 생성 기록
+2. admin 모듈이 최초 계정에 owner role_key 부여
+3. 감사 로그가 있으면 설치 완료와 최초 관리자 생성 기록
 ```
+
+MVP에서는 감사 로그가 아직 없을 수 있으므로, 감사 로그 기록은 가능한 경우에만 수행합니다.
 
 기본 관리자 비밀번호는 설치 화면에서 입력하며, 하드코딩된 계정은 제공하지 않습니다.
 

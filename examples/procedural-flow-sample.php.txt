@@ -28,12 +28,12 @@ session_start();
 | 1. 사이트와 모듈 데이터
 |--------------------------------------------------------------------------
 |
-| 실제 프로젝트에서는 이 값들이 toy_sites, toy_site_locales, toy_modules,
-| toy_site_modules 같은 테이블에서 옵니다.
+| 실제 프로젝트에서는 이 값들이 toy_sites, toy_modules 같은 테이블과
+| 모듈의 paths.php 파일에서 옵니다. 지원 locale 목록과 사이트별 모듈
+| 활성화는 후속 확장으로 둡니다.
 |
 */
 
-$site_id = 1;
 $site_name = 'Toycore';
 $site_default_locale = 'ko';
 $site_supported_locales = ['ko', 'en'];

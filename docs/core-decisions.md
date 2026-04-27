@@ -214,7 +214,6 @@ toy_site_settings
 toy_modules
 toy_module_settings
 toy_schema_versions
-toy_audit_logs
 ```
 
 초기 구현에서 제외합니다.
@@ -248,3 +247,61 @@ toy_admin_role_permissions
 ```
 
 권한 편집 UI와 세밀한 permission 관리는 운영 요구가 확인된 뒤 추가합니다.
+
+## 12. MVP는 설치와 관리자 진입까지만 증명한다
+
+첫 구현은 다음 흐름만 끝까지 동작시키는 것을 목표로 합니다.
+
+```text
+1. index.php 설치 상태 분기
+2. config/config.php 생성
+3. app_key 생성
+4. DB 연결
+5. 최소 코어 테이블 설치
+6. member/admin 모듈 설치
+7. 최초 관리자 계정 생성
+8. 로그인/로그아웃
+9. /admin 대시보드 접근 확인
+```
+
+MVP 코어 테이블:
+
+```text
+toy_sites
+toy_site_settings
+toy_modules
+toy_module_settings
+toy_schema_versions
+```
+
+MVP member 테이블:
+
+```text
+toy_member_accounts
+toy_member_auth_logs
+```
+
+MVP admin 테이블:
+
+```text
+toy_admin_account_roles
+```
+
+MVP에서 제외하고 후속 단계로 둡니다.
+
+```text
+공개 회원가입
+회원 프로필
+DB 세션/장기 로그인
+비밀번호 재설정
+이메일 인증
+회원 동의 기록
+회원 탈퇴/익명화
+감사 로그
+개인정보 요청 관리
+관리자 회원 관리
+업데이트 실행 UI
+설정/모듈/번역 캐시
+```
+
+문서에 후속 기능의 설계가 있더라도, 실제 `paths.php`와 디렉터리에는 구현된 action만 둡니다.

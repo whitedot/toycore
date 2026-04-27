@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?php echo toy_e($pageTitle); ?></title>
+</head>
+<body>
+    <main>
+        <h1><?php echo toy_e($pageTitle); ?></h1>
+        <p><?php echo toy_e($message); ?></p>
+
+        <?php if (!empty($debug) && $exception instanceof Throwable) { ?>
+            <pre><?php echo toy_e($exception->getMessage()); ?></pre>
+        <?php } ?>
+    </main>
+</body>
+</html>

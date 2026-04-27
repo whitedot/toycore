@@ -1,0 +1,80 @@
+<?php
+
+$adminPageTitle = '회원 관리';
+include TOY_ROOT . '/modules/admin/views/layout-header.php';
+?>
+
+<?php if ($notice !== '') { ?>
+    <p><?php echo toy_e($notice); ?></p>
+<?php } ?>
+
+<?php if ($errors !== []) { ?>
+    <ul>
+        <?php foreach ($errors as $error) { ?>
+            <li><?php echo toy_e($error); ?></li>
+        <?php } ?>
+    </ul>
+<?php } ?>
+
+<form method="get" action="/admin/members">
+    <label>상태<br>
+        <select name="status">
+            <option value="">전체</option>
+            <?php foreach ($allowedStatuses as $status) { ?>
+                <option value="<?php echo toy_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
+                    <?php echo toy_e($status); ?>
+                </option>
+            <?php } ?>
+        </select>
+    </label>
+    <button type="submit">조회</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>이메일</th>
+            <th>표시명</th>
+            <th>상태</th>
+            <th>이메일 인증</th>
+            <th>최근 로그인</th>
+            <th>생성일</th>
+            <th>변경</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php if ($members === []) { ?>
+            <tr>
+                <td colspan="8">회원이 없습니다.</td>
+            </tr>
+        <?php } ?>
+        <?php foreach ($members as $member) { ?>
+            <tr>
+                <td><?php echo toy_e((string) $member['id']); ?></td>
+                <td><?php echo toy_e((string) $member['email']); ?></td>
+                <td><?php echo toy_e((string) $member['display_name']); ?></td>
+                <td><?php echo toy_e((string) $member['status']); ?></td>
+                <td><?php echo toy_e((string) ($member['email_verified_at'] ?? '')); ?></td>
+                <td><?php echo toy_e((string) ($member['last_login_at'] ?? '')); ?></td>
+                <td><?php echo toy_e((string) $member['created_at']); ?></td>
+                <td>
+                    <form method="post" action="/admin/members">
+                        <?php echo toy_csrf_field(); ?>
+                        <input type="hidden" name="account_id" value="<?php echo toy_e((string) $member['id']); ?>">
+                        <select name="status">
+                            <?php foreach ($allowedStatuses as $status) { ?>
+                                <option value="<?php echo toy_e($status); ?>"<?php echo $member['status'] === $status ? ' selected' : ''; ?>>
+                                    <?php echo toy_e($status); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                        <button type="submit">저장</button>
+                    </form>
+                </td>
+            </tr>
+        <?php } ?>
+    </tbody>
+</table>
+
+<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>

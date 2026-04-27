@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+set -eu
+
+IMAGE="${PHP_DOCKER_IMAGE:-toycore-php:8.3-cli}"
+WORKDIR="${PWD}"
+TOOL_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+
+if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
+    docker build -t "${IMAGE}" "${TOOL_ROOT}/php" >/dev/null
+fi
+
+if [ "${1:-}" = "-S" ] && [ -n "${2:-}" ]; then
+    host_port="$2"
+    port="${host_port##*:}"
+    shift 2
+
+    exec docker run --rm \
+        -p "127.0.0.1:${port}:${port}" \
+        -v "${WORKDIR}:/app" \
+        -w /app \
+        "${IMAGE}" \
+        php -S "0.0.0.0:${port}" "$@"
+fi
+
+exec docker run --rm \
+    -v "${WORKDIR}:/app" \
+    -w /app \
+    "${IMAGE}" \
+    php "$@"
