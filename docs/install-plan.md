@@ -104,7 +104,7 @@ toy_module_settings
 toy_schema_versions
 ```
 
-`toy_schema_versions`는 설치된 core/member/admin 스키마 버전을 기록하는 최소 테이블로 먼저 둡니다. 관리자 화면에서 업데이트 SQL을 실행하는 기능은 후속 단계로 미룹니다.
+`toy_schema_versions`는 설치된 core/member/admin 스키마 버전을 기록합니다. 관리자 업데이트 화면은 이 기록을 기준으로 아직 적용되지 않은 SQL 파일만 실행합니다.
 
 `member`와 `admin`은 기본 제공 모듈이지만, 테이블 생성은 각 모듈의 `install.sql` 책임으로 둡니다.
 

@@ -6,7 +6,7 @@ define('TOY_ROOT', __DIR__);
 
 if (PHP_SAPI === 'cli-server') {
     $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
-    if (is_string($requestPath)) {
+    if (is_string($requestPath) && str_starts_with($requestPath, '/assets/')) {
         $staticPath = realpath(TOY_ROOT . $requestPath);
         if (is_string($staticPath) && str_starts_with($staticPath, TOY_ROOT . DIRECTORY_SEPARATOR) && is_file($staticPath)) {
             return false;
