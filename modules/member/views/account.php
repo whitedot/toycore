@@ -37,6 +37,25 @@ $pageTitle = '내 계정';
         <?php } ?>
 
         <section>
+            <h2>계정 정보</h2>
+            <form method="post" action="/account">
+                <?php echo toy_csrf_field(); ?>
+                <input type="hidden" name="intent" value="basics">
+                <p>
+                    <label>표시 이름<br>
+                        <input type="text" name="display_name" value="<?php echo toy_e((string) $account['display_name']); ?>" maxlength="120" required>
+                    </label>
+                </p>
+                <p>
+                    <label>선호 locale<br>
+                        <input type="text" name="locale" value="<?php echo toy_e((string) $account['locale']); ?>" maxlength="20" required>
+                    </label>
+                </p>
+                <button type="submit">계정 정보 저장</button>
+            </form>
+        </section>
+
+        <section>
             <h2>이메일 인증</h2>
             <?php if ($account['email_verified_at'] === null) { ?>
                 <form method="post" action="/account/email-verification">

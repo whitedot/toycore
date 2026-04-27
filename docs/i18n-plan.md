@@ -108,6 +108,8 @@ UI 다국어: 코어 공통 기능 + 모듈별 lang 파일
 - `toy_sites.default_locale`: 사이트 기본 locale
 - `toy_member_accounts.locale`: 회원 선호 locale
 
+회원은 내 계정 화면에서 선호 locale을 수정할 수 있습니다.
+
 초기 구현에서는 `toy_site_locales` 테이블을 만들지 않습니다. 여러 지원 locale을 관리자에서 관리해야 하는 요구가 생기면 후속 스키마로 추가합니다.
 
 ## 번역 파일

@@ -9,6 +9,7 @@ $errors = [];
 $notice = '';
 $emailVerificationUrl = '';
 $submittedProfile = null;
+$submittedBasics = null;
 
 if (!empty($config['debug']) && !empty($_SESSION['toy_debug_email_verification_url']) && is_string($_SESSION['toy_debug_email_verification_url'])) {
     $emailVerificationUrl = $_SESSION['toy_debug_email_verification_url'];
@@ -19,7 +20,43 @@ if (toy_request_method() === 'POST') {
 
     $intent = toy_post_string('intent', 40);
 
-    if ($intent === 'profile') {
+    if ($intent === 'basics') {
+        $basics = [
+            'display_name' => toy_post_string('display_name', 120),
+            'locale' => toy_post_string('locale', 20),
+        ];
+        $submittedBasics = $basics;
+
+        if ($basics['display_name'] === '') {
+            $errors[] = '표시 이름을 입력하세요.';
+        }
+
+        if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $basics['locale']) !== 1) {
+            $errors[] = '선호 locale 값이 올바르지 않습니다.';
+        }
+
+        if ($errors === []) {
+            toy_member_update_account_basics($pdo, (int) $account['id'], $basics['display_name'], $basics['locale']);
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'member',
+                'event_type' => 'member.account.updated',
+                'target_type' => 'member_account',
+                'target_id' => (string) $account['id'],
+                'result' => 'success',
+                'message' => 'Member account basics updated.',
+                'metadata' => [
+                    'locale' => $basics['locale'],
+                ],
+            ]);
+
+            $account = toy_member_current_account($pdo);
+            if (is_array($account)) {
+                toy_set_locale((string) $account['locale']);
+            }
+            $notice = '계정 정보를 저장했습니다.';
+        }
+    } elseif ($intent === 'profile') {
         $profile = [
             'nickname' => toy_post_string('nickname', 80),
             'phone' => toy_post_string('phone', 40),
@@ -88,6 +125,10 @@ if (toy_request_method() === 'POST') {
     }
 }
 
+if (is_array($submittedBasics) && $errors !== []) {
+    $account['display_name'] = $submittedBasics['display_name'];
+    $account['locale'] = $submittedBasics['locale'];
+}
 $profile = toy_member_profile($pdo, (int) $account['id']);
 if (is_array($submittedProfile) && $errors !== []) {
     $profile = array_merge($profile, $submittedProfile);

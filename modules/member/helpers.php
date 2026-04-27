@@ -288,6 +288,23 @@ function toy_member_update_status(PDO $pdo, int $accountId, string $status): voi
     ]);
 }
 
+function toy_member_update_account_basics(PDO $pdo, int $accountId, string $displayName, string $locale): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE toy_member_accounts
+         SET display_name = :display_name,
+             locale = :locale,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'display_name' => $displayName,
+        'locale' => $locale,
+        'updated_at' => toy_now(),
+        'id' => $accountId,
+    ]);
+}
+
 function toy_member_empty_profile(): array
 {
     return [
