@@ -64,7 +64,7 @@ return [
     'description' => 'Member account and authentication module.',
     'settings' => [
         'allow_signup' => '1',
-        'login_id_type' => 'email',
+        'login_identifier' => 'email',
     ],
 ];
 ```
@@ -160,7 +160,7 @@ vendor/package
 ```text
 1. modules/{module_key}/install.sql 실행
 2. toy_modules에 모듈 등록
-3. toy_site_modules에 사이트별 상태 등록
+3. toy_modules.status로 활성 상태 설정
 4. toy_module_settings에 기본 설정 등록
 ```
 
@@ -169,22 +169,23 @@ vendor/package
 ```sql
 CREATE TABLE IF NOT EXISTS toy_member_accounts (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    site_id BIGINT UNSIGNED NOT NULL,
-    login_id VARCHAR(100) NOT NULL,
+    account_identifier_hash CHAR(64) NOT NULL,
+    login_id_hash CHAR(64) NULL,
     email VARCHAR(255) NOT NULL,
+    email_hash CHAR(64) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'active',
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_member_login (site_id, login_id),
-    UNIQUE KEY uq_toy_member_email (site_id, email)
+    UNIQUE KEY uq_toy_member_identifier (account_identifier_hash),
+    UNIQUE KEY uq_toy_member_email_hash (email_hash)
 );
 ```
 
 ## 활성화 방식
 
-모듈 활성 여부는 `toy_site_modules.status`로 판단합니다.
+모듈 활성 여부는 초기 구현에서 `toy_modules.status`로 판단합니다.
 
 ```text
 enabled

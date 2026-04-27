@@ -186,3 +186,65 @@ core + member + admin
 6. admin 권한 부여
 7. 설치 완료
 ```
+
+## 9. 로그인 식별자는 원문보다 hash 조회를 우선한다
+
+회원 계정은 최소 정보를 저장합니다. 로그인 식별자는 원문 컬럼을 기준으로 조회하지 않고, 정규화한 값의 hash를 기준으로 조회합니다.
+
+기본 방향:
+
+- `member` 모듈은 이메일 로그인과 별도 아이디 로그인을 모두 지원
+- 로그인 방식은 관리자 설정으로 선택
+- 조회와 중복 검사는 `account_identifier_hash`와 `email_hash` 사용
+- 별도 로그인 아이디 원문은 기본 저장 대상에서 제외
+- 이메일 원문은 메일 발송과 사용자 안내 목적에 한해 저장 가능
+- hash는 설정 파일의 `app_key`를 사용하는 HMAC 방식 우선
+
+회원 기본 테이블에는 `site_id`를 넣지 않습니다. 단일 사이트 운영에서는 모든 회원이 같은 사이트 설정을 사용하므로 `site_id`가 실질적인 의미를 갖기 어렵고, 로그인 조회와 모듈 확장 쿼리를 불필요하게 복잡하게 만듭니다. 멀티사이트를 실제 기능으로 제공한다면 그때 회원/관리자/모듈 데이터에 `site_id`를 추가하는 스키마 업데이트를 설계합니다.
+
+## 10. 첫 구현은 단일 사이트 기준으로 줄인다
+
+Toycore의 첫 구현은 단일 사이트 운영을 기준으로 합니다. 멀티사이트, 사이트별 모듈 활성화, 사이트별 설정 분리, 사이트별 locale 관리는 초기 코어 범위에 넣지 않습니다.
+
+초기 코어 테이블은 다음처럼 단순하게 시작합니다.
+
+```text
+toy_sites
+toy_site_settings
+toy_modules
+toy_module_settings
+toy_schema_versions
+toy_audit_logs
+```
+
+초기 구현에서 제외합니다.
+
+```text
+toy_site_locales
+toy_site_modules
+site_id가 붙은 회원/관리자/감사/개인정보 테이블
+```
+
+`toy_sites`는 멀티사이트의 시작점이 아니라, 현재 설치의 사이트 이름, base URL, timezone, default locale, 운영 상태를 담는 단일 사이트 설정 레코드로 취급합니다.
+
+모듈 활성화 상태는 `toy_modules.status`로 관리합니다. 사이트별 모듈 활성화가 필요해지는 시점에 `toy_site_modules` 같은 연결 테이블을 추가합니다.
+
+## 11. 관리자 권한은 단순 role로 시작한다
+
+초기 관리자 권한은 permission 테이블까지 만들지 않습니다. `owner`, `admin`, `manager` 같은 role key를 계정에 직접 연결하고, role별 허용 작업은 `admin` 모듈 helper의 명시적 배열로 판단합니다.
+
+초기 테이블:
+
+```text
+toy_admin_account_roles
+```
+
+후순위:
+
+```text
+toy_admin_roles
+toy_admin_permissions
+toy_admin_role_permissions
+```
+
+권한 편집 UI와 세밀한 permission 관리는 운영 요구가 확인된 뒤 추가합니다.

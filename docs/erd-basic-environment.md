@@ -13,7 +13,8 @@ Toycore의 기본환경은 사이트 설정과 모듈 시스템을 중심으로 
 - 회원 인증은 기본 제공 모듈이지만 코어와 직접 결합하지 않음
 - 저가형 웹호스팅을 고려해 단순한 관계와 일반적인 SQL 타입 사용
 - 설정값은 확장성을 위해 key-value 구조를 기본으로 사용
-- 다국어와 개인정보 처리 요구를 초기 구조에 포함
+- 첫 구현은 단일 사이트 기준으로 시작하고 멀티사이트용 연결 테이블은 보류
+- 다국어와 개인정보 처리는 최소 기반만 초기 구조에 포함
 
 ## ERD
 
@@ -31,21 +32,8 @@ erDiagram
         datetime updated_at
     }
 
-    toy_site_locales {
-        bigint id PK
-        bigint site_id FK
-        varchar locale
-        varchar name
-        tinyint is_default
-        tinyint is_enabled
-        int sort_order
-        datetime created_at
-        datetime updated_at
-    }
-
     toy_site_settings {
         bigint id PK
-        bigint site_id FK
         varchar setting_key
         text setting_value
         varchar value_type
@@ -65,21 +53,8 @@ erDiagram
         datetime updated_at
     }
 
-    toy_site_modules {
-        bigint id PK
-        bigint site_id FK
-        bigint module_id FK
-        varchar status
-        int sort_order
-        datetime enabled_at
-        datetime disabled_at
-        datetime created_at
-        datetime updated_at
-    }
-
     toy_module_settings {
         bigint id PK
-        bigint site_id FK
         bigint module_id FK
         varchar setting_key
         text setting_value
@@ -98,7 +73,6 @@ erDiagram
 
     toy_audit_logs {
         bigint id PK
-        bigint site_id FK
         bigint actor_account_id "nullable, logical reference"
         varchar actor_type
         varchar event_type
@@ -114,9 +88,10 @@ erDiagram
 
     toy_member_accounts {
         bigint id PK
-        bigint site_id FK
-        varchar login_id
+        varchar account_identifier_hash
+        varchar login_id_hash
         varchar email
+        varchar email_hash
         varchar password_hash
         varchar display_name
         varchar locale
@@ -151,7 +126,6 @@ erDiagram
 
     toy_member_auth_logs {
         bigint id PK
-        bigint site_id FK
         bigint account_id FK "nullable"
         varchar event_type
         varchar result
@@ -175,7 +149,6 @@ erDiagram
 
     toy_privacy_requests {
         bigint id PK
-        bigint site_id FK
         bigint account_id FK "nullable"
         varchar requester_email_hash
         text requester_snapshot
@@ -190,20 +163,12 @@ erDiagram
     }
 
     toy_sites ||--o{ toy_site_settings : has
-    toy_sites ||--o{ toy_site_locales : supports
-    toy_sites ||--o{ toy_site_modules : enables
-    toy_modules ||--o{ toy_site_modules : assigned
-    toy_sites ||--o{ toy_module_settings : has
     toy_modules ||--o{ toy_module_settings : configures
-    toy_sites ||--o{ toy_audit_logs : records
 
-    toy_sites ||--o{ toy_member_accounts : owns
     toy_member_accounts ||--o| toy_member_profiles : has
     toy_member_accounts ||--o{ toy_member_sessions : creates
-    toy_sites ||--o{ toy_member_auth_logs : records
     toy_member_accounts |o--o{ toy_member_auth_logs : optionally_records
     toy_member_accounts ||--o{ toy_member_consents : grants
-    toy_sites ||--o{ toy_privacy_requests : receives
     toy_member_accounts |o--o{ toy_privacy_requests : optionally_submits
 ```
 
@@ -211,7 +176,7 @@ erDiagram
 
 ### `toy_sites`
 
-사이트의 기본 정보를 저장합니다. 단일 사이트만 운영하더라도 `site_id` 기준을 유지하면 이후 멀티사이트 구조로 확장하기 쉽습니다.
+현재 설치의 사이트 기본 정보를 저장합니다. 첫 구현은 단일 사이트 기준이므로 이 테이블은 멀티사이트 목록이 아니라 기본 사이트 설정 레코드에 가깝습니다.
 
 주요 값:
 
@@ -222,27 +187,13 @@ erDiagram
 - `default_locale`: 기본 언어와 지역
 - `status`: `active`, `inactive`, `maintenance`
 
-### `toy_site_locales`
-
-사이트에서 지원하는 locale 목록을 저장합니다. 다국어를 사용하지 않는 사이트도 기본 locale 하나는 가질 수 있습니다.
-
-권장 유니크 키:
-
-- `site_id`, `locale`
-
-주요 값:
-
-- `locale`: `ko`, `ko-KR`, `en`, `en-US` 같은 locale 코드
-- `is_default`: 사이트 기본 locale 여부
-- `is_enabled`: 선택 가능한 locale 여부
-
 ### `toy_site_settings`
 
 사이트 전체 설정을 key-value 형태로 저장합니다. 예를 들어 사이트 제목, 관리자 이메일, 업로드 제한, 기본 테마 같은 값을 저장할 수 있습니다.
 
 권장 유니크 키:
 
-- `site_id`, `setting_key`
+- `setting_key`
 
 ### `toy_modules`
 
@@ -257,29 +208,23 @@ erDiagram
 | `board` | 게시판 | `0` |
 | `page` | 페이지 | `0` |
 
-### `toy_site_modules`
-
-사이트별 모듈 활성화 상태를 저장합니다. 모듈은 설치되어 있어도 특정 사이트에서 비활성화될 수 있습니다.
-
-권장 유니크 키:
-
-- `site_id`, `module_id`
+모듈 활성화 상태는 초기 구현에서 `toy_modules.status`로 관리합니다. 사이트별 모듈 활성화가 필요해지는 시점에 `toy_site_modules` 같은 연결 테이블을 추가합니다.
 
 ### `toy_module_settings`
 
-모듈별 설정을 저장합니다. 같은 설정 키라도 모듈과 사이트에 따라 다른 값을 가질 수 있습니다.
+모듈별 설정을 저장합니다.
 
 예시:
 
 | module | setting_key | setting_value |
 | --- | --- | --- |
 | `member` | `allow_signup` | `1` |
-| `member` | `login_id_type` | `email` |
+| `member` | `login_identifier` | `email` |
 | `member` | `session_lifetime` | `7200` |
 
 권장 유니크 키:
 
-- `site_id`, `module_id`, `setting_key`
+- `module_id`, `setting_key`
 
 ### `toy_schema_versions`
 
@@ -320,8 +265,37 @@ erDiagram
 
 권장 유니크 키:
 
-- `site_id`, `login_id`
-- `site_id`, `email`
+- `account_identifier_hash`
+- `email_hash`
+
+회원 기본 테이블에는 `site_id`를 넣지 않습니다.
+
+Toycore의 첫 구현은 단일 사이트 운영을 기준으로 합니다. `toy_sites`는 사이트 이름, base URL, timezone, default locale, 운영 상태 같은 설정을 담는 코어 테이블로 남길 수 있지만, 회원 계정이 별도 `site_id`를 들고 다닐 필요는 없습니다. 멀티사이트를 실제 기능으로 제공한다면 그때 회원/관리자/모듈 데이터에 `site_id`를 추가하는 스키마 업데이트를 설계합니다.
+
+로그인 식별자는 원문보다 정규화된 값의 hash를 기준으로 조회합니다.
+
+```text
+account_identifier_hash: 현재 로그인 방식의 대표 식별자 hash
+login_id_hash: 별도 아이디 로그인 사용 시 아이디 hash
+email_hash: 이메일 정규화 hash
+```
+
+관리자는 로그인 방식을 선택할 수 있습니다.
+
+```text
+member.login_identifier = email
+member.login_identifier = login_id
+```
+
+이메일 로그인 모드에서는 `account_identifier_hash`가 `email_hash`와 같은 값이 될 수 있습니다. 별도 아이디 로그인 모드에서는 `account_identifier_hash`가 `login_id_hash`를 사용합니다.
+
+hash는 로그인 조회와 중복 검사를 위해 deterministic 해야 하므로, 설정 파일의 비밀값을 사용하는 HMAC 방식을 우선합니다.
+
+```text
+hash_hmac('sha256', normalized_identifier, app_key)
+```
+
+`email` 원문은 메일 발송과 사용자 안내를 위해 저장할 수 있지만, 조회와 중복 검사는 `email_hash`로 수행합니다. 별도 로그인 아이디 원문은 기본 저장 대상이 아니며, 화면 표시는 `display_name` 또는 각 모듈의 표시명 정책을 사용합니다.
 
 `locale`은 회원이 선호하는 화면 언어를 저장합니다. 값이 없으면 사이트 기본 locale을 사용합니다.
 
@@ -371,12 +345,8 @@ erDiagram
 
 ```text
 toy_modules
-- member: installed, default bundled module
-- admin: installed, default bundled module
-
-toy_site_modules
-- default site + member: enabled
-- default site + admin: enabled
+- member: enabled, default bundled module
+- admin: enabled, default bundled module
 ```
 
 이 구조에서는 회원 인증과 관리자 화면이 기본적으로 켜져 있지만, 코드 관점에서는 여전히 `member`와 `admin` 모듈로 분리됩니다.

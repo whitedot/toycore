@@ -48,7 +48,8 @@ admin 또는 privacy 모듈:
 
 | 분류 | 예시 | 기본 방침 |
 | --- | --- | --- |
-| 계정 필수 | login_id, email, password_hash | 인증 목적에 한정 |
+| 계정 필수 | account_identifier_hash, email_hash, password_hash | 인증 목적에 한정 |
+| 연락처 | email | 메일 발송과 사용자 안내 목적 |
 | 프로필 선택 | nickname, phone, birth_date, avatar_path | 선택 수집, 수정/삭제 가능 |
 | 보안 로그 | IP, User-Agent, 로그인 결과 | 보관 기간 설정 |
 | 동의 기록 | 약관, 개인정보 처리방침, 마케팅 | 버전과 시점 보관 |

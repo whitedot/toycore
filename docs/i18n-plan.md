@@ -9,7 +9,6 @@ Toycore의 코어 다국어 기능은 UI 문구, locale 결정, fallback, 회원
 ## 목표
 
 - 기본 locale 하나만으로도 동작
-- 사이트별 지원 locale 관리
 - 회원별 선호 locale 저장
 - 코어와 모듈의 번역 문자열 분리
 - URL 기반 다국어 요청 분기로 확장 가능
@@ -21,7 +20,7 @@ Toycore의 코어 다국어 기능은 UI 문구, locale 결정, fallback, 회원
 ```text
 코어
 - 현재 locale 결정
-- 지원 locale 목록 관리
+- 지원 locale 목록 관리로 확장 가능
 - 번역 helper 제공
 - fallback 처리
 
@@ -48,7 +47,6 @@ modules/board/lang/en.php
 ### 코어가 담당하는 것
 
 - 사이트 기본 locale 관리
-- 사이트별 지원 locale 목록 관리
 - 회원 선호 locale 저장
 - 현재 요청의 locale 결정
 - 코어 UI 문구 번역
@@ -108,8 +106,9 @@ UI 다국어: 코어 공통 기능 + 모듈별 lang 파일
 ## 저장 구조
 
 - `toy_sites.default_locale`: 사이트 기본 locale
-- `toy_site_locales`: 사이트에서 지원하는 locale 목록
 - `toy_member_accounts.locale`: 회원 선호 locale
+
+초기 구현에서는 `toy_site_locales` 테이블을 만들지 않습니다. 여러 지원 locale을 관리자에서 관리해야 하는 요구가 생기면 후속 스키마로 추가합니다.
 
 ## 번역 파일
 
@@ -179,4 +178,4 @@ modules/member/lang/ko.php
 
 다른 locale 파일은 선택입니다. 없는 번역은 fallback 정책을 따릅니다.
 
-모듈이 사용자 콘텐츠 다국어화를 지원하려면 모듈 내부에서 별도 테이블과 화면을 설계합니다. 코어는 현재 locale과 지원 locale 목록을 제공할 뿐, 콘텐츠 저장 방식을 강제하지 않습니다.
+모듈이 사용자 콘텐츠 다국어화를 지원하려면 모듈 내부에서 별도 테이블과 화면을 설계합니다. 초기 코어는 현재 locale과 기본 locale을 제공할 뿐, 콘텐츠 저장 방식이나 지원 locale 목록 관리를 강제하지 않습니다.

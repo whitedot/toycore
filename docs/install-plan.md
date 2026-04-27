@@ -34,7 +34,7 @@ Toycore는 저가형 웹호스팅에서도 설치할 수 있어야 하므로 CLI
 8. 기본 사이트 생성
 9. `member` 모듈 install.sql 실행
 10. `admin` 모듈 install.sql 실행
-11. 기본 모듈 등록 및 사이트별 활성화
+11. 기본 모듈 등록 및 활성화
 12. 최초 관리자 계정 생성
 13. 설치 잠금 파일 생성
 14. 관리자 화면으로 이동
@@ -67,7 +67,7 @@ toy_modules 기본 레코드 존재
 config/config.php
 ```
 
-`config/config.php`는 설치 화면이 생성하는 사이트별 실제 설정 파일입니다. 별도 환경 파일 이름을 전제로 하지 않고, 저가형 웹호스팅에서 파일명을 보고 용도를 바로 알 수 있게 단순하게 둡니다.
+`config/config.php`는 설치 화면이 생성하는 실제 설정 파일입니다. 별도 환경 파일 이름을 전제로 하지 않고, 저가형 웹호스팅에서 파일명을 보고 용도를 바로 알 수 있게 단순하게 둡니다.
 
 예시:
 
@@ -77,6 +77,7 @@ config/config.php
 return [
     'env' => 'production',
     'debug' => false,
+    'app_key' => 'generate-a-random-secret-during-install',
     'db' => [
         'host' => 'localhost',
         'name' => 'toycore',
@@ -89,16 +90,16 @@ return [
 
 이 파일은 Git에 커밋하지 않습니다.
 
+`app_key`는 설치 시 생성하는 사이트 비밀값입니다. CSRF, 서명, 로그인 식별자 HMAC hash처럼 같은 입력을 안전하게 다시 검증해야 하는 기능에 사용합니다. 운영 중 변경하면 기존 로그인 식별자 hash 조회가 깨질 수 있으므로, 설치 후에는 백업하고 신중하게 관리합니다.
+
 ## 기본 테이블
 
 설치 시 기본 코어 테이블을 먼저 생성합니다.
 
 ```text
 toy_sites
-toy_site_locales
 toy_site_settings
 toy_modules
-toy_site_modules
 toy_module_settings
 toy_schema_versions
 toy_audit_logs

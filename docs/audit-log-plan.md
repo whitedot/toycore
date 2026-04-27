@@ -20,7 +20,6 @@ toy_audit_logs
 
 ```text
 id
-site_id
 actor_account_id (nullable, logical reference)
 actor_type
 event_type

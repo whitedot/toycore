@@ -151,7 +151,7 @@ return [
 코어는 다음만 제공합니다.
 
 - 현재 locale
-- 지원 locale 목록
+- 현재 locale과 기본 locale
 - 기본 SEO 출력 변수
 - canonical helper
 
