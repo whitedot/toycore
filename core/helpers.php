@@ -113,6 +113,94 @@ function toy_enabled_module_keys(PDO $pdo): array
     return $moduleKeys;
 }
 
+function toy_set_locale(string $locale): void
+{
+    if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $locale) !== 1) {
+        $locale = 'ko';
+    }
+
+    $GLOBALS['toy_locale'] = $locale;
+}
+
+function toy_locale(): string
+{
+    $locale = $GLOBALS['toy_locale'] ?? 'ko';
+    return is_string($locale) && $locale !== '' ? $locale : 'ko';
+}
+
+function toy_resolve_locale(PDO $pdo, ?array $site): string
+{
+    $accountId = $_SESSION['toy_account_id'] ?? null;
+    if (is_int($accountId) || ctype_digit((string) $accountId)) {
+        try {
+            $stmt = $pdo->prepare('SELECT locale FROM toy_member_accounts WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => (int) $accountId]);
+            $account = $stmt->fetch();
+            if (is_array($account) && is_string($account['locale'] ?? null) && $account['locale'] !== '') {
+                return (string) $account['locale'];
+            }
+        } catch (Throwable $exception) {
+            return is_array($site) ? (string) ($site['default_locale'] ?? 'ko') : 'ko';
+        }
+    }
+
+    return is_array($site) ? (string) ($site['default_locale'] ?? 'ko') : 'ko';
+}
+
+function toy_t(string $key, array $params = [], ?string $locale = null): string
+{
+    $locale = $locale ?? toy_locale();
+    $moduleKey = '';
+    $translationKey = $key;
+
+    if (strpos($key, '::') !== false) {
+        [$moduleKey, $translationKey] = explode('::', $key, 2);
+    }
+
+    $translations = toy_load_translations($locale, $moduleKey);
+    $message = isset($translations[$translationKey]) && is_string($translations[$translationKey])
+        ? $translations[$translationKey]
+        : $key;
+
+    foreach ($params as $name => $value) {
+        $message = str_replace('{' . $name . '}', (string) $value, $message);
+    }
+
+    return $message;
+}
+
+function toy_load_translations(string $locale, string $moduleKey = ''): array
+{
+    static $cache = [];
+
+    if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $locale) !== 1) {
+        $locale = 'ko';
+    }
+
+    if ($moduleKey !== '' && preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+        return [];
+    }
+
+    $cacheKey = $moduleKey . '|' . $locale;
+    if (isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
+    $file = $moduleKey === ''
+        ? TOY_ROOT . '/lang/' . $locale . '/core.php'
+        : TOY_ROOT . '/modules/' . $moduleKey . '/lang/' . $locale . '.php';
+
+    if (!is_file($file)) {
+        $cache[$cacheKey] = [];
+        return [];
+    }
+
+    $translations = include $file;
+    $cache[$cacheKey] = is_array($translations) ? $translations : [];
+
+    return $cache[$cacheKey];
+}
+
 function toy_is_safe_module_action(string $path): bool
 {
     if ($path === '' || strpos($path, '..') !== false || strpos($path, '\\') !== false) {

@@ -18,6 +18,8 @@
 
 - 요청 method/path 해석
 - 설치 전/설치 후 분기
+- 현재 locale 결정
+- 기본 번역 helper
 - 활성 모듈 `paths.php` 기반 action include
 - action 상대 경로 검증
 - 기본 home/error view

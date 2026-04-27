@@ -3,7 +3,7 @@
 $pageTitle = isset($site['name']) ? (string) $site['name'] : 'Toycore';
 ?>
 <!doctype html>
-<html lang="<?php echo toy_e((string) ($site['default_locale'] ?? 'ko')); ?>">
+<html lang="<?php echo toy_e(toy_locale()); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -3,7 +3,7 @@
 $pageTitle = '새 비밀번호 설정';
 ?>
 <!doctype html>
-<html lang="ko">
+<html lang="<?php echo toy_e(toy_locale()); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
