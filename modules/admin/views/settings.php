@@ -18,6 +18,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="post" action="/admin/settings">
     <?php echo toy_csrf_field(); ?>
+    <input type="hidden" name="intent" value="site">
     <p>
         <label>사이트 이름<br>
             <input type="text" name="name" value="<?php echo toy_e($values['name']); ?>" maxlength="120" required>
@@ -48,5 +49,76 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </p>
     <button type="submit">저장</button>
 </form>
+
+<section>
+    <h2>사이트 설정 항목</h2>
+    <form method="post" action="/admin/settings">
+        <?php echo toy_csrf_field(); ?>
+        <input type="hidden" name="intent" value="site_setting">
+        <p>
+            <label>Key<br>
+                <input type="text" name="setting_key" maxlength="120" required>
+            </label>
+        </p>
+        <p>
+            <label>Value<br>
+                <textarea name="setting_value" maxlength="5000"></textarea>
+            </label>
+        </p>
+        <p>
+            <label>Type<br>
+                <select name="value_type">
+                    <?php foreach ($allowedSettingTypes as $type) { ?>
+                        <option value="<?php echo toy_e($type); ?>"><?php echo toy_e($type); ?></option>
+                    <?php } ?>
+                </select>
+            </label>
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" name="is_public" value="1">
+                공개 설정
+            </label>
+        </p>
+        <button type="submit">항목 저장</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Type</th>
+                <th>Public</th>
+                <th>Updated</th>
+                <th>삭제</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if ($siteSettings === []) { ?>
+                <tr>
+                    <td colspan="6">설정 항목이 없습니다.</td>
+                </tr>
+            <?php } ?>
+            <?php foreach ($siteSettings as $setting) { ?>
+                <tr>
+                    <td><?php echo toy_e((string) $setting['setting_key']); ?></td>
+                    <td><?php echo toy_e((string) ($setting['setting_value'] ?? '')); ?></td>
+                    <td><?php echo toy_e((string) $setting['value_type']); ?></td>
+                    <td><?php echo !empty($setting['is_public']) ? 'yes' : 'no'; ?></td>
+                    <td><?php echo toy_e((string) $setting['updated_at']); ?></td>
+                    <td>
+                        <form method="post" action="/admin/settings">
+                            <?php echo toy_csrf_field(); ?>
+                            <input type="hidden" name="intent" value="delete_site_setting">
+                            <input type="hidden" name="setting_key" value="<?php echo toy_e((string) $setting['setting_key']); ?>">
+                            <button type="submit">삭제</button>
+                        </form>
+                    </td>
+                </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+</section>
 
 <?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
