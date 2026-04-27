@@ -8,7 +8,7 @@
 
 - 설치 상태 분기
 - 웹 설치 화면
-- 운영 설치 시 내부 파일 직접 접근 노출 점검
+- 운영 설치 시 현재 접속 host 기준 내부 파일 직접 접근 노출 점검
 - 운영 설치 시 HTTPS URL 확인
 - `config/config.php` 생성
 - `storage/installed.lock` 생성

@@ -38,8 +38,12 @@ if (toy_request_method() === 'POST') {
         $errors[] = 'timezone 값이 올바르지 않습니다.';
     }
 
-    if ($values['base_url'] !== '' && !toy_is_http_url($values['base_url'])) {
-        $errors[] = 'Base URL은 http 또는 https URL이어야 합니다.';
+    if ($values['base_url'] !== '') {
+        if (!toy_is_http_url($values['base_url'])) {
+            $errors[] = 'Base URL은 http 또는 https URL이어야 합니다.';
+        } elseif (!toy_is_local_host($values['base_url']) && parse_url($values['base_url'], PHP_URL_SCHEME) !== 'https') {
+            $errors[] = '운영 Base URL은 HTTPS URL이어야 합니다.';
+        }
     }
 
     if (strlen($adminPassword) < 8) {
@@ -51,13 +55,15 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
-        $checkBaseUrl = $values['base_url'] !== '' ? rtrim($values['base_url'], '/') : toy_current_base_url();
+        $checkBaseUrl = toy_current_base_url();
         if ($checkBaseUrl !== '' && !toy_is_local_host($checkBaseUrl)) {
             if (parse_url($checkBaseUrl, PHP_URL_SCHEME) !== 'https') {
                 $errors[] = '운영 설치는 HTTPS URL에서 진행하세요.';
+            } elseif (!toy_is_public_http_url($checkBaseUrl)) {
+                $errors[] = '운영 설치 점검 URL은 공개 라우팅 가능한 host여야 합니다.';
             }
 
-            $publicFindings = toy_public_internal_access_findings($checkBaseUrl);
+            $publicFindings = $errors === [] ? toy_public_internal_access_findings($checkBaseUrl) : [];
             if ($publicFindings !== []) {
                 foreach ($publicFindings as $finding) {
                     $errors[] = '내부 파일이 웹에서 직접 열립니다: ' . (string) $finding['url'];

@@ -81,6 +81,49 @@ function toy_is_http_url(string $url): bool
     return in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true);
 }
 
+function toy_is_public_http_url(string $url): bool
+{
+    if (!toy_is_http_url($url)) {
+        return false;
+    }
+
+    $host = parse_url($url, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        return false;
+    }
+
+    return toy_is_public_network_host($host);
+}
+
+function toy_is_public_network_host(string $host): bool
+{
+    $host = strtolower(trim($host, '[]'));
+    if ($host === '' || $host === 'localhost') {
+        return false;
+    }
+
+    if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+        return filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+    }
+
+    if (preg_match('/\A[a-z0-9.-]+\z/', $host) !== 1) {
+        return false;
+    }
+
+    $addresses = gethostbynamel($host);
+    if ($addresses === false || $addresses === []) {
+        return false;
+    }
+
+    foreach ($addresses as $address) {
+        if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 function toy_request_method(): string
 {
     return strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
