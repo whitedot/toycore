@@ -401,7 +401,19 @@ function toy_member_create_password_reset(PDO $pdo, array $config, int $accountI
 {
     $token = bin2hex(random_bytes(32));
     $tokenHash = toy_hmac_hash($token, $config);
+    $now = toy_now();
     $expiresAt = date('Y-m-d H:i:s', time() + 3600);
+
+    $stmt = $pdo->prepare(
+        'UPDATE toy_member_password_resets
+         SET used_at = :used_at
+         WHERE account_id = :account_id
+           AND used_at IS NULL'
+    );
+    $stmt->execute([
+        'used_at' => $now,
+        'account_id' => $accountId,
+    ]);
 
     $stmt = $pdo->prepare(
         'INSERT INTO toy_member_password_resets (account_id, reset_token_hash, expires_at, created_at)
@@ -411,7 +423,7 @@ function toy_member_create_password_reset(PDO $pdo, array $config, int $accountI
         'account_id' => $accountId,
         'reset_token_hash' => $tokenHash,
         'expires_at' => $expiresAt,
-        'created_at' => toy_now(),
+        'created_at' => $now,
     ]);
 
     return $token;
@@ -455,7 +467,19 @@ function toy_member_create_email_verification(PDO $pdo, array $config, int $acco
 {
     $token = bin2hex(random_bytes(32));
     $tokenHash = toy_hmac_hash($token, $config);
+    $now = toy_now();
     $expiresAt = date('Y-m-d H:i:s', time() + 86400);
+
+    $stmt = $pdo->prepare(
+        'UPDATE toy_member_email_verifications
+         SET verified_at = :verified_at
+         WHERE account_id = :account_id
+           AND verified_at IS NULL'
+    );
+    $stmt->execute([
+        'verified_at' => $now,
+        'account_id' => $accountId,
+    ]);
 
     $stmt = $pdo->prepare(
         'INSERT INTO toy_member_email_verifications (account_id, email, verification_token_hash, expires_at, created_at)
@@ -466,7 +490,7 @@ function toy_member_create_email_verification(PDO $pdo, array $config, int $acco
         'email' => toy_normalize_identifier($email),
         'verification_token_hash' => $tokenHash,
         'expires_at' => $expiresAt,
-        'created_at' => toy_now(),
+        'created_at' => $now,
     ]);
 
     return $token;
