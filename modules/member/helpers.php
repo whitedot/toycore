@@ -128,7 +128,16 @@ function toy_member_current_account(PDO $pdo): ?array
     $stmt->execute(['id' => (int) $accountId]);
     $account = $stmt->fetch();
 
-    return is_array($account) ? $account : null;
+    if (!is_array($account)) {
+        return null;
+    }
+
+    if ((string) $account['status'] !== 'active') {
+        toy_member_logout($pdo);
+        return null;
+    }
+
+    return $account;
 }
 
 function toy_member_require_login(PDO $pdo): array
