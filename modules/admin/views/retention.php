@@ -33,6 +33,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <input type="number" name="used_tokens_days" value="<?php echo toy_e((string) $values['used_tokens_days']); ?>" min="1" max="3650" required>
         </label>
     </p>
+    <p>
+        <label>만료/폐기 세션 보관일<br>
+            <input type="number" name="sessions_days" value="<?php echo toy_e((string) $values['sessions_days']); ?>" min="1" max="3650" required>
+        </label>
+    </p>
     <button type="submit">정리 실행</button>
 </form>
 
@@ -69,6 +74,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <td><?php echo toy_e($previewCutoffs['used_tokens']); ?></td>
             <td><?php echo toy_e((string) $previewCounts['email_verifications']); ?></td>
             <td><?php echo toy_e((string) ($deletedCounts['email_verifications'] ?? '')); ?></td>
+        </tr>
+        <tr>
+            <td>만료/폐기 세션</td>
+            <td><?php echo toy_e($previewCutoffs['sessions']); ?></td>
+            <td><?php echo toy_e((string) $previewCounts['sessions']); ?></td>
+            <td><?php echo toy_e((string) ($deletedCounts['sessions'] ?? '')); ?></td>
         </tr>
     </tbody>
 </table>

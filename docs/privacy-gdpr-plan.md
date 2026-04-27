@@ -167,6 +167,7 @@ cancelled
 ```text
 privacy.auth_log_retention_days
 privacy.admin_log_retention_days
+privacy.session_retention_days
 privacy.deleted_account_retention_days
 privacy.export_file_retention_hours
 ```

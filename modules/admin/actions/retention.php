@@ -12,6 +12,7 @@ $defaults = [
     'auth_logs_days' => 180,
     'audit_logs_days' => 365,
     'used_tokens_days' => 30,
+    'sessions_days' => 30,
 ];
 $values = $defaults;
 $errors = [];
@@ -38,6 +39,7 @@ if (toy_request_method() === 'POST') {
         'auth_logs_days' => (int) toy_post_string('auth_logs_days', 5),
         'audit_logs_days' => (int) toy_post_string('audit_logs_days', 5),
         'used_tokens_days' => (int) toy_post_string('used_tokens_days', 5),
+        'sessions_days' => (int) toy_post_string('sessions_days', 5),
     ];
 
     foreach ($values as $key => $days) {
@@ -51,6 +53,7 @@ if (toy_request_method() === 'POST') {
         $authCutoff = toy_admin_retention_cutoff($values['auth_logs_days']);
         $auditCutoff = toy_admin_retention_cutoff($values['audit_logs_days']);
         $tokenCutoff = toy_admin_retention_cutoff($values['used_tokens_days']);
+        $sessionCutoff = toy_admin_retention_cutoff($values['sessions_days']);
 
         $stmt = $pdo->prepare('DELETE FROM toy_member_auth_logs WHERE created_at < :cutoff');
         $stmt->execute(['cutoff' => $authCutoff]);
@@ -67,6 +70,19 @@ if (toy_request_method() === 'POST') {
         $stmt = $pdo->prepare('DELETE FROM toy_member_email_verifications WHERE verified_at IS NOT NULL AND verified_at < :cutoff');
         $stmt->execute(['cutoff' => $tokenCutoff]);
         $deletedCounts['email_verifications'] = $stmt->rowCount();
+
+        if (toy_member_sessions_table_exists($pdo)) {
+            $stmt = $pdo->prepare(
+                'DELETE FROM toy_member_sessions
+                 WHERE (revoked_at IS NOT NULL AND revoked_at < :revoked_cutoff)
+                    OR expires_at < :expired_cutoff'
+            );
+            $stmt->execute([
+                'revoked_cutoff' => $sessionCutoff,
+                'expired_cutoff' => $sessionCutoff,
+            ]);
+            $deletedCounts['sessions'] = $stmt->rowCount();
+        }
 
         toy_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
@@ -90,6 +106,7 @@ $previewCutoffs = [
     'auth_logs' => toy_admin_retention_cutoff($values['auth_logs_days']),
     'audit_logs' => toy_admin_retention_cutoff($values['audit_logs_days']),
     'used_tokens' => toy_admin_retention_cutoff($values['used_tokens_days']),
+    'sessions' => toy_admin_retention_cutoff($values['sessions_days']),
 ];
 
 $previewCounts = [
@@ -113,6 +130,17 @@ $previewCounts = [
         'SELECT COUNT(*) AS count_value FROM toy_member_email_verifications WHERE verified_at IS NOT NULL AND verified_at < :cutoff',
         ['cutoff' => $previewCutoffs['used_tokens']]
     ),
+    'sessions' => toy_member_sessions_table_exists($pdo) ? toy_admin_retention_count(
+        $pdo,
+        'SELECT COUNT(*) AS count_value
+         FROM toy_member_sessions
+         WHERE (revoked_at IS NOT NULL AND revoked_at < :revoked_cutoff)
+            OR expires_at < :expired_cutoff',
+        [
+            'revoked_cutoff' => $previewCutoffs['sessions'],
+            'expired_cutoff' => $previewCutoffs['sessions'],
+        ]
+    ) : 0,
 ];
 
 include TOY_ROOT . '/modules/admin/views/retention.php';
