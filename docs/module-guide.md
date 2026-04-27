@@ -9,7 +9,7 @@ Toycore의 모듈은 프레임워크 패키지가 아닙니다.
 ```text
 modules/{module_key}/
 - module.php
-- routes.php
+- paths.php
 - handlers/
 - views/
 - lang/
@@ -21,7 +21,7 @@ modules/{module_key}/
 ```text
 modules/member/
 - module.php
-- routes.php
+- paths.php
 - handlers/login.php
 - handlers/logout.php
 - handlers/register.php
@@ -91,21 +91,33 @@ enabled
 disabled
 ```
 
-코어는 요청마다 현재 사이트에서 `enabled` 상태인 모듈만 로드합니다. 비활성 모듈의 `routes.php`는 include하지 않습니다.
+코어는 요청마다 현재 사이트에서 `enabled` 상태인 모듈만 대상으로 삼습니다. 비활성 모듈의 handler는 include하지 않습니다.
 
-## 라우트 등록
+## Path 매핑
 
-`routes.php`는 라우트 배열이나 간단한 등록 함수를 사용합니다.
+모듈이 처리할 수 있는 path는 `paths.php`에서 단순 배열로 반환합니다. 이 파일은 라우트를 등록하거나 실행하지 않습니다.
 
 예시:
 
 ```php
-toy_route('GET', '/login', 'member', 'handlers/login.php');
-toy_route('POST', '/login', 'member', 'handlers/login.php');
-toy_route('POST', '/logout', 'member', 'handlers/logout.php');
+<?php
+
+return [
+    'GET /login' => 'handlers/login.php',
+    'POST /login' => 'handlers/login.php',
+    'GET /logout' => 'handlers/logout.php',
+];
 ```
 
-라우트는 명시적으로 등록합니다. 파일명, 클래스명, attribute를 자동 스캔해서 라우트를 만들지 않습니다.
+코어는 활성 모듈의 `paths.php`를 읽고, 현재 method/path와 일치하는 handler를 검증한 뒤 include합니다.
+
+기본 원칙:
+
+- `toy_route()` 같은 전역 라우트 등록 API를 기본 모델로 사용하지 않음
+- `paths.php`는 실행 흐름을 만들지 않고 배열만 반환
+- handler 경로는 모듈 디렉터리 내부의 허용된 상대 경로만 사용
+- 파일명, 클래스명, attribute를 자동 스캔해서 라우트를 만들지 않음
+- 현재 요청에 필요한 handler만 include
 
 ## Handler 작성
 

@@ -27,11 +27,13 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 
 - [기본환경 테이블 ERD](docs/erd-basic-environment.md)
 - [구현 방향 및 보안 계획](docs/implementation-security-plan.md)
+- [핵심 설계 결정](docs/core-decisions.md)
 - [모듈 작성 가이드](docs/module-guide.md)
 - [다국어 처리 계획](docs/i18n-plan.md)
 - [개인정보 및 GDPR 대응 계획](docs/privacy-gdpr-plan.md)
 - [SEO 대응 계획](docs/seo-plan.md)
 - [진입점 및 홈 라우팅 계획](docs/routing-entry-plan.md)
+- [캐시 계획](docs/cache-plan.md)
 
 ## 프로젝트 관점
 

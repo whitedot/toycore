@@ -28,8 +28,17 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 
 - Keep request flow readable as procedural PHP.
 - Prefer direct `if` / `elseif` request branches or explicit `include` files over hidden dispatch flows.
+- Do not use route registration APIs such as `toy_route()` as the default routing model.
+- If a module exposes routable handlers, prefer a plain array file that returns allowed method/path to handler mappings, then validate and include explicitly.
 - Do not use PHP short tags or short echo tags.
 - Use `<?php echo ...; ?>` instead of `<?= ... ?>`.
 - Do not render a full HTML layout with heredoc strings such as `echo <<<HTML`.
 - Prefer closing PHP and writing normal HTML for view output, using small `<?php echo ...; ?>` blocks only where values are needed.
 - Escape output before printing user-controlled or variable values.
+
+## Core Decisions
+
+- Treat `docs/core-decisions.md` as the highest-level decision log when implementation plans appear ambiguous.
+- Store token hashes, not token originals.
+- Keep SEO value decisions in modules; core only provides output slots and helpers.
+- Keep GDPR support split between minimal member/core foundations and optional privacy/admin workflows.

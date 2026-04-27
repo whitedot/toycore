@@ -115,7 +115,7 @@ erDiagram
     toy_member_sessions {
         bigint id PK
         bigint account_id FK
-        varchar session_token UK
+        varchar session_token_hash UK
         varchar ip_address
         text user_agent
         datetime expires_at
@@ -150,7 +150,9 @@ erDiagram
     toy_privacy_requests {
         bigint id PK
         bigint site_id FK
-        bigint account_id FK
+        bigint account_id FK "nullable"
+        varchar requester_email_hash
+        text requester_snapshot
         varchar request_type
         varchar status
         text request_note
@@ -274,6 +276,8 @@ erDiagram
 
 로그인 세션을 저장합니다. PHP 기본 세션만 사용할 수도 있지만, 자동 로그인, 세션 만료 관리, 강제 로그아웃 같은 기능을 고려하면 별도 테이블을 두는 편이 확장에 유리합니다.
 
+`session_token_hash`에는 토큰 원문이 아니라 해시만 저장합니다. 세션, 자동 로그인, 비밀번호 재설정, 이메일 인증 같은 토큰은 원문 저장을 기본 금지합니다.
+
 ### `toy_member_auth_logs`
 
 로그인, 로그아웃, 로그인 실패, 비밀번호 변경 같은 인증 관련 이벤트를 기록합니다. 보안 문제 추적과 관리자 확인 용도로 사용합니다.
@@ -290,6 +294,8 @@ erDiagram
 ### `toy_privacy_requests`
 
 개인정보 열람, 정정, 삭제, 처리 제한, 이동권, 처리 반대, 동의 철회 같은 요청을 기록합니다.
+
+`account_id`는 계정이 남아 있는 동안 연결할 수 있지만, 삭제/익명화 이후에도 요청 이력이 보존될 수 있도록 nullable로 설계합니다. 요청 당시 식별에 필요한 최소 정보는 `requester_email_hash`와 `requester_snapshot`에 저장합니다.
 
 권장 값:
 
@@ -315,11 +321,12 @@ toy_site_modules
 ## 구현 시 고려사항
 
 - 비밀번호는 반드시 `password_hash()` 결과만 저장
-- 세션 토큰은 원문 대신 해시 저장을 우선 검토
+- 세션, 자동 로그인, 인증 관련 토큰은 원문 대신 해시만 저장
 - 설정값의 `value_type`은 `string`, `int`, `bool`, `json` 정도로 제한
 - locale은 사이트 기본값, 회원 설정값, 요청값의 우선순위를 정해 처리
 - 동의 기록은 문서 버전과 시점을 함께 저장
 - 개인정보 삭제 요청은 물리 삭제, 비활성화, 익명화 정책을 구분
+- 개인정보 요청 이력은 계정 삭제/익명화 이후에도 보존 가능해야 함
 - `created_at`, `updated_at`은 모든 주요 테이블에 일관되게 사용
 - 삭제가 많은 데이터는 실제 삭제와 소프트 삭제 중 운영 정책을 먼저 결정
 - 저가형 웹호스팅 호환성을 위해 트리거, 저장 프로시저, 복잡한 DB 기능 의존은 최소화
