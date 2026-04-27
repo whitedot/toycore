@@ -132,15 +132,18 @@ handler는 다음 원칙을 지킵니다.
 
 ## View 작성
 
-view는 PHP 템플릿입니다.
+view는 일반 HTML 안에 필요한 PHP 출력만 섞어 작성합니다.
 
 ```php
-<input type="text" name="login_id" value="<?= toy_e($loginId) ?>">
+<input type="text" name="login_id" value="<?php echo toy_e($loginId); ?>">
 ```
 
 기본 원칙:
 
 - 출력은 `toy_e()` 같은 escape helper 사용
+- `<?= ... ?>` 숏 echo 태그를 사용하지 않음
+- 전체 HTML 레이아웃을 `echo <<<HTML` heredoc 문자열로 출력하지 않음
+- PHP를 닫고 일반 HTML을 작성한 뒤 필요한 위치에만 `<?php echo ...; ?>` 사용
 - 사용자 입력 HTML은 기본적으로 출력하지 않음
 - 상태 변경 폼에는 CSRF 토큰 포함
 
