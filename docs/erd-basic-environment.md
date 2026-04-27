@@ -86,6 +86,30 @@ erDiagram
         datetime updated_at
     }
 
+    toy_schema_versions {
+        bigint id PK
+        varchar scope
+        varchar module_key
+        varchar version
+        datetime applied_at
+    }
+
+    toy_audit_logs {
+        bigint id PK
+        bigint site_id FK
+        bigint actor_account_id FK
+        varchar actor_type
+        varchar event_type
+        varchar target_type
+        varchar target_id
+        varchar result
+        varchar ip_address
+        text user_agent
+        text message
+        text metadata_json
+        datetime created_at
+    }
+
     toy_member_accounts {
         bigint id PK
         bigint site_id FK
@@ -169,6 +193,7 @@ erDiagram
     toy_modules ||--o{ toy_site_modules : assigned
     toy_sites ||--o{ toy_module_settings : has
     toy_modules ||--o{ toy_module_settings : configures
+    toy_sites ||--o{ toy_audit_logs : records
 
     toy_sites ||--o{ toy_member_accounts : owns
     toy_member_accounts ||--o| toy_member_profiles : has
@@ -252,6 +277,33 @@ erDiagram
 권장 유니크 키:
 
 - `site_id`, `module_id`, `setting_key`
+
+### `toy_schema_versions`
+
+코어와 모듈의 스키마 적용 버전을 기록합니다. 프레임워크형 migration 클래스 대신 SQL 파일과 이 테이블을 사용해 설치/업데이트 상태를 추적합니다.
+
+권장 유니크 키:
+
+- `scope`, `module_key`, `version`
+
+주요 값:
+
+- `scope`: `core`, `module`
+- `module_key`: 모듈 업데이트일 때만 사용
+- `version`: 정렬 가능한 버전 문자열
+
+### `toy_audit_logs`
+
+관리자 작업, 설정 변경, 모듈 활성화, 업데이트 실행 같은 운영상 중요한 이벤트를 기록합니다.
+
+기록 금지:
+
+- 비밀번호
+- 세션 ID
+- CSRF 토큰
+- 비밀번호 재설정 토큰
+- DB 접속 비밀번호
+- 개인정보 원문 전체
 
 ## 회원 인증 모듈
 
