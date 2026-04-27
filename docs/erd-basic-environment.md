@@ -201,10 +201,10 @@ erDiagram
     toy_member_accounts ||--o| toy_member_profiles : has
     toy_member_accounts ||--o{ toy_member_sessions : creates
     toy_sites ||--o{ toy_member_auth_logs : records
-    toy_member_accounts ||--o{ toy_member_auth_logs : records
+    toy_member_accounts |o--o{ toy_member_auth_logs : optionally_records
     toy_member_accounts ||--o{ toy_member_consents : grants
     toy_sites ||--o{ toy_privacy_requests : receives
-    toy_member_accounts ||--o{ toy_privacy_requests : submits
+    toy_member_accounts |o--o{ toy_privacy_requests : optionally_submits
 ```
 
 ## 테이블 설명
