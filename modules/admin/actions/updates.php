@@ -22,53 +22,61 @@ if (toy_request_method() === 'POST') {
         $errors[] = '업데이트 전 백업 확인이 필요합니다.';
     }
 
-    if ($errors === []) {
-        foreach ($pendingUpdates as $update) {
+    if ($errors === [] && $pendingUpdates !== []) {
+        if (!toy_admin_acquire_update_lock($pdo)) {
+            $errors[] = '다른 업데이트가 실행 중입니다. 잠시 후 다시 시도하세요.';
+        } else {
             try {
-                toy_audit_log($pdo, [
-                    'actor_account_id' => (int) $account['id'],
-                    'actor_type' => 'admin',
-                    'event_type' => 'schema.update.started',
-                    'target_type' => (string) $update['scope'],
-                    'target_id' => (string) $update['label'] . ':' . (string) $update['version'],
-                    'result' => 'success',
-                    'message' => 'Schema update started.',
-                    'metadata' => [
-                        'checksum' => (string) ($update['checksum'] ?? ''),
-                    ],
-                ]);
+                foreach ($pendingUpdates as $update) {
+                    try {
+                        toy_audit_log($pdo, [
+                            'actor_account_id' => (int) $account['id'],
+                            'actor_type' => 'admin',
+                            'event_type' => 'schema.update.started',
+                            'target_type' => (string) $update['scope'],
+                            'target_id' => (string) $update['label'] . ':' . (string) $update['version'],
+                            'result' => 'success',
+                            'message' => 'Schema update started.',
+                            'metadata' => [
+                                'checksum' => (string) ($update['checksum'] ?? ''),
+                            ],
+                        ]);
 
-                toy_admin_apply_update($pdo, $update);
-                $appliedUpdates[] = $update;
+                        toy_admin_apply_update($pdo, $update);
+                        $appliedUpdates[] = $update;
 
-                toy_audit_log($pdo, [
-                    'actor_account_id' => (int) $account['id'],
-                    'actor_type' => 'admin',
-                    'event_type' => 'schema.update.completed',
-                    'target_type' => (string) $update['scope'],
-                    'target_id' => (string) $update['label'] . ':' . (string) $update['version'],
-                    'result' => 'success',
-                    'message' => 'Schema update completed.',
-                    'metadata' => [
-                        'checksum' => (string) ($update['checksum'] ?? ''),
-                    ],
-                ]);
-            } catch (Throwable $exception) {
-                toy_audit_log($pdo, [
-                    'actor_account_id' => (int) $account['id'],
-                    'actor_type' => 'admin',
-                    'event_type' => 'schema.update.failed',
-                    'target_type' => (string) $update['scope'],
-                    'target_id' => (string) $update['label'] . ':' . (string) $update['version'],
-                    'result' => 'failure',
-                    'message' => 'Schema update failed.',
-                    'metadata' => [
-                        'checksum' => (string) ($update['checksum'] ?? ''),
-                        'error' => $exception->getMessage(),
-                    ],
-                ]);
-                $errors[] = (string) $update['label'] . ' ' . (string) $update['version'] . ' 업데이트 중 오류가 발생했습니다.';
-                break;
+                        toy_audit_log($pdo, [
+                            'actor_account_id' => (int) $account['id'],
+                            'actor_type' => 'admin',
+                            'event_type' => 'schema.update.completed',
+                            'target_type' => (string) $update['scope'],
+                            'target_id' => (string) $update['label'] . ':' . (string) $update['version'],
+                            'result' => 'success',
+                            'message' => 'Schema update completed.',
+                            'metadata' => [
+                                'checksum' => (string) ($update['checksum'] ?? ''),
+                            ],
+                        ]);
+                    } catch (Throwable $exception) {
+                        toy_audit_log($pdo, [
+                            'actor_account_id' => (int) $account['id'],
+                            'actor_type' => 'admin',
+                            'event_type' => 'schema.update.failed',
+                            'target_type' => (string) $update['scope'],
+                            'target_id' => (string) $update['label'] . ':' . (string) $update['version'],
+                            'result' => 'failure',
+                            'message' => 'Schema update failed.',
+                            'metadata' => [
+                                'checksum' => (string) ($update['checksum'] ?? ''),
+                                'error' => $exception->getMessage(),
+                            ],
+                        ]);
+                        $errors[] = (string) $update['label'] . ' ' . (string) $update['version'] . ' 업데이트 중 오류가 발생했습니다.';
+                        break;
+                    }
+                }
+            } finally {
+                toy_admin_release_update_lock($pdo);
             }
         }
     }

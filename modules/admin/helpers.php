@@ -98,6 +98,61 @@ function toy_admin_update_checksum(string $path): string
     return is_string($checksum) ? $checksum : '';
 }
 
+function toy_admin_update_path_is_allowed(array $update): bool
+{
+    $scope = (string) ($update['scope'] ?? '');
+    $moduleKey = (string) ($update['module_key'] ?? '');
+    $version = (string) ($update['version'] ?? '');
+    $path = (string) ($update['path'] ?? '');
+
+    if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $version) !== 1 || !is_file($path)) {
+        return false;
+    }
+
+    if ($scope === 'core') {
+        $expectedDirectory = realpath(TOY_ROOT . '/database/core/updates');
+        $expectedModuleKey = '';
+    } elseif ($scope === 'module' && toy_is_safe_module_key($moduleKey)) {
+        $expectedDirectory = realpath(TOY_ROOT . '/modules/' . $moduleKey . '/updates');
+        $expectedModuleKey = $moduleKey;
+    } else {
+        return false;
+    }
+
+    if ($moduleKey !== $expectedModuleKey || $expectedDirectory === false) {
+        return false;
+    }
+
+    $realPath = realpath($path);
+    if ($realPath === false || strpos($realPath, $expectedDirectory . DIRECTORY_SEPARATOR) !== 0) {
+        return false;
+    }
+
+    return basename($realPath) === $version . '.sql';
+}
+
+function toy_admin_acquire_update_lock(PDO $pdo): bool
+{
+    try {
+        $stmt = $pdo->prepare('SELECT GET_LOCK(:lock_name, 10) AS lock_acquired');
+        $stmt->execute(['lock_name' => 'toycore_schema_updates']);
+        $row = $stmt->fetch();
+    } catch (Throwable $exception) {
+        return false;
+    }
+
+    return is_array($row) && (string) ($row['lock_acquired'] ?? '') === '1';
+}
+
+function toy_admin_release_update_lock(PDO $pdo): void
+{
+    try {
+        $stmt = $pdo->prepare('SELECT RELEASE_LOCK(:lock_name)');
+        $stmt->execute(['lock_name' => 'toycore_schema_updates']);
+    } catch (Throwable $ignored) {
+    }
+}
+
 function toy_admin_applied_schema_versions(PDO $pdo): array
 {
     $stmt = $pdo->query('SELECT scope, module_key, version FROM toy_schema_versions');
@@ -141,7 +196,7 @@ function toy_admin_pending_updates(PDO $pdo): array
         }
     }
 
-    $stmt = $pdo->query("SELECT module_key FROM toy_modules WHERE status = 'enabled' ORDER BY module_key ASC");
+    $stmt = $pdo->query('SELECT module_key FROM toy_modules ORDER BY module_key ASC');
     foreach ($stmt->fetchAll() as $module) {
         $moduleKey = (string) $module['module_key'];
         if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
@@ -168,6 +223,15 @@ function toy_admin_pending_updates(PDO $pdo): array
 
 function toy_admin_apply_update(PDO $pdo, array $update): void
 {
+    if (!toy_admin_update_path_is_allowed($update)) {
+        throw new RuntimeException('Schema update path is invalid.');
+    }
+
+    $expectedChecksum = (string) ($update['checksum'] ?? '');
+    if ($expectedChecksum !== '' && !hash_equals($expectedChecksum, toy_admin_update_checksum((string) $update['path']))) {
+        throw new RuntimeException('Schema update checksum changed.');
+    }
+
     toy_execute_sql_file($pdo, (string) $update['path']);
     toy_record_schema_version($pdo, (string) $update['scope'], (string) $update['module_key'], (string) $update['version']);
 }

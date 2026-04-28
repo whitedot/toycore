@@ -171,29 +171,7 @@ function toy_popup_layer_close_script(): string
 
     $printed = true;
 
-    return '<script>
-document.addEventListener("click", function (event) {
-    var button = event.target.closest("[data-toy-popup-layer-close]");
-    if (!button) {
-        return;
-    }
-
-    var popup = button.closest("[data-toy-popup-layer]");
-    if (!popup) {
-        return;
-    }
-
-    var popupId = popup.getAttribute("data-popup-id");
-    var days = parseInt(popup.getAttribute("data-cookie-days") || "0", 10);
-    if (popupId && days > 0) {
-        var expires = new Date();
-        expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-        document.cookie = "toy_popup_layer_" + popupId + "_dismissed=1; expires=" + expires.toUTCString() + "; path=/; SameSite=Lax";
-    }
-
-    popup.remove();
-});
-</script>';
+    return '<script src="/assets/toycore-popup-layer.js" defer></script>';
 }
 
 function toy_popup_layer_clean_single_line(string $value, int $maxLength): string
