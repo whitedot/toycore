@@ -8,7 +8,8 @@ Toycore는 저가형 웹호스팅에서도 설치할 수 있어야 하므로 CLI
 - 기본 설정 파일 생성
 - 기본 코어 테이블 생성
 - 기본 사이트 설정 저장
-- 기본 모듈 등록
+- 필수 모듈 설치와 등록
+- 선택 모듈 설치 여부 선택
 - 최초 관리자 계정 생성
 - 설치 완료 후 설치 화면 잠금
 
@@ -33,14 +34,13 @@ Toycore는 저가형 웹호스팅에서도 설치할 수 있어야 하므로 CLI
 7. core install.sql 실행
 8. `member` 모듈 install.sql 실행
 9. `admin` 모듈 install.sql 실행
-10. `seo` 모듈 install.sql 실행
-11. `popup_layer` 모듈 install.sql 실행
-12. 기본 사이트 설정 저장
-13. 기본 모듈 등록 및 활성화
-14. 스키마 버전 기록
-15. 최초 관리자 계정 생성
-16. 설치 잠금 파일 생성
-17. 관리자 화면으로 이동
+10. 선택한 기본 제공 모듈의 install.sql 실행
+11. 기본 사이트 설정 저장
+12. 필수 모듈과 선택한 모듈 등록 및 활성화
+13. 스키마 버전 기록
+14. 최초 관리자 계정 생성
+15. 설치 잠금 파일 생성
+16. 관리자 화면으로 이동
 ```
 
 저가형 공유호스팅 기본 배포는 도메인이 프로젝트 루트를 직접 가리킨다고 가정합니다. 따라서 `도메인/` 요청은 루트 `index.php`로 진입합니다.
@@ -106,9 +106,9 @@ toy_module_settings
 toy_schema_versions
 ```
 
-`toy_schema_versions`는 설치된 core/member/admin/seo/popup_layer 스키마 버전을 기록합니다. 관리자 업데이트 화면은 이 기록을 기준으로 아직 적용되지 않은 SQL 파일만 실행합니다.
+`toy_schema_versions`는 설치된 core와 모듈의 스키마 버전을 기록합니다. 관리자 업데이트 화면은 이 기록을 기준으로 아직 적용되지 않은 SQL 파일만 실행합니다.
 
-`member`, `admin`, `seo`, `popup_layer`는 기본 제공 모듈이지만, 테이블 생성은 각 모듈의 `install.sql` 책임으로 둡니다.
+`member`, `admin`, `seo`, `popup_layer`, `point`, `deposit`, `reward`는 기본 제공 모듈이지만, 테이블 생성은 각 모듈의 `install.sql` 책임으로 둡니다.
 
 단일 사이트 기본값은 `toy_site_settings`의 다음 필수 키로 저장합니다.
 
@@ -122,30 +122,40 @@ site.status
 
 ## 기본 모듈 등록
 
-초기 설치 시 다음 모듈을 등록합니다.
+초기 설치 시 다음 필수 모듈은 항상 등록하고 활성화합니다.
 
 ```text
 member
 admin
-seo
-popup_layer
 ```
 
-`member`와 `admin`은 코어에 내장하지 않지만, 기본 설치에 반드시 포함되는 필수 기본 모듈입니다. `seo`와 `popup_layer`는 기본 제공 모듈로 함께 활성화하되, 인증과 관리자 진입에 필요한 필수 모듈은 아닙니다.
+`member`와 `admin`은 코어에 내장하지 않지만, 기본 설치에 반드시 포함되는 필수 기본 모듈입니다.
+
+다음 기본 제공 모듈은 설치 화면에서 선택한 경우에만 설치 SQL을 실행하고 `toy_modules`에 등록합니다.
+
+```text
+seo
+popup_layer
+point
+deposit
+reward
+```
+
+선택하지 않은 모듈은 코드가 배포되어 있더라도 DB에는 등록하지 않습니다. 설치 후 `/admin/modules`에서 코드에 있지만 DB에 등록되지 않은 모듈을 설치할 수 있습니다.
 
 기본 배포 설치 단위:
 
 ```text
-core + member + admin + seo + popup_layer
+필수: core + member + admin
+선택: seo + popup_layer + point + deposit + reward
 ```
 
-각 기본 모듈은 기본 활성 상태로 시작합니다.
+설치된 모듈은 기본 활성 상태로 시작합니다.
 
 ```text
 member: enabled
 admin: enabled
-seo: enabled
-popup_layer: enabled
+선택한 모듈: enabled
 ```
 
 단, 코어는 이 모듈들의 내부 테이블 구조를 직접 알지 않습니다. 설치 과정에서 각 모듈의 `install.sql`을 명시적으로 실행합니다.

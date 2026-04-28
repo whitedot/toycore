@@ -30,7 +30,7 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 
 - 자기 테이블, 관리자 화면, route, 정책을 소유하면 모듈입니다.
 - 다른 모듈의 확장 지점에 붙어 기능을 보강하면 플러그인입니다.
-- `member`, `admin`, `seo`, `popup_layer`처럼 독립 기능을 소유하는 기본 확장은 모듈입니다.
+- `member`, `admin`, `seo`, `popup_layer`, `point`, `deposit`, `reward`처럼 독립 기능을 소유하는 기본 확장은 모듈입니다.
 - 소셜 로그인 제공자, 특정 에디터 연동, 결제 수단 어댑터처럼 다른 모듈의 계약에 붙는 확장은 플러그인입니다.
 
 현재 DB registry는 `toy_modules`를 유지합니다. 모듈/플러그인 구분은 `module.php`의 `type` 값으로 표시합니다.
@@ -427,6 +427,8 @@ vendor/package
 3. toy_modules.status로 활성 상태 설정
 4. toy_module_settings에 기본 설정 등록
 ```
+
+웹 설치 화면에서는 `member`, `admin`을 필수 모듈로 설치하고, 기본 제공 선택 모듈은 선택한 경우에만 설치합니다. 설치 후에는 `/admin/modules`에서 코드에 있지만 DB에 등록되지 않은 모듈을 설치할 수 있습니다.
 
 모듈 설정을 읽을 때는 코어 helper를 사용합니다.
 

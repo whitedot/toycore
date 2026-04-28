@@ -4,9 +4,9 @@ Toycore의 기본환경은 사이트 설정과 모듈 시스템을 중심으로 
 
 회원 인증은 대부분의 사이트에서 기본적으로 사용되지만, 코어에 고정된 기능이 아니라 `member` 모듈로 취급합니다. 따라서 회원 관련 테이블은 기본 배포에 포함될 수 있으나, 구조상으로는 모듈 테이블과 모듈 설정을 통해 활성화되는 기능으로 봅니다.
 
-이 ERD는 코어 전용 테이블만이 아니라 기본 배포(`core + member + admin + seo + popup_layer`)에서 함께 설치되는 테이블까지 보여줍니다. `member`, `admin`, `seo`, `popup_layer`는 기본 제공 모듈이지만 코어에 내장된 테이블 소유권을 갖지는 않습니다.
+이 ERD는 코어 전용 테이블만이 아니라 기본 배포 코드에 포함된 모듈 테이블까지 보여줍니다. `member`와 `admin`은 필수 모듈이고, `seo`, `popup_layer`, `point`, `deposit`, `reward`는 설치 화면이나 관리자 모듈 화면에서 선택 설치할 수 있는 기본 제공 모듈입니다.
 
-아래 ERD는 현재 설치 SQL과 기본 제공 모듈의 설치 SQL을 기준으로 합니다. 과거 MVP 범위보다 넓어진 감사 로그, 개인정보 요청, 회원 프로필, DB 세션, 팝업레이어 테이블도 현재 구현 범위로 포함합니다.
+아래 ERD는 현재 설치 SQL과 기본 제공 모듈의 설치 SQL을 기준으로 합니다. 과거 MVP 범위보다 넓어진 감사 로그, 개인정보 요청, 회원 프로필, DB 세션, 팝업레이어, 포인트, 예치금, 적립금 테이블도 현재 구현 범위로 포함합니다.
 
 ## 설계 원칙
 
@@ -201,6 +201,69 @@ erDiagram
         datetime created_at
     }
 
+    toy_point_balances {
+        bigint id PK
+        bigint account_id FK
+        bigint balance
+        datetime created_at
+        datetime updated_at
+    }
+
+    toy_point_transactions {
+        bigint id PK
+        bigint account_id FK
+        bigint amount
+        bigint balance_after
+        varchar transaction_type
+        varchar reason
+        varchar reference_type
+        varchar reference_id
+        bigint created_by_account_id "nullable"
+        datetime created_at
+    }
+
+    toy_deposit_balances {
+        bigint id PK
+        bigint account_id FK
+        bigint balance
+        datetime created_at
+        datetime updated_at
+    }
+
+    toy_deposit_transactions {
+        bigint id PK
+        bigint account_id FK
+        bigint amount
+        bigint balance_after
+        varchar transaction_type
+        varchar reason
+        varchar reference_type
+        varchar reference_id
+        bigint created_by_account_id "nullable"
+        datetime created_at
+    }
+
+    toy_reward_balances {
+        bigint id PK
+        bigint account_id FK
+        bigint balance
+        datetime created_at
+        datetime updated_at
+    }
+
+    toy_reward_transactions {
+        bigint id PK
+        bigint account_id FK
+        bigint amount
+        bigint balance_after
+        varchar transaction_type
+        varchar reason
+        varchar reference_type
+        varchar reference_id
+        bigint created_by_account_id "nullable"
+        datetime created_at
+    }
+
     toy_modules ||--o{ toy_module_settings : configures
 
     toy_member_accounts ||--o| toy_member_profiles : has
@@ -212,6 +275,12 @@ erDiagram
     toy_member_accounts ||--o{ toy_admin_account_roles : receives
     toy_member_accounts |o--o{ toy_privacy_requests : optionally_submits
     toy_popup_layers ||--o{ toy_popup_layer_targets : targets
+    toy_member_accounts ||--o| toy_point_balances : has
+    toy_member_accounts ||--o{ toy_point_transactions : records
+    toy_member_accounts ||--o| toy_deposit_balances : has
+    toy_member_accounts ||--o{ toy_deposit_transactions : records
+    toy_member_accounts ||--o| toy_reward_balances : has
+    toy_member_accounts ||--o{ toy_reward_transactions : records
 ```
 
 ## 테이블 설명
@@ -246,6 +315,9 @@ erDiagram
 | `admin` | 관리자 | `1` |
 | `seo` | SEO | `1` |
 | `popup_layer` | 팝업레이어 | `1` |
+| `point` | 포인트 | `1` |
+| `deposit` | 예치금 | `1` |
+| `reward` | 적립금 | `1` |
 | `board` | 게시판 | `0` |
 | `page` | 페이지 | `0` |
 
@@ -445,19 +517,51 @@ hash_hmac('sha256', normalized_identifier, app_key)
 - `popup_layer_id`
 - `module_key`, `point_key`, `slot_key`, `match_type`, `subject_id`, `popup_layer_id`
 
+## 포인트/예치금/적립금 모듈
+
+`point`, `deposit`, `reward` 모듈은 모두 회원 계정에 연결되는 잔액 테이블과 거래 원장 테이블을 소유합니다. 코어나 `member` 테이블에 잔액 컬럼을 추가하지 않고, 각 모듈이 `account_id`로 회원을 논리 참조합니다.
+
+### `toy_point_balances`, `toy_deposit_balances`, `toy_reward_balances`
+
+회원별 현재 잔액을 저장합니다.
+
+권장 인덱스:
+
+- `account_id` unique
+- `updated_at`
+
+### `toy_point_transactions`, `toy_deposit_transactions`, `toy_reward_transactions`
+
+지급, 차감, 환불, 만료 같은 거래 이력을 원장 형태로 저장합니다. 거래가 생성될 때 `balance_after`를 함께 기록해 나중에 잔액 변화를 추적할 수 있게 합니다.
+
+권장 인덱스:
+
+- `account_id`, `created_at`
+- `reference_type`, `reference_id`
+- `created_by_account_id`
+- `created_at`
+
 ## 초기 모듈 상태 예시
 
-기본 설치 시 다음과 같이 시작할 수 있습니다.
+필수 모듈은 기본 설치 시 항상 등록되고 활성화됩니다.
 
 ```text
 toy_modules
 - member: enabled, default bundled module
 - admin: enabled, default bundled module
-- seo: enabled, default bundled module
-- popup_layer: enabled, default bundled module
 ```
 
-이 구조에서는 회원 인증, 관리자 화면, SEO 운영 기반, 팝업레이어가 기본적으로 켜져 있지만, 코드 관점에서는 여전히 각 모듈로 분리됩니다.
+선택 모듈은 설치 화면 또는 `/admin/modules`에서 설치한 경우에만 등록됩니다.
+
+```text
+- seo: enabled, bundled module if selected
+- popup_layer: enabled, bundled module if selected
+- point: enabled, bundled module if selected
+- deposit: enabled, bundled module if selected
+- reward: enabled, bundled module if selected
+```
+
+이 구조에서는 회원 인증과 관리자 화면은 항상 준비되지만, SEO 운영 기반, 팝업레이어, 포인트/예치금/적립금은 운영자가 필요한 경우에만 설치할 수 있습니다. 코드 관점에서는 여전히 각 기능이 모듈로 분리됩니다.
 
 ## 구현 시 고려사항
 

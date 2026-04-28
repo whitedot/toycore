@@ -68,7 +68,7 @@ modules/{module_key}/updates/2026.05.001.sql
 3. database/core/updates 목록 확인
 4. 아직 적용되지 않은 SQL만 순서대로 실행
 5. 각 SQL 성공 시 toy_schema_versions 기록
-6. 활성 모듈별 업데이트 목록 확인
+6. 설치된 모듈별 업데이트 목록 확인
 7. 모듈별 미적용 SQL 실행
 8. 캐시 삭제
 9. 완료 로그 기록
@@ -134,7 +134,7 @@ modules/{module_key}/updates/2026.05.001.sql
 표시 항목:
 
 - 사용 가능한 코어 업데이트
-- 활성 모듈별 사용 가능한 업데이트
+- 설치된 모듈별 사용 가능한 업데이트
 - 적용 대상 SQL 파일
 - 적용 결과
 - 실패 시 감사 로그

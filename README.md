@@ -121,11 +121,11 @@ module -> point -> slot -> subject
 
 ## 설계 문서
 
+- [문서 분류](docs/documentation-index.md)
 - [기본환경 테이블 ERD](docs/erd-basic-environment.md)
 - [구현된 기능 리스트](docs/implemented-features.md)
 - [구현 방향 및 보안 계획](docs/implementation-security-plan.md)
 - [핵심 설계 결정](docs/core-decisions.md)
-- [기본 코어 우선순위](docs/core-foundation-roadmap.md)
 - [설치 및 초기화 계획](docs/install-plan.md)
 - [업데이트 및 스키마 버전 계획](docs/update-plan.md)
 - [운영 모드 및 에러 처리 계획](docs/runtime-ops-plan.md)
