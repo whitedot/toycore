@@ -1,0 +1,166 @@
+<?php
+
+declare(strict_types=1);
+
+function toy_seo_sitemap_entries(PDO $pdo, ?array $site): array
+{
+    $entries = [];
+    $homeUrl = toy_seo_sitemap_absolute_url($site, '/');
+    if ($homeUrl !== '') {
+        $entries[] = [
+            'loc' => $homeUrl,
+            'priority' => '1.0',
+        ];
+    }
+
+    foreach (toy_enabled_module_keys($pdo) as $moduleKey) {
+        if ($moduleKey === 'seo' || preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+            continue;
+        }
+
+        $sitemapFile = TOY_ROOT . '/modules/' . $moduleKey . '/sitemap.php';
+        if (!is_file($sitemapFile)) {
+            continue;
+        }
+
+        $moduleEntries = include $sitemapFile;
+        if (is_callable($moduleEntries)) {
+            $moduleEntries = $moduleEntries($pdo, $site);
+        }
+
+        if (!is_array($moduleEntries)) {
+            continue;
+        }
+
+        foreach ($moduleEntries as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $normalized = toy_seo_normalize_sitemap_entry($site, $entry);
+            if ($normalized !== null) {
+                $entries[] = $normalized;
+            }
+        }
+    }
+
+    return toy_seo_unique_sitemap_entries($entries);
+}
+
+function toy_seo_sitemap_absolute_url(?array $site, string $url): string
+{
+    if (toy_is_http_url($url)) {
+        return $url;
+    }
+
+    if (!toy_is_safe_relative_url($url)) {
+        return '';
+    }
+
+    $baseUrl = is_array($site) ? (string) ($site['base_url'] ?? '') : '';
+    if ($baseUrl === '' || !toy_is_http_url($baseUrl)) {
+        $baseUrl = toy_current_base_url();
+    }
+
+    if ($baseUrl === '' || !toy_is_http_url($baseUrl)) {
+        return '';
+    }
+
+    return rtrim($baseUrl, '/') . '/' . ltrim($url, '/');
+}
+
+function toy_seo_normalize_sitemap_entry(?array $site, array $entry): ?array
+{
+    $loc = toy_seo_sitemap_absolute_url($site, (string) ($entry['loc'] ?? ''));
+    if ($loc === '' || strlen($loc) > 2048) {
+        return null;
+    }
+
+    $normalized = ['loc' => $loc];
+
+    $lastmod = (string) ($entry['lastmod'] ?? '');
+    if ($lastmod !== '' && preg_match('/\A\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2}|Z)?)?\z/', $lastmod) === 1) {
+        $normalized['lastmod'] = $lastmod;
+    }
+
+    $changefreq = (string) ($entry['changefreq'] ?? '');
+    if (in_array($changefreq, ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'], true)) {
+        $normalized['changefreq'] = $changefreq;
+    }
+
+    if (isset($entry['priority']) && is_numeric($entry['priority'])) {
+        $priority = max(0.0, min(1.0, (float) $entry['priority']));
+        $normalized['priority'] = number_format($priority, 1, '.', '');
+    }
+
+    return $normalized;
+}
+
+function toy_seo_unique_sitemap_entries(array $entries): array
+{
+    $seen = [];
+    $unique = [];
+
+    foreach ($entries as $entry) {
+        $loc = (string) ($entry['loc'] ?? '');
+        if ($loc === '' || isset($seen[$loc])) {
+            continue;
+        }
+
+        $seen[$loc] = true;
+        $unique[] = $entry;
+    }
+
+    return $unique;
+}
+
+function toy_seo_sitemap_xml(array $entries): string
+{
+    $lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ];
+
+    foreach ($entries as $entry) {
+        if (!is_array($entry) || empty($entry['loc'])) {
+            continue;
+        }
+
+        $lines[] = '    <url>';
+        $lines[] = '        <loc>' . toy_seo_xml_e((string) $entry['loc']) . '</loc>';
+        foreach (['lastmod', 'changefreq', 'priority'] as $key) {
+            if (!empty($entry[$key])) {
+                $lines[] = '        <' . $key . '>' . toy_seo_xml_e((string) $entry[$key]) . '</' . $key . '>';
+            }
+        }
+        $lines[] = '    </url>';
+    }
+
+    $lines[] = '</urlset>';
+
+    return implode("\n", $lines) . "\n";
+}
+
+function toy_seo_robots_txt(?array $site): string
+{
+    $lines = [
+        'User-agent: *',
+        'Disallow: /admin',
+        'Disallow: /account',
+        'Disallow: /login',
+        'Disallow: /register',
+        'Disallow: /password/reset',
+    ];
+
+    $sitemapUrl = toy_seo_sitemap_absolute_url($site, '/sitemap.xml');
+    if ($sitemapUrl !== '') {
+        $lines[] = 'Sitemap: ' . $sitemapUrl;
+    }
+
+    return implode("\n", $lines) . "\n";
+}
+
+function toy_seo_xml_e(string $value): string
+{
+    return htmlspecialchars($value, ENT_QUOTES | ENT_XML1 | ENT_SUBSTITUTE, 'UTF-8');
+}

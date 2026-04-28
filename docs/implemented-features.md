@@ -10,7 +10,8 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 설치 전/설치 후 요청 분기
 - `config/config.php` 설정 파일 생성
 - `storage/installed.lock` 설치 완료 파일 생성
-- core, member, admin 설치 SQL 실행
+- core, member, admin, seo 설치 SQL 실행
+- 기본 seo 모듈 등록
 - 스키마 버전 기록
 - Docker 기반 로컬 PHP 실행 래퍼 제공
 - 설치 시 운영 URL의 HTTPS 여부 확인
@@ -31,6 +32,12 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - HTML escape helper
 - CSRF token 생성과 검증
 - 안전한 redirect helper
+- canonical URL helper
+- SEO meta tag 출력 helper
+- title, description, canonical, robots, Open Graph 출력 슬롯
+- `/robots.txt` 출력
+- `/sitemap.xml` 출력
+- 활성 모듈 `sitemap.php` 기반 sitemap URL 확장
 - 다운로드 응답 헤더 helper
 - 기본 mail helper
 - HMAC hash helper
@@ -45,6 +52,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 기본 Content Security Policy
 - 운영 HTTPS 요청의 HSTS 헤더
 - 동적 PHP 응답의 `no-store`, `no-cache` 헤더
+- 로그인, 회원, 관리자, 설치, 오류 화면의 `noindex, nofollow`
 - 리다이렉트 URL 제어 문자 차단
 - 사이트 Base URL의 `http`/`https` scheme 검증
 - 클라이언트 IP 형식 검증
@@ -220,6 +228,11 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `GET /admin/retention`
 - `POST /admin/retention`
 
+### SEO 경로
+
+- `GET /robots.txt`
+- `GET /sitemap.xml`
+
 ## 현재 포함하지 않는 기능
 
 - 게시판, 게시글, 댓글
@@ -228,6 +241,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 메뉴 관리
 - 포인트, 쿠폰, 마케팅 자동화
 - 파일 업로드 관리
+- SEO 관리자 UI
 - 고급 CMS workflow
 - 모듈별 도메인 관리자 화면 자동 생성
 - `.htaccess` 배포 파일

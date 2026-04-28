@@ -1,13 +1,17 @@
 <?php
 
 $pageTitle = 'Toycore 설치';
+$seo = [
+    'title' => $pageTitle,
+    'robots' => 'noindex, nofollow',
+];
 ?>
 <!doctype html>
 <html lang="ko">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?php echo toy_e($pageTitle); ?></title>
+    <?php echo toy_seo_tags($seo, null); ?>
     <?php echo toy_stylesheet_tag(); ?>
 </head>
 <body>

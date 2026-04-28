@@ -416,6 +416,76 @@ function toy_stylesheet_tag(): string
     return '<link rel="stylesheet" href="/assets/toycore.css">';
 }
 
+function toy_canonical_url(?array $site, ?string $path = null): string
+{
+    $path = $path ?? toy_request_path();
+    if (!toy_is_safe_relative_url($path)) {
+        $path = '/';
+    }
+
+    return toy_absolute_url($site, $path);
+}
+
+function toy_is_safe_relative_url(string $url): bool
+{
+    if ($url === '' || $url[0] !== '/' || str_starts_with($url, '//')) {
+        return false;
+    }
+
+    return preg_match('/[\x00-\x1F\x7F]/', $url) !== 1;
+}
+
+function toy_seo_tags(array $seo = [], ?array $site = null): string
+{
+    $title = (string) ($seo['title'] ?? ($site['name'] ?? 'Toycore'));
+    $description = (string) ($seo['description'] ?? '');
+    $canonical = (string) ($seo['canonical'] ?? toy_canonical_url($site));
+    $robots = (string) ($seo['robots'] ?? 'index, follow');
+    $og = isset($seo['og']) && is_array($seo['og']) ? $seo['og'] : [];
+
+    $tags = [];
+    $tags[] = '<title>' . toy_e($title) . '</title>';
+
+    if ($description !== '') {
+        $tags[] = '<meta name="description" content="' . toy_e($description) . '">';
+    }
+
+    if ($canonical !== '' && (toy_is_http_url($canonical) || toy_is_safe_relative_url($canonical))) {
+        $tags[] = '<link rel="canonical" href="' . toy_e($canonical) . '">';
+    }
+
+    if ($robots !== '') {
+        $tags[] = '<meta name="robots" content="' . toy_e($robots) . '">';
+    }
+
+    $ogTitle = (string) ($og['title'] ?? $title);
+    $ogDescription = (string) ($og['description'] ?? $description);
+    $ogType = (string) ($og['type'] ?? 'website');
+    $ogImage = (string) ($og['image'] ?? '');
+
+    if ($ogTitle !== '') {
+        $tags[] = '<meta property="og:title" content="' . toy_e($ogTitle) . '">';
+    }
+
+    if ($ogDescription !== '') {
+        $tags[] = '<meta property="og:description" content="' . toy_e($ogDescription) . '">';
+    }
+
+    if ($canonical !== '' && (toy_is_http_url($canonical) || toy_is_safe_relative_url($canonical))) {
+        $tags[] = '<meta property="og:url" content="' . toy_e($canonical) . '">';
+    }
+
+    if ($ogType !== '') {
+        $tags[] = '<meta property="og:type" content="' . toy_e($ogType) . '">';
+    }
+
+    if ($ogImage !== '' && (toy_is_http_url($ogImage) || toy_is_safe_relative_url($ogImage))) {
+        $tags[] = '<meta property="og:image" content="' . toy_e($ogImage) . '">';
+    }
+
+    return implode("\n    ", $tags);
+}
+
 function toy_redirect(string $url): void
 {
     if ($url === '' || preg_match('/[\x00-\x1F\x7F]/', $url) === 1) {

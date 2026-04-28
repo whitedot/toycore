@@ -14,6 +14,7 @@ modules/{module_key}/
 - views/
 - lang/
 - install.sql
+- sitemap.php
 ```
 
 권장 예시:
@@ -29,6 +30,7 @@ modules/member/
 - views/register.php
 - lang/ko.php
 - install.sql
+- sitemap.php
 ```
 
 ## 파일 역할
@@ -215,6 +217,41 @@ return function (PDO $pdo, int $accountId): array {
 ```
 
 회원 모듈은 활성 모듈의 `privacy-export.php`만 명시적으로 include하고, 반환값을 `module_exports.{module_key}` 아래에 넣습니다. 확장 모듈은 회원 테이블에 도메인 컬럼을 추가하지 않고 `account_id`로 자기 테이블의 데이터를 조회합니다.
+
+## Sitemap 확장
+
+`seo` 모듈은 활성 모듈의 `sitemap.php` 파일을 선택적으로 읽습니다. 이 파일은 배열을 반환하거나 callable을 반환할 수 있습니다.
+
+예:
+
+```php
+<?php
+
+return [
+    [
+        'loc' => '/example',
+        'lastmod' => '2026-04-28',
+        'changefreq' => 'weekly',
+        'priority' => '0.5',
+    ],
+];
+```
+
+또는:
+
+```php
+<?php
+
+return function (PDO $pdo, ?array $site): array {
+    return [
+        ['loc' => '/example'],
+    ];
+};
+```
+
+모듈은 공개 가능한 URL만 반환해야 합니다. `seo` 모듈은 URL 형식과 XML escape만 처리하고, 콘텐츠의 공개 여부나 의미를 추론하지 않습니다.
+
+`robots.txt`는 `seo` 모듈이 기본 운영 경로 차단과 sitemap 위치 안내만 제공합니다. 콘텐츠별 색인 여부는 각 모듈의 화면에서 meta robots 값을 정하거나, 공개 가능한 URL만 sitemap에 반환하는 방식으로 처리합니다.
 
 ## 활성화 방식
 

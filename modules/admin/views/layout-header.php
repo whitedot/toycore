@@ -1,14 +1,17 @@
 <?php
 
 $adminPageTitle = $adminPageTitle ?? '관리자';
+$seo = [
+    'title' => $adminPageTitle,
+    'robots' => 'noindex, nofollow',
+];
 ?>
 <!doctype html>
 <html lang="<?php echo toy_e(toy_locale()); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex">
-    <title><?php echo toy_e($adminPageTitle); ?></title>
+    <?php echo toy_seo_tags($seo, $site ?? null); ?>
     <?php echo toy_stylesheet_tag(); ?>
 </head>
 <body>

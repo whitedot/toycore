@@ -106,6 +106,7 @@ if (toy_request_method() === 'POST') {
             toy_execute_sql_file($pdo, TOY_ROOT . '/database/core/install.sql');
             toy_execute_sql_file($pdo, TOY_ROOT . '/modules/member/install.sql');
             toy_execute_sql_file($pdo, TOY_ROOT . '/modules/admin/install.sql');
+            toy_execute_sql_file($pdo, TOY_ROOT . '/modules/seo/install.sql');
 
             $now = toy_now();
             $stmt = $pdo->prepare(
@@ -127,6 +128,7 @@ if (toy_request_method() === 'POST') {
             $modules = [
                 ['member', 'Member', '2026.04.005'],
                 ['admin', 'Admin', '2026.04.001'],
+                ['seo', 'SEO', '2026.04.001'],
             ];
 
             foreach ($modules as $module) {
@@ -147,12 +149,14 @@ if (toy_request_method() === 'POST') {
             }
 
             toy_record_schema_version($pdo, 'core', '', '2026.04.001');
+            toy_record_schema_version($pdo, 'core', '', '2026.04.002');
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.001');
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.002');
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.003');
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.004');
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.005');
             toy_record_schema_version($pdo, 'module', 'admin', '2026.04.001');
+            toy_record_schema_version($pdo, 'module', 'seo', '2026.04.001');
 
             require TOY_ROOT . '/modules/member/helpers.php';
             require TOY_ROOT . '/modules/admin/helpers.php';
@@ -177,7 +181,7 @@ if (toy_request_method() === 'POST') {
                 'result' => 'success',
                 'message' => 'Initial installation completed.',
                 'metadata' => [
-                    'modules' => ['member', 'admin'],
+                    'modules' => ['member', 'admin', 'seo'],
                 ],
             ]);
 

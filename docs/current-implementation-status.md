@@ -12,7 +12,8 @@
 - 운영 설치 시 HTTPS URL 확인
 - `config/config.php` 생성
 - `storage/installed.lock` 생성
-- core/member/admin 설치 SQL 실행
+- core/member/admin/seo 설치 SQL 실행
+- 기본 seo 모듈 등록
 - 스키마 버전 기록
 - Docker 기반 로컬 PHP 실행 래퍼
 
@@ -33,6 +34,12 @@
 - redirect helper
 - 리다이렉트/URL 제어 문자 차단
 - 사이트 Base URL http/https scheme 검증
+- canonical URL helper
+- SEO meta tag 출력 helper
+- title, description, canonical, robots, Open Graph 출력 슬롯
+- `seo` 모듈의 `/robots.txt` 출력
+- `seo` 모듈의 `/sitemap.xml` 출력
+- 활성 모듈 `sitemap.php` 기반 sitemap URL 확장
 - 다운로드 응답 헤더 helper
 - 기본 mail helper
 - HMAC hash helper
@@ -136,6 +143,9 @@ git diff --check
 회원가입/비밀번호 변경/재설정/이메일 인증/탈퇴 검증
 개인정보 요청/내보내기/보관 정리 검증
 관리자 업데이트 화면 검증
+robots.txt 출력 검증
+sitemap XML 출력 검증
 DB 세션 기록/폐기 검증
 공통 CSS 정적 파일 응답 검증
+SEO meta tag 출력 검증
 ```
