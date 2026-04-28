@@ -27,6 +27,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 활성화된 모듈의 `paths.php` 배열 기반 요청 처리
 - 활성 모듈 간 method/path 충돌 감지
 - action 파일 상대 경로 검증
+- core helper의 큰 책임 단위 분리
 - 모듈 `module.php` 메타데이터 조회
 - 모듈 type 조회
 - 활성 모듈 계약 파일 조회 helper
@@ -84,6 +85,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 약관 동의 기록
 - 개인정보 처리방침 동의 기록
 - 회원 모듈 전용 관리자 설정
+- member helper의 계정, 세션, token, 개인정보, throttle 단위 분리
 
 ## 회원 인증 보안
 

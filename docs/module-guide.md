@@ -302,6 +302,8 @@ require_once TOY_ROOT . '/modules/admin/helpers/updates.php';
 
 - `helpers.php`는 모듈 helper의 명시적 진입점입니다.
 - 하위 helper 파일은 `roles`, `updates`, `sessions`, `privacy`처럼 소유 책임이 드러나는 이름을 사용합니다.
+- 너무 잘게 나누지 않고, 한 화면 흐름을 이해할 때 같이 읽는 함수는 같은 파일에 둡니다.
+- helper 하위 파일은 보통 모듈당 4~7개 안쪽으로 유지합니다.
 - action 파일은 가능하면 모듈의 `helpers.php`만 require하고, helper 내부의 하위 파일 순서는 `helpers.php`에서 관리합니다.
 - 하위 helper 파일은 로드 시 DB 변경, route 등록, 출력 같은 부작용을 만들지 않습니다.
 - 다른 모듈의 내부 helper 하위 파일을 직접 require하지 않습니다. 공개 helper가 필요하면 해당 모듈의 `helpers.php`를 통해 사용합니다.

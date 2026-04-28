@@ -22,6 +22,7 @@
 
 - 요청 method/path 해석
 - 설치 전/설치 후 분기
+- core helper 진입점과 큰 책임 단위 helper 파일 분리
 - 현재 locale 결정
 - 기본 번역 helper
 - 기본 locale 번역 fallback
@@ -102,6 +103,7 @@
 - 개인정보 JSON 내보내기 세션 이력 포함
 - 모듈별 개인정보 JSON 내보내기 확장
 - 인증 로그 기록
+- member helper 진입점과 계정/세션/token/privacy/throttle 단위 helper 파일 분리
 
 ### 팝업레이어
 

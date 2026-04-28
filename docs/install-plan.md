@@ -185,6 +185,35 @@ DB 연결 실패 -> 설정 파일 생성 전이면 입력 화면으로 복귀
 관리자 계정 생성 실패 -> 설치 완료 처리 금지
 ```
 
+현재 구현은 설치 실패 시 `storage/install-failed.json`에 실패 단계를 기록합니다. 이 파일은 운영자가 재시도 전에 현재 상태를 확인하기 위한 marker이며, DB 비밀번호나 관리자 비밀번호 원문을 저장하지 않습니다. 설치가 성공하면 marker는 삭제됩니다.
+
+## 설치 실패 후 재시도 가이드
+
+설치 실패 후에는 먼저 다음을 확인합니다.
+
+```text
+1. storage/install-failed.json의 stage 확인
+2. storage/logs/error.log의 같은 시각 오류 요약 확인
+3. config/config.php 생성 여부 확인
+4. storage/installed.lock 생성 여부 확인
+5. DB에 toy_* 테이블이 부분 생성되었는지 확인
+```
+
+재시도 기준:
+
+- `installed.lock`이 없으면 설치 완료 상태가 아니므로 설치 화면에서 다시 시도할 수 있습니다.
+- `config.php`만 생성된 경우, 같은 DB 정보와 같은 `app_key`를 유지한 채 재시도합니다.
+- 일부 테이블이 생성된 경우, 설치 SQL은 `CREATE TABLE IF NOT EXISTS`와 중복 방지 쿼리를 사용하므로 같은 빈도 낮은 실패는 재시도할 수 있습니다.
+- 잘못된 DB를 지정했거나 초기 데이터를 폐기해도 되는 상황이면 DB의 `toy_` prefix 테이블을 백업 후 정리하고 다시 설치합니다.
+- 관리자 계정 생성 이후 실패했다면, 같은 관리자 이메일로 재시도해 owner 권한 부여가 끝나는지 확인합니다.
+
+재시도 전 삭제하면 안 되는 것:
+
+- 운영 중인 사이트의 `config/config.php`
+- 운영 중인 사이트의 `storage/installed.lock`
+- 원인 확인 전 `storage/logs/error.log`
+- 백업 없는 DB 테이블
+
 ## 설치 후 처리
 
 설치 완료 후 다음을 수행합니다.

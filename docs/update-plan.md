@@ -83,6 +83,9 @@ modules/{module_key}/updates/2026.05.001.sql
 - 각 SQL 파일 실행 전후 감사 로그 기록
 - 실패하면 이후 SQL 실행 중단
 - 가능한 경우 DB 트랜잭션 사용
+- 업데이트 파일 경로와 checksum을 적용 전에 검증
+- 동시에 두 업데이트 요청이 실행되지 않도록 lock 사용
+- lock 획득 후 pending update 목록을 다시 확인
 
 ## 저가형 웹호스팅 고려
 
@@ -94,6 +97,35 @@ modules/{module_key}/updates/2026.05.001.sql
 - 오래 걸리는 대량 데이터 변경은 피함
 - 실패 시 수동 복구 안내를 남김
 - 업데이트 전 DB 백업을 안내
+
+## 업데이트 실패 후 재시도 가이드
+
+현재 구현은 업데이트 실패 시 `storage/update-failed.json`에 실패한 scope, module key, version, checksum, 오류 요약을 기록합니다. 이 marker는 다음 업데이트 성공 시 삭제됩니다.
+
+재시도 전 확인 순서:
+
+```text
+1. storage/update-failed.json 확인
+2. 관리자 업데이트 화면의 적용된 스키마 버전 목록 확인
+3. storage/logs/error.log와 감사 로그에서 실패한 version 확인
+4. 실패한 SQL 파일이 배포 중 변경되지 않았는지 checksum 확인
+5. DB 백업 상태 확인
+```
+
+재시도 기준:
+
+- 실패한 version이 `toy_schema_versions`에 기록되지 않았다면 해당 SQL은 완료되지 않은 것으로 봅니다.
+- DDL은 DB에 따라 rollback되지 않을 수 있으므로, 실패한 SQL이 일부 적용되었는지 직접 확인합니다.
+- 일부 적용된 DDL이 있다면 같은 SQL을 그대로 재실행하기 전에 SQL을 idempotent하게 수정하거나 수동 복구 후 재시도합니다.
+- checksum이 바뀐 SQL 파일은 같은 version으로 조용히 재적용하지 않습니다. 새 update version을 추가하거나 실패 원인을 문서화한 뒤 배포합니다.
+- 비활성 모듈도 설치된 모듈이면 업데이트 대상에 포함될 수 있으므로, 비활성 상태라는 이유만으로 스키마 업데이트를 무시하지 않습니다.
+
+재시도 중 지켜야 할 것:
+
+- 업데이트 전 DB 백업을 다시 확인합니다.
+- 실패 후 다음 update 파일을 수동으로 건너뛰지 않습니다.
+- `toy_schema_versions`에 성공하지 않은 version을 임의로 넣지 않습니다.
+- 복구가 끝나기 전 실패 marker와 로그를 삭제하지 않습니다.
 
 ## 관리자 화면
 
