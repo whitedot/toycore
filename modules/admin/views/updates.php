@@ -55,6 +55,34 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 </section>
 
+<section>
+    <h2>적용된 스키마 버전</h2>
+    <?php if ($schemaVersions === []) { ?>
+        <p>기록된 스키마 버전이 없습니다.</p>
+    <?php } else { ?>
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">범위</th>
+                    <th scope="col">모듈</th>
+                    <th scope="col">버전</th>
+                    <th scope="col">적용 시각</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($schemaVersions as $version) { ?>
+                    <tr>
+                        <td><?php echo toy_e((string) $version['scope']); ?></td>
+                        <td><?php echo toy_e((string) ($version['module_key'] === '' ? 'core' : $version['module_key'])); ?></td>
+                        <td><?php echo toy_e((string) $version['version']); ?></td>
+                        <td><?php echo toy_e((string) $version['applied_at']); ?></td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    <?php } ?>
+</section>
+
 <?php if ($appliedUpdates !== []) { ?>
     <section>
         <h2>적용한 업데이트</h2>

@@ -111,6 +111,17 @@ function toy_admin_applied_schema_versions(PDO $pdo): array
     return $applied;
 }
 
+function toy_admin_schema_versions(PDO $pdo): array
+{
+    $stmt = $pdo->query(
+        'SELECT scope, module_key, version, applied_at
+         FROM toy_schema_versions
+         ORDER BY scope ASC, module_key ASC, version ASC'
+    );
+
+    return $stmt->fetchAll();
+}
+
 function toy_admin_pending_updates(PDO $pdo): array
 {
     $applied = toy_admin_applied_schema_versions($pdo);

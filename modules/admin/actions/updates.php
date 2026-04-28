@@ -79,5 +79,6 @@ if (toy_request_method() === 'POST') {
 }
 
 $pendingUpdates = toy_admin_pending_updates($pdo);
+$schemaVersions = toy_admin_schema_versions($pdo);
 
 include TOY_ROOT . '/modules/admin/views/updates.php';
