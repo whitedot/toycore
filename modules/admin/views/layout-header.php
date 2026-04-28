@@ -9,6 +9,9 @@ $adminEnabledModules = isset($pdo) && $pdo instanceof PDO ? toy_enabled_module_k
 $adminMemberEnabled = in_array('member', $adminEnabledModules, true);
 $adminSeoEnabled = in_array('seo', $adminEnabledModules, true);
 $adminPopupLayerEnabled = in_array('popup_layer', $adminEnabledModules, true);
+$adminPointEnabled = in_array('point', $adminEnabledModules, true);
+$adminDepositEnabled = in_array('deposit', $adminEnabledModules, true);
+$adminRewardEnabled = in_array('reward', $adminEnabledModules, true);
 ?>
 <!doctype html>
 <html lang="<?php echo toy_e(toy_locale()); ?>">
@@ -30,6 +33,15 @@ $adminPopupLayerEnabled = in_array('popup_layer', $adminEnabledModules, true);
             <?php } ?>
             <?php if ($adminPopupLayerEnabled) { ?>
                 <a href="/admin/popup-layers">팝업레이어</a>
+            <?php } ?>
+            <?php if ($adminPointEnabled) { ?>
+                <a href="/admin/points">포인트</a>
+            <?php } ?>
+            <?php if ($adminDepositEnabled) { ?>
+                <a href="/admin/deposits">예치금</a>
+            <?php } ?>
+            <?php if ($adminRewardEnabled) { ?>
+                <a href="/admin/rewards">적립금</a>
             <?php } ?>
             <a href="/admin/updates">업데이트</a>
             <a href="/admin/members">회원</a>

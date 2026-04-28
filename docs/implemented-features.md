@@ -11,8 +11,9 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 설치 실패 시 복구 marker 기록
 - `config/config.php` 설정 파일 생성
 - `storage/installed.lock` 설치 완료 파일 생성
-- core, member, admin, seo, popup_layer 설치 SQL 실행
-- 기본 seo, popup_layer 모듈 등록
+- core, member, admin 설치 SQL 실행
+- 설치 시 seo, popup_layer, point, deposit, reward 설치 여부 선택
+- 선택한 기본 제공 모듈의 설치 SQL 실행
 - 스키마 버전 기록
 - Docker 기반 로컬 PHP 실행 래퍼 제공
 - 설치 시 운영 URL의 HTTPS 여부 확인
@@ -149,6 +150,8 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 사이트 설정 항목 조회, 저장, 삭제
 - 모듈 목록 조회
 - 모듈 코드 버전과 설명 표시
+- 코드에 있지만 DB에 등록되지 않은 모듈 설치
+- 모듈 설치 후 활성/비활성 상태 선택
 - 모듈 활성화 상태 관리
 - 기본 모듈 비활성화 차단
 - 모듈 설정 항목 조회, 저장, 삭제
@@ -184,6 +187,17 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 내부 `overlay` slot 기준 팝업 출력
 - 사용자 요청 시 저장된 대상 규칙 테이블 조회
 
+## 포인트/예치금/적립금
+
+- 포인트, 예치금, 적립금 모듈 분리
+- 회원별 잔액 테이블 제공
+- 회원별 거래 원장 테이블 제공
+- 관리자 수동 지급/차감 화면 제공
+- 거래 후 잔액 기록
+- 잔액 음수 방지
+- 거래 사유와 참조 유형/ID 기록
+- 거래 생성 감사 로그 기록
+
 ## 운영과 보관
 
 - 사용 완료 비밀번호 재설정 token 정리
@@ -218,6 +232,9 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 관리자 역할 테이블
 - 팝업레이어 테이블
 - 팝업레이어 대상 규칙 테이블
+- 포인트 잔액/거래 테이블
+- 예치금 잔액/거래 테이블
+- 적립금 잔액/거래 테이블
 - 인증 로그 조회용 인덱스
 - 세션, token, 개인정보 요청, 감사 로그 조회용 기본 인덱스
 - 팝업레이어 대상 조회용 인덱스
@@ -272,6 +289,12 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `POST /admin/privacy-requests/export`
 - `GET /admin/retention`
 - `POST /admin/retention`
+- `GET /admin/points`
+- `POST /admin/points`
+- `GET /admin/deposits`
+- `POST /admin/deposits`
+- `GET /admin/rewards`
+- `POST /admin/rewards`
 
 ### 팝업레이어 관리자 경로
 
@@ -291,7 +314,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 페이지 빌더
 - 상품, 주문, 결제
 - 메뉴 관리
-- 포인트, 쿠폰, 마케팅 자동화
+- 쿠폰, 마케팅 자동화
 - 파일 업로드 관리
 - 고급 CMS workflow
 - 모듈별 도메인 관리자 화면 자동 생성

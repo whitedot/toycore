@@ -104,6 +104,35 @@ $seo = [
                 </p>
             </fieldset>
 
+            <fieldset>
+                <legend>모듈 선택</legend>
+                <p>필수 모듈은 항상 설치됩니다.</p>
+                <ul>
+                    <?php foreach ($requiredModules as $moduleKey => $module) { ?>
+                        <li>
+                            <?php echo toy_e((string) $module['name']); ?>
+                            <code><?php echo toy_e((string) $moduleKey); ?></code>
+                        </li>
+                    <?php } ?>
+                </ul>
+
+                <p>선택 모듈</p>
+                <?php foreach ($optionalModules as $moduleKey => $module) { ?>
+                    <p>
+                        <label>
+                            <input
+                                type="checkbox"
+                                name="optional_modules[]"
+                                value="<?php echo toy_e((string) $moduleKey); ?>"
+                                <?php echo in_array($moduleKey, $selectedOptionalModuleKeys, true) ? 'checked' : ''; ?>
+                            >
+                            <?php echo toy_e((string) $module['label']); ?>
+                            <code><?php echo toy_e((string) $moduleKey); ?></code>
+                        </label>
+                    </p>
+                <?php } ?>
+            </fieldset>
+
             <button type="submit">설치</button>
         </form>
     </main>

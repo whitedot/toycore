@@ -65,6 +65,52 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 </table>
 
 <section>
+    <h2>설치 가능한 모듈</h2>
+    <?php if ($installableModules === []) { ?>
+        <p>설치 가능한 새 모듈이 없습니다.</p>
+    <?php } else { ?>
+        <table>
+            <thead>
+                <tr>
+                    <th>키</th>
+                    <th>이름</th>
+                    <th>유형</th>
+                    <th>코드 버전</th>
+                    <th>설명</th>
+                    <th>설치</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($installableModules as $module) { ?>
+                    <tr>
+                        <td><?php echo toy_e((string) $module['module_key']); ?></td>
+                        <td><?php echo toy_e((string) $module['name']); ?></td>
+                        <td><?php echo toy_e((string) $module['type']); ?></td>
+                        <td><?php echo toy_e((string) ($module['version'] !== '' ? $module['version'] : '-')); ?></td>
+                        <td><?php echo toy_e((string) ($module['description'] !== '' ? $module['description'] : '-')); ?></td>
+                        <td>
+                            <form method="post" action="/admin/modules">
+                                <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="install">
+                                <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
+                                <select name="status">
+                                    <?php foreach ($allowedInstallStatuses as $status) { ?>
+                                        <option value="<?php echo toy_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
+                                            <?php echo toy_e($status); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                                <button type="submit">설치</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    <?php } ?>
+</section>
+
+<section>
     <h2>모듈 설정 항목</h2>
     <form method="post" action="/admin/modules">
         <?php echo toy_csrf_field(); ?>
