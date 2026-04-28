@@ -41,6 +41,7 @@
 - title, description, canonical, robots, Open Graph 출력 슬롯
 - `seo` 모듈의 `/robots.txt` 출력
 - `seo` 모듈의 `/sitemap.xml` 출력
+- `seo` 모듈 관리자 설정 화면
 - 활성 모듈 `sitemap.php` 기반 sitemap URL 확장
 - 다운로드 응답 헤더 helper
 - 기본 mail helper
@@ -150,6 +151,7 @@ git diff --check
 적용된 스키마 버전 목록 표시 검증
 robots.txt 출력 검증
 sitemap XML 출력 검증
+SEO 관리자 설정 저장 검증
 DB 세션 기록/폐기 검증
 공통 CSS 정적 파일 응답 검증
 SEO meta tag 출력 검증

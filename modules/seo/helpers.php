@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 function toy_seo_sitemap_entries(PDO $pdo, ?array $site): array
 {
+    $settings = toy_seo_settings($pdo);
     $entries = [];
-    $homeUrl = toy_seo_sitemap_absolute_url($site, '/');
-    if ($homeUrl !== '') {
-        $entries[] = [
-            'loc' => $homeUrl,
-            'priority' => '1.0',
-        ];
+    if (!empty($settings['sitemap_include_home'])) {
+        $homeUrl = toy_seo_sitemap_absolute_url($site, '/');
+        if ($homeUrl !== '') {
+            $entries[] = [
+                'loc' => $homeUrl,
+                'priority' => '1.0',
+            ];
+        }
     }
 
     foreach (toy_enabled_module_keys($pdo) as $moduleKey) {
@@ -45,6 +48,75 @@ function toy_seo_sitemap_entries(PDO $pdo, ?array $site): array
     }
 
     return toy_seo_unique_sitemap_entries($entries);
+}
+
+function toy_seo_default_settings(): array
+{
+    $metadata = toy_module_metadata('seo');
+    $settings = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
+
+    return [
+        'title_suffix' => is_string($settings['title_suffix'] ?? null) ? (string) $settings['title_suffix'] : '',
+        'default_description' => is_string($settings['default_description'] ?? null) ? (string) $settings['default_description'] : '',
+        'default_og_image' => is_string($settings['default_og_image'] ?? null) ? (string) $settings['default_og_image'] : '',
+        'sitemap_include_home' => (bool) ($settings['sitemap_include_home'] ?? true),
+        'robots_disallow_paths' => is_string($settings['robots_disallow_paths'] ?? null) ? (string) $settings['robots_disallow_paths'] : '',
+    ];
+}
+
+function toy_seo_settings(PDO $pdo): array
+{
+    $settings = toy_seo_default_settings();
+    $stored = toy_module_settings($pdo, 'seo');
+
+    foreach ($settings as $key => $default) {
+        if (array_key_exists($key, $stored)) {
+            $settings[$key] = $stored[$key];
+        }
+    }
+
+    $settings['title_suffix'] = toy_seo_clean_single_line((string) $settings['title_suffix'], 80);
+    $settings['default_description'] = toy_seo_clean_single_line((string) $settings['default_description'], 255);
+    $settings['default_og_image'] = toy_seo_clean_single_line((string) $settings['default_og_image'], 255);
+    $settings['sitemap_include_home'] = (bool) $settings['sitemap_include_home'];
+    $settings['robots_disallow_paths'] = toy_seo_clean_textarea((string) $settings['robots_disallow_paths'], 2000);
+
+    return $settings;
+}
+
+function toy_seo_clean_single_line(string $value, int $maxLength): string
+{
+    $value = trim(str_replace(["\r", "\n"], ' ', $value));
+    if (function_exists('mb_substr')) {
+        return mb_substr($value, 0, $maxLength);
+    }
+
+    return substr($value, 0, $maxLength);
+}
+
+function toy_seo_clean_textarea(string $value, int $maxLength): string
+{
+    $value = str_replace(["\r\n", "\r"], "\n", $value);
+    if (function_exists('mb_substr')) {
+        return trim(mb_substr($value, 0, $maxLength));
+    }
+
+    return trim(substr($value, 0, $maxLength));
+}
+
+function toy_seo_disallow_paths(string $value): array
+{
+    $paths = [];
+    foreach (explode("\n", $value) as $line) {
+        $path = trim($line);
+        if (!toy_is_safe_relative_url($path)) {
+            continue;
+        }
+
+        $paths[$path] = true;
+    }
+
+    return array_keys($paths);
 }
 
 function toy_seo_sitemap_absolute_url(?array $site, string $url): string
@@ -141,16 +213,16 @@ function toy_seo_sitemap_xml(array $entries): string
     return implode("\n", $lines) . "\n";
 }
 
-function toy_seo_robots_txt(?array $site): string
+function toy_seo_robots_txt(?array $site, array $settings = []): string
 {
+    $settings = array_merge(toy_seo_default_settings(), $settings);
     $lines = [
         'User-agent: *',
-        'Disallow: /admin',
-        'Disallow: /account',
-        'Disallow: /login',
-        'Disallow: /register',
-        'Disallow: /password/reset',
     ];
+
+    foreach (toy_seo_disallow_paths((string) ($settings['robots_disallow_paths'] ?? '')) as $path) {
+        $lines[] = 'Disallow: ' . $path;
+    }
 
     $sitemapUrl = toy_seo_sitemap_absolute_url($site, '/sitemap.xml');
     if ($sitemapUrl !== '') {

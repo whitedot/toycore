@@ -39,6 +39,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - title, description, canonical, robots, Open Graph 출력 슬롯
 - `/robots.txt` 출력
 - `/sitemap.xml` 출력
+- SEO 관리자 설정 화면
 - 활성 모듈 `sitemap.php` 기반 sitemap URL 확장
 - 다운로드 응답 헤더 helper
 - 기본 mail helper
@@ -234,6 +235,8 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 
 ### SEO 경로
 
+- `GET /admin/seo`
+- `POST /admin/seo`
 - `GET /robots.txt`
 - `GET /sitemap.xml`
 
@@ -245,7 +248,6 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 메뉴 관리
 - 포인트, 쿠폰, 마케팅 자동화
 - 파일 업로드 관리
-- SEO 관리자 UI
 - 고급 CMS workflow
 - 모듈별 도메인 관리자 화면 자동 생성
 - `.htaccess` 배포 파일

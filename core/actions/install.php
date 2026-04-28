@@ -128,7 +128,7 @@ if (toy_request_method() === 'POST') {
             $modules = [
                 ['member', 'Member', '2026.04.005'],
                 ['admin', 'Admin', '2026.04.001'],
-                ['seo', 'SEO', '2026.04.001'],
+                ['seo', 'SEO', '2026.04.002'],
             ];
 
             foreach ($modules as $module) {
@@ -157,6 +157,7 @@ if (toy_request_method() === 'POST') {
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.005');
             toy_record_schema_version($pdo, 'module', 'admin', '2026.04.001');
             toy_record_schema_version($pdo, 'module', 'seo', '2026.04.001');
+            toy_record_schema_version($pdo, 'module', 'seo', '2026.04.002');
 
             require TOY_ROOT . '/modules/member/helpers.php';
             require TOY_ROOT . '/modules/admin/helpers.php';

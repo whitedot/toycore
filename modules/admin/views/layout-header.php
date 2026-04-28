@@ -5,6 +5,7 @@ $seo = [
     'title' => $adminPageTitle,
     'robots' => 'noindex, nofollow',
 ];
+$adminSeoEnabled = isset($pdo) && $pdo instanceof PDO && in_array('seo', toy_enabled_module_keys($pdo), true);
 ?>
 <!doctype html>
 <html lang="<?php echo toy_e(toy_locale()); ?>">
@@ -21,6 +22,9 @@ $seo = [
             <a href="/admin">대시보드</a>
             <a href="/admin/settings">설정</a>
             <a href="/admin/modules">모듈</a>
+            <?php if ($adminSeoEnabled) { ?>
+                <a href="/admin/seo">SEO</a>
+            <?php } ?>
             <a href="/admin/updates">업데이트</a>
             <a href="/admin/members">회원</a>
             <a href="/admin/roles">권한</a>
