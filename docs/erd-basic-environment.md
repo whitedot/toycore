@@ -517,9 +517,9 @@ hash_hmac('sha256', normalized_identifier, app_key)
 - `popup_layer_id`
 - `module_key`, `point_key`, `slot_key`, `match_type`, `subject_id`, `popup_layer_id`
 
-## 포인트/예치금/적립금 모듈
+## 포인트 모듈, 예치금 모듈, 적립금 모듈
 
-`point`, `deposit`, `reward` 모듈은 모두 회원 계정에 연결되는 잔액 테이블과 거래 원장 테이블을 소유합니다. 코어나 `member` 테이블에 잔액 컬럼을 추가하지 않고, 각 모듈이 `account_id`로 회원을 논리 참조합니다.
+`point`, `deposit`, `reward`는 하나의 통합 모듈이 아니라 각각 독립 모듈입니다. 세 모듈은 모두 회원 계정에 연결되는 잔액 테이블과 거래 원장 테이블을 각자 소유합니다. 코어나 `member` 테이블에 잔액 컬럼을 추가하지 않고, 각 모듈이 `account_id`로 회원을 논리 참조합니다.
 
 ### `toy_point_balances`, `toy_deposit_balances`, `toy_reward_balances`
 
@@ -561,7 +561,7 @@ toy_modules
 - reward: enabled, bundled module if selected
 ```
 
-이 구조에서는 회원 인증과 관리자 화면은 항상 준비되지만, SEO 운영 기반, 팝업레이어, 포인트/예치금/적립금은 운영자가 필요한 경우에만 설치할 수 있습니다. 코드 관점에서는 여전히 각 기능이 모듈로 분리됩니다.
+이 구조에서는 회원 인증과 관리자 화면은 항상 준비되지만, SEO 운영 기반, 팝업레이어, 포인트 모듈, 예치금 모듈, 적립금 모듈은 운영자가 필요한 경우에만 각각 설치할 수 있습니다. 코드 관점에서도 세 원장 기능은 서로 다른 독립 모듈입니다.
 
 ## 구현 시 고려사항
 
