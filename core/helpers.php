@@ -291,6 +291,30 @@ function toy_module_setting(PDO $pdo, string $moduleKey, string $key, mixed $def
     return array_key_exists($key, $settings) ? $settings[$key] : $default;
 }
 
+function toy_module_metadata(string $moduleKey): array
+{
+    static $cache = [];
+
+    if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+        return [];
+    }
+
+    if (isset($cache[$moduleKey])) {
+        return $cache[$moduleKey];
+    }
+
+    $file = TOY_ROOT . '/modules/' . $moduleKey . '/module.php';
+    if (!is_file($file)) {
+        $cache[$moduleKey] = [];
+        return [];
+    }
+
+    $metadata = include $file;
+    $cache[$moduleKey] = is_array($metadata) ? $metadata : [];
+
+    return $cache[$moduleKey];
+}
+
 function toy_cast_setting_value(mixed $value, string $type): mixed
 {
     if ($type === 'int') {

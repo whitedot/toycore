@@ -21,10 +21,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <tr>
             <th>키</th>
             <th>이름</th>
-            <th>버전</th>
+            <th>설치 버전</th>
+            <th>코드 버전</th>
             <th>상태</th>
             <th>기본 포함</th>
             <th>설치일</th>
+            <th>설명</th>
             <th>변경</th>
         </tr>
     </thead>
@@ -35,9 +37,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) $module['module_key']); ?></td>
                 <td><?php echo toy_e((string) $module['name']); ?></td>
                 <td><?php echo toy_e((string) $module['version']); ?></td>
+                <td><?php echo toy_e((string) ($module['code_version'] !== '' ? $module['code_version'] : '-')); ?></td>
                 <td><?php echo toy_e((string) $module['status']); ?></td>
                 <td><?php echo !empty($module['is_bundled']) ? 'yes' : 'no'; ?></td>
                 <td><?php echo toy_e((string) ($module['installed_at'] ?? '')); ?></td>
+                <td><?php echo toy_e((string) ($module['description'] !== '' ? $module['description'] : '-')); ?></td>
                 <td>
                     <form method="post" action="/admin/modules">
                         <?php echo toy_csrf_field(); ?>

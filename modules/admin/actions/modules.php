@@ -163,6 +163,10 @@ if (toy_request_method() === 'POST') {
 $modules = [];
 $stmt = $pdo->query('SELECT id, module_key, name, version, status, is_bundled, installed_at, updated_at FROM toy_modules ORDER BY id ASC');
 foreach ($stmt->fetchAll() as $row) {
+    $metadata = toy_module_metadata((string) $row['module_key']);
+    $row['code_name'] = is_string($metadata['name'] ?? null) ? (string) $metadata['name'] : '';
+    $row['code_version'] = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
+    $row['description'] = is_string($metadata['description'] ?? null) ? (string) $metadata['description'] : '';
     $modules[] = $row;
 }
 
