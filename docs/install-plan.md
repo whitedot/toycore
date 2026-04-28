@@ -7,7 +7,7 @@ Toycore는 저가형 웹호스팅에서도 설치할 수 있어야 하므로 CLI
 - DB 접속 정보 입력
 - 기본 설정 파일 생성
 - 기본 코어 테이블 생성
-- 기본 사이트 생성
+- 기본 사이트 설정 저장
 - 기본 모듈 등록
 - 최초 관리자 계정 생성
 - 설치 완료 후 설치 화면 잠금
@@ -35,7 +35,7 @@ Toycore는 저가형 웹호스팅에서도 설치할 수 있어야 하므로 CLI
 9. `admin` 모듈 install.sql 실행
 10. `seo` 모듈 install.sql 실행
 11. `popup_layer` 모듈 install.sql 실행
-12. 기본 사이트 생성
+12. 기본 사이트 설정 저장
 13. 기본 모듈 등록 및 활성화
 14. 스키마 버전 기록
 15. 최초 관리자 계정 생성
@@ -60,7 +60,7 @@ storage/installed.lock 존재
 
 설치가 완료되면 `storage/installed.lock` 파일을 생성합니다.
 
-DB의 `toy_sites` 기본 레코드와 `toy_modules` 기본 레코드는 설치 무결성 점검 기준으로 사용합니다. DB 장애가 발생했을 때 설치 화면으로 되돌아가지 않도록, 설치 여부 판단과 DB 상태 점검을 분리합니다.
+DB의 `toy_site_settings` 필수 키와 `toy_modules` 기본 레코드는 설치 무결성 점검 기준으로 사용합니다. DB 장애가 발생했을 때 설치 화면으로 되돌아가지 않도록, 설치 여부 판단과 DB 상태 점검을 분리합니다.
 
 ## 생성할 설정 파일
 
@@ -100,7 +100,6 @@ return [
 설치 시 기본 코어 테이블을 먼저 생성합니다.
 
 ```text
-toy_sites
 toy_site_settings
 toy_modules
 toy_module_settings
@@ -110,6 +109,16 @@ toy_schema_versions
 `toy_schema_versions`는 설치된 core/member/admin/seo/popup_layer 스키마 버전을 기록합니다. 관리자 업데이트 화면은 이 기록을 기준으로 아직 적용되지 않은 SQL 파일만 실행합니다.
 
 `member`, `admin`, `seo`, `popup_layer`는 기본 제공 모듈이지만, 테이블 생성은 각 모듈의 `install.sql` 책임으로 둡니다.
+
+단일 사이트 기본값은 `toy_site_settings`의 다음 필수 키로 저장합니다.
+
+```text
+site.name
+site.base_url
+site.timezone
+site.default_locale
+site.status
+```
 
 ## 기본 모듈 등록
 

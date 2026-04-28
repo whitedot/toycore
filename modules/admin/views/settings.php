@@ -51,7 +51,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 </form>
 
 <section>
-    <h2>사이트 설정 항목</h2>
+    <h2>추가 사이트 설정 항목</h2>
     <form method="post" action="/admin/settings">
         <?php echo toy_csrf_field(); ?>
         <input type="hidden" name="intent" value="site_setting">
@@ -74,12 +74,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </label>
         </p>
-        <p>
-            <label>
-                <input type="checkbox" name="is_public" value="1">
-                공개 설정
-            </label>
-        </p>
         <button type="submit">항목 저장</button>
     </form>
 
@@ -89,7 +83,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <th>Key</th>
                 <th>Value</th>
                 <th>Type</th>
-                <th>Public</th>
                 <th>Updated</th>
                 <th>삭제</th>
             </tr>
@@ -97,7 +90,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($siteSettings === []) { ?>
                 <tr>
-                    <td colspan="6">설정 항목이 없습니다.</td>
+                    <td colspan="5">설정 항목이 없습니다.</td>
                 </tr>
             <?php } ?>
             <?php foreach ($siteSettings as $setting) { ?>
@@ -105,7 +98,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <td><?php echo toy_e((string) $setting['setting_key']); ?></td>
                     <td><?php echo toy_e((string) ($setting['setting_value'] ?? '')); ?></td>
                     <td><?php echo toy_e((string) $setting['value_type']); ?></td>
-                    <td><?php echo !empty($setting['is_public']) ? 'yes' : 'no'; ?></td>
                     <td><?php echo toy_e((string) $setting['updated_at']); ?></td>
                     <td>
                         <form method="post" action="/admin/settings">

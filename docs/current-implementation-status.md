@@ -25,6 +25,7 @@
 - 기본 번역 helper
 - 기본 locale 번역 fallback
 - 사이트/모듈 설정 조회 helper
+- 단일 사이트 기본값을 `toy_site_settings` 필수 키로 저장
 - 요청 단위 설정 조회 메모리 캐시
 - 활성 모듈 `paths.php` 기반 action include
 - action 상대 경로 검증

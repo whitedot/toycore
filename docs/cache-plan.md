@@ -30,7 +30,6 @@ HTML 전체 캐시: 코어 기본 기능이 아니라 공개 콘텐츠 모듈의
 
 대상:
 
-- `toy_sites`
 - `toy_site_settings`
 - 사이트 기본 locale
 - 사이트 기본 SEO 설정

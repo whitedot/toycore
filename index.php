@@ -46,6 +46,7 @@ toy_send_security_headers($config);
 try {
     $pdo = toy_db($config);
     $site = toy_load_site($pdo);
+    toy_apply_site_runtime_settings($site);
     toy_set_locale(toy_resolve_locale($pdo, $site));
 } catch (Throwable $exception) {
     toy_render_error(500, 'DB 연결 또는 사이트 설정을 확인할 수 없습니다.', $exception);

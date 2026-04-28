@@ -357,7 +357,7 @@ withdrawal    : 동의 철회
 - PDO 기반 DB 연결
 - 공통 응답, redirect, escaping 헬퍼 작성
 - 사이트 기본 locale 설정
-- `toy_sites`, `toy_site_settings`, `toy_modules`, `toy_module_settings`, `toy_schema_versions` 설치 SQL 작성
+- `toy_site_settings`, `toy_modules`, `toy_module_settings`, `toy_schema_versions` 설치 SQL 작성
 
 완료 기준:
 

@@ -15,31 +15,18 @@ Toycore의 기본환경은 사이트 설정과 모듈 시스템을 중심으로 
 - 회원 인증은 기본 제공 모듈이지만 코어와 직접 결합하지 않음
 - 저가형 웹호스팅을 고려해 단순한 관계와 일반적인 SQL 타입 사용
 - 설정값은 확장성을 위해 key-value 구조를 기본으로 사용
-- 첫 구현은 단일 사이트 기준으로 시작하고 멀티사이트용 연결 테이블은 보류
+- 단일 사이트 기준이므로 별도 사이트 목록 테이블과 멀티사이트용 연결 테이블은 두지 않음
 - 다국어와 개인정보 처리는 최소 기반만 초기 구조에 포함
 
 ## ERD
 
 ```mermaid
 erDiagram
-    toy_sites {
-        bigint id PK
-        varchar site_key UK
-        varchar name
-        varchar base_url
-        varchar timezone
-        varchar default_locale
-        varchar status
-        datetime created_at
-        datetime updated_at
-    }
-
     toy_site_settings {
         bigint id PK
         varchar setting_key
         text setting_value
         varchar value_type
-        tinyint is_public
         datetime created_at
         datetime updated_at
     }
@@ -214,7 +201,6 @@ erDiagram
         datetime created_at
     }
 
-    toy_sites ||--o{ toy_site_settings : has
     toy_modules ||--o{ toy_module_settings : configures
 
     toy_member_accounts ||--o| toy_member_profiles : has
@@ -230,22 +216,19 @@ erDiagram
 
 ## 테이블 설명
 
-### `toy_sites`
-
-현재 설치의 사이트 기본 정보를 저장합니다. 첫 구현은 단일 사이트 기준이므로 이 테이블은 멀티사이트 목록이 아니라 기본 사이트 설정 레코드에 가깝습니다.
-
-주요 값:
-
-- `site_key`: 사이트를 구분하는 짧은 고유 키
-- `name`: 사이트 이름
-- `base_url`: 사이트 기본 URL
-- `timezone`: 기본 시간대
-- `default_locale`: 기본 언어와 지역
-- `status`: `active`, `inactive`, `maintenance`
-
 ### `toy_site_settings`
 
-사이트 전체 설정을 key-value 형태로 저장합니다. 예를 들어 사이트 제목, 관리자 이메일, 업로드 제한, 기본 테마 같은 값을 저장할 수 있습니다.
+사이트 전체 설정을 key-value 형태로 저장합니다. 단일 사이트 전제이므로 사이트 이름, 기본 URL, timezone, 기본 locale, 운영 상태도 별도 `toy_sites` 테이블이 아니라 이 테이블의 필수 키로 저장합니다.
+
+필수 키:
+
+| setting_key | 의미 |
+| --- | --- |
+| `site.name` | 사이트 이름 |
+| `site.base_url` | 사이트 기본 URL |
+| `site.timezone` | 기본 시간대 |
+| `site.default_locale` | 기본 언어와 지역 |
+| `site.status` | `active`, `maintenance` |
 
 권장 유니크 키:
 
@@ -266,7 +249,7 @@ erDiagram
 | `board` | 게시판 | `0` |
 | `page` | 페이지 | `0` |
 
-모듈 활성화 상태는 초기 구현에서 `toy_modules.status`로 관리합니다. 사이트별 모듈 활성화가 필요해지는 시점에 `toy_site_modules` 같은 연결 테이블을 추가합니다.
+모듈 활성화 상태는 초기 구현에서 `toy_modules.status`로 관리합니다. 단일 사이트 기준에서는 사이트별 모듈 연결 테이블을 두지 않습니다.
 
 ### `toy_module_settings`
 
@@ -329,7 +312,7 @@ erDiagram
 
 회원 기본 테이블에는 `site_id`를 넣지 않습니다.
 
-Toycore의 첫 구현은 단일 사이트 운영을 기준으로 합니다. `toy_sites`는 사이트 이름, base URL, timezone, default locale, 운영 상태 같은 설정을 담는 코어 테이블로 남길 수 있지만, 회원 계정이 별도 `site_id`를 들고 다닐 필요는 없습니다. 멀티사이트를 실제 기능으로 제공한다면 그때 회원/관리자/모듈 데이터에 `site_id`를 추가하는 스키마 업데이트를 설계합니다.
+Toycore의 첫 구현은 단일 사이트 운영을 기준으로 합니다. 사이트 이름, base URL, timezone, default locale, 운영 상태 같은 값은 `toy_site_settings`의 필수 키로 저장합니다. 멀티사이트를 실제 기능으로 제공한다면 그때 사이트 기준 테이블과 회원/관리자/모듈 데이터의 `site_id` 추가를 함께 설계합니다.
 
 로그인 식별자는 원문보다 정규화된 값의 hash를 기준으로 조회합니다.
 

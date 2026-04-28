@@ -65,7 +65,7 @@
 
 회원 기본 테이블에는 `site_id`를 넣지 않습니다.
 
-Toycore의 첫 구현은 단일 사이트 운영을 기준으로 합니다. `toy_sites`는 사이트 이름, base URL, timezone, default locale, 운영 상태 같은 설정을 담는 코어 테이블로 남길 수 있지만, 회원 계정이 별도 `site_id`를 들고 다닐 필요는 없습니다.
+Toycore의 첫 구현은 단일 사이트 운영을 기준으로 합니다. 사이트 이름, base URL, timezone, default locale, 운영 상태 같은 값은 `toy_site_settings`의 필수 키로 저장하고, 회원 계정이 별도 `site_id`를 들고 다닐 필요는 없습니다.
 
 회원 테이블에 `site_id`를 넣지 않는 이유:
 

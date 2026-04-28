@@ -11,6 +11,13 @@ toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 $errors = [];
 $notice = '';
 $allowedSettingTypes = ['string', 'int', 'bool', 'json'];
+$reservedSiteSettingKeys = [
+    'site.name' => true,
+    'site.base_url' => true,
+    'site.timezone' => true,
+    'site.default_locale' => true,
+    'site.status' => true,
+];
 $values = [
     'name' => (string) ($site['name'] ?? ''),
     'base_url' => (string) ($site['base_url'] ?? ''),
@@ -27,7 +34,6 @@ if (toy_request_method() === 'POST') {
         $settingKey = toy_post_string('setting_key', 120);
         $settingValue = toy_post_string('setting_value', 5000);
         $valueType = toy_post_string('value_type', 20);
-        $isPublic = ($_POST['is_public'] ?? '') === '1';
 
         if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
             $errors[] = '설정 key 형식이 올바르지 않습니다.';
@@ -37,30 +43,16 @@ if (toy_request_method() === 'POST') {
             $errors[] = '설정 타입이 올바르지 않습니다.';
         }
 
+        if (isset($reservedSiteSettingKeys[$settingKey])) {
+            $errors[] = '기본 사이트 설정은 위의 전용 양식에서 수정하세요.';
+        }
+
         if ($valueType === 'json' && json_decode($settingValue, true) === null && json_last_error() !== JSON_ERROR_NONE) {
             $errors[] = 'JSON 설정값이 올바르지 않습니다.';
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare(
-                'INSERT INTO toy_site_settings
-                    (setting_key, setting_value, value_type, is_public, created_at, updated_at)
-                 VALUES
-                    (:setting_key, :setting_value, :value_type, :is_public, :created_at, :updated_at)
-                 ON DUPLICATE KEY UPDATE
-                    setting_value = VALUES(setting_value),
-                    value_type = VALUES(value_type),
-                    is_public = VALUES(is_public),
-                    updated_at = VALUES(updated_at)'
-            );
-            $stmt->execute([
-                'setting_key' => $settingKey,
-                'setting_value' => $settingValue,
-                'value_type' => $valueType,
-                'is_public' => $isPublic ? 1 : 0,
-                'created_at' => toy_now(),
-                'updated_at' => toy_now(),
-            ]);
+            toy_save_site_setting($pdo, $settingKey, $settingValue, $valueType);
 
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -72,7 +64,6 @@ if (toy_request_method() === 'POST') {
                 'message' => 'Site setting saved.',
                 'metadata' => [
                     'value_type' => $valueType,
-                    'is_public' => $isPublic,
                 ],
             ]);
 
@@ -84,9 +75,14 @@ if (toy_request_method() === 'POST') {
             $errors[] = '설정 key 형식이 올바르지 않습니다.';
         }
 
+        if (isset($reservedSiteSettingKeys[$settingKey])) {
+            $errors[] = '기본 사이트 설정은 삭제할 수 없습니다.';
+        }
+
         if ($errors === []) {
             $stmt = $pdo->prepare('DELETE FROM toy_site_settings WHERE setting_key = :setting_key');
             $stmt->execute(['setting_key' => $settingKey]);
+            toy_clear_site_settings_cache();
 
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -138,32 +134,20 @@ if (toy_request_method() === 'POST') {
                 'status' => (string) ($site['status'] ?? ''),
             ];
 
-            $stmt = $pdo->prepare(
-                'UPDATE toy_sites
-                 SET name = :name,
-                     base_url = :base_url,
-                     timezone = :timezone,
-                     default_locale = :default_locale,
-                     status = :status,
-                     updated_at = :updated_at
-                 WHERE id = :id'
-            );
-            $stmt->execute([
-                'name' => $values['name'],
-                'base_url' => $values['base_url'],
-                'timezone' => $values['timezone'],
-                'default_locale' => $values['default_locale'],
-                'status' => $values['status'],
-                'updated_at' => toy_now(),
-                'id' => (int) ($site['id'] ?? 0),
+            toy_save_site_settings($pdo, [
+                'site.name' => ['value' => $values['name'], 'type' => 'string'],
+                'site.base_url' => ['value' => $values['base_url'], 'type' => 'string'],
+                'site.timezone' => ['value' => $values['timezone'], 'type' => 'string'],
+                'site.default_locale' => ['value' => $values['default_locale'], 'type' => 'string'],
+                'site.status' => ['value' => $values['status'], 'type' => 'string'],
             ]);
 
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'site.settings.updated',
-                'target_type' => 'site',
-                'target_id' => (string) ($site['id'] ?? ''),
+                'target_type' => 'site_settings',
+                'target_id' => 'site',
                 'result' => 'success',
                 'message' => 'Site settings updated.',
                 'metadata' => [
@@ -189,7 +173,12 @@ if (toy_request_method() === 'POST') {
 }
 
 $siteSettings = [];
-$stmt = $pdo->query('SELECT setting_key, setting_value, value_type, is_public, updated_at FROM toy_site_settings ORDER BY setting_key ASC');
+$stmt = $pdo->query(
+    "SELECT setting_key, setting_value, value_type, updated_at
+     FROM toy_site_settings
+     WHERE setting_key NOT IN ('site.name', 'site.base_url', 'site.timezone', 'site.default_locale', 'site.status')
+     ORDER BY setting_key ASC"
+);
 foreach ($stmt->fetchAll() as $row) {
     $siteSettings[] = $row;
 }

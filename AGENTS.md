@@ -8,10 +8,8 @@ Use `toy` as the project prefix for database tables and related identifiers that
 
 Examples:
 
-- `toy_sites`
 - `toy_site_settings`
 - `toy_modules`
-- `toy_site_modules`
 - `toy_module_settings`
 - `toy_member_accounts`
 

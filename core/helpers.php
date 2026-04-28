@@ -178,6 +178,14 @@ function toy_apply_runtime_config(array $config): void
     }
 }
 
+function toy_apply_site_runtime_settings(?array $site): void
+{
+    $timezone = is_array($site) ? (string) ($site['timezone'] ?? '') : '';
+    if ($timezone !== '' && in_array($timezone, timezone_identifiers_list(), true)) {
+        date_default_timezone_set($timezone);
+    }
+}
+
 function toy_db(array $config): PDO
 {
     $db = $config['db'] ?? [];
@@ -201,14 +209,15 @@ function toy_db(array $config): PDO
 
 function toy_load_site(PDO $pdo): ?array
 {
-    $stmt = $pdo->query(
-        'SELECT id, site_key, name, base_url, timezone, default_locale, status, created_at, updated_at
-         FROM toy_sites
-         ORDER BY id ASC
-         LIMIT 1'
-    );
-    $site = $stmt->fetch();
-    return is_array($site) ? $site : null;
+    $settings = toy_site_settings($pdo);
+
+    return [
+        'name' => (string) ($settings['site.name'] ?? 'Toycore'),
+        'base_url' => (string) ($settings['site.base_url'] ?? ''),
+        'timezone' => (string) ($settings['site.timezone'] ?? 'Asia/Seoul'),
+        'default_locale' => (string) ($settings['site.default_locale'] ?? 'ko'),
+        'status' => (string) ($settings['site.status'] ?? 'active'),
+    ];
 }
 
 function toy_enabled_module_keys(PDO $pdo): array
@@ -284,34 +293,89 @@ function toy_enabled_module_contract_files(PDO $pdo, string $contractFile, array
     return $files;
 }
 
-function toy_site_settings(PDO $pdo, bool $publicOnly = false): array
+function toy_site_settings(PDO $pdo): array
 {
     static $cache = [];
+    static $cacheToken = null;
 
-    $cacheKey = $publicOnly ? 'public' : 'all';
-    if (isset($cache[$cacheKey])) {
-        return $cache[$cacheKey];
+    $currentToken = (int) ($GLOBALS['toy_site_settings_cache_token'] ?? 0);
+    if ($cacheToken !== $currentToken) {
+        $cache = [];
+        $cacheToken = $currentToken;
     }
 
-    if ($publicOnly) {
-        $stmt = $pdo->query('SELECT setting_key, setting_value, value_type FROM toy_site_settings WHERE is_public = 1 ORDER BY setting_key ASC');
-    } else {
-        $stmt = $pdo->query('SELECT setting_key, setting_value, value_type FROM toy_site_settings ORDER BY setting_key ASC');
+    if (isset($cache['all'])) {
+        return $cache['all'];
     }
+
+    $stmt = $pdo->query('SELECT setting_key, setting_value, value_type FROM toy_site_settings ORDER BY setting_key ASC');
 
     $settings = [];
     foreach ($stmt->fetchAll() as $row) {
         $settings[(string) $row['setting_key']] = toy_cast_setting_value($row['setting_value'], (string) $row['value_type']);
     }
 
-    $cache[$cacheKey] = $settings;
+    $cache['all'] = $settings;
     return $settings;
+}
+
+function toy_clear_site_settings_cache(): void
+{
+    $GLOBALS['toy_site_settings_cache_token'] = (int) ($GLOBALS['toy_site_settings_cache_token'] ?? 0) + 1;
 }
 
 function toy_site_setting(PDO $pdo, string $key, mixed $default = null): mixed
 {
     $settings = toy_site_settings($pdo);
     return array_key_exists($key, $settings) ? $settings[$key] : $default;
+}
+
+function toy_save_site_setting(PDO $pdo, string $key, string $value, string $valueType = 'string'): void
+{
+    if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $key) !== 1) {
+        throw new InvalidArgumentException('Site setting key is invalid.');
+    }
+
+    if (!in_array($valueType, ['string', 'int', 'bool', 'json'], true)) {
+        throw new InvalidArgumentException('Site setting value type is invalid.');
+    }
+
+    $now = toy_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_site_settings
+            (setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'setting_key' => $key,
+        'setting_value' => $value,
+        'value_type' => $valueType,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    toy_clear_site_settings_cache();
+}
+
+function toy_save_site_settings(PDO $pdo, array $settings): void
+{
+    foreach ($settings as $key => $setting) {
+        if (!is_array($setting)) {
+            continue;
+        }
+
+        toy_save_site_setting(
+            $pdo,
+            (string) $key,
+            (string) ($setting['value'] ?? ''),
+            (string) ($setting['type'] ?? 'string')
+        );
+    }
 }
 
 function toy_module_settings(PDO $pdo, string $moduleKey): array
@@ -788,7 +852,7 @@ function toy_internal_access_check_urls(string $baseUrl): array
 
     $checks = [
         '/AGENTS.md' => '/# AGENTS\.md/',
-        '/database/core/install.sql' => '/CREATE TABLE IF NOT EXISTS toy_sites/',
+        '/database/core/install.sql' => '/CREATE TABLE IF NOT EXISTS toy_site_settings/',
         '/modules/member/install.sql' => '/CREATE TABLE IF NOT EXISTS toy_member_accounts/',
         '/docs/deployment-protection.md' => '/# 배포 보호 기준/',
         '/.git/HEAD' => '/\A(?:ref: refs\/|[a-f0-9]{40})/',

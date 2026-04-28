@@ -110,20 +110,12 @@ if (toy_request_method() === 'POST') {
             toy_execute_sql_file($pdo, TOY_ROOT . '/modules/popup_layer/install.sql');
 
             $now = toy_now();
-            $stmt = $pdo->prepare(
-                'INSERT INTO toy_sites (site_key, name, base_url, timezone, default_locale, status, created_at, updated_at)
-                 VALUES (:site_key, :name, :base_url, :timezone, :default_locale, :status, :created_at, :updated_at)
-                 ON DUPLICATE KEY UPDATE name = VALUES(name), base_url = VALUES(base_url), timezone = VALUES(timezone), default_locale = VALUES(default_locale), updated_at = VALUES(updated_at)'
-            );
-            $stmt->execute([
-                'site_key' => 'default',
-                'name' => $values['site_name'],
-                'base_url' => $values['base_url'],
-                'timezone' => $values['timezone'],
-                'default_locale' => $values['default_locale'],
-                'status' => 'active',
-                'created_at' => $now,
-                'updated_at' => $now,
+            toy_save_site_settings($pdo, [
+                'site.name' => ['value' => $values['site_name'], 'type' => 'string'],
+                'site.base_url' => ['value' => $values['base_url'], 'type' => 'string'],
+                'site.timezone' => ['value' => $values['timezone'], 'type' => 'string'],
+                'site.default_locale' => ['value' => $values['default_locale'], 'type' => 'string'],
+                'site.status' => ['value' => 'active', 'type' => 'string'],
             ]);
 
             $modules = [
@@ -153,6 +145,8 @@ if (toy_request_method() === 'POST') {
             toy_record_schema_version($pdo, 'core', '', '2026.04.001');
             toy_record_schema_version($pdo, 'core', '', '2026.04.002');
             toy_record_schema_version($pdo, 'core', '', '2026.04.003');
+            toy_record_schema_version($pdo, 'core', '', '2026.04.004');
+            toy_record_schema_version($pdo, 'core', '', '2026.04.005');
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.001');
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.002');
             toy_record_schema_version($pdo, 'module', 'member', '2026.04.003');
