@@ -8,6 +8,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 
 - 웹 설치 화면 제공
 - 설치 전/설치 후 요청 분기
+- 설치 실패 시 복구 marker 기록
 - `config/config.php` 설정 파일 생성
 - `storage/installed.lock` 설치 완료 파일 생성
 - core, member, admin, seo, popup_layer 설치 SQL 실행
@@ -24,6 +25,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 
 - HTTP method와 path 해석
 - 활성화된 모듈의 `paths.php` 배열 기반 요청 처리
+- 활성 모듈 간 method/path 충돌 감지
 - action 파일 상대 경로 검증
 - 모듈 `module.php` 메타데이터 조회
 - 모듈 type 조회
@@ -166,6 +168,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 업데이트 파일 checksum 표시
 - 업데이트 실행 감사 로그 기록
 - 업데이트 실행 owner 권한 제한
+- 업데이트 실패 시 복구 marker 기록
 
 ## 팝업레이어
 
@@ -192,6 +195,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 모듈 업데이트 SQL 적용
 - 업데이트 파일 경로와 checksum 적용 전 검증
 - 업데이트 동시 실행 방지
+- 업데이트 lock 획득 후 pending 목록 재확인
 - 비활성 설치 모듈의 업데이트 파일 확인
 
 ## 데이터베이스 기반

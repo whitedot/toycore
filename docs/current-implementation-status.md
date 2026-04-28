@@ -8,6 +8,7 @@
 
 - 설치 상태 분기
 - 웹 설치 화면
+- 설치 실패 시 `storage/install-failed.json` 복구 marker 기록
 - 운영 설치 시 현재 접속 host 기준 내부 파일 직접 접근 노출 점검
 - 운영 설치 시 HTTPS URL 확인
 - `config/config.php` 생성
@@ -28,6 +29,7 @@
 - 단일 사이트 기본값을 `toy_site_settings` 필수 키로 저장
 - 요청 단위 설정 조회 메모리 캐시
 - 활성 모듈 `paths.php` 기반 action include
+- 활성 모듈 간 method/path 충돌 감지와 오류 로그 기록
 - action 상대 경로 검증
 - 모듈 `module.php` 메타데이터 조회 helper
 - 모듈 type 조회 helper
@@ -58,6 +60,7 @@
 - 인증/감사 로그 클라이언트 IP와 User-Agent 정규화
 - 클라이언트 IP 실제 IP 형식 검증
 - 예외 요약 파일 로그
+- 운영 복구 marker 기록/삭제 helper
 
 ### 회원
 
@@ -158,6 +161,7 @@
 - 모듈 업데이트 SQL statement 분리 실행
 - 업데이트 파일 경로와 checksum 적용 전 검증
 - 업데이트 동시 실행 방지 lock
+- 업데이트 실패 시 `storage/update-failed.json` 복구 marker 기록
 - 비활성 설치 모듈의 업데이트 파일 확인
 - 팝업레이어 대상 조회 인덱스
 

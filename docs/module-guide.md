@@ -275,11 +275,44 @@ return [
 ];
 ```
 
+### `helpers.php`와 helper 하위 파일
+
+모듈의 공통 함수는 `helpers.php`에서 명시적으로 제공합니다. 함수가 적을 때는 한 파일로 시작할 수 있지만, 역할이 섞이기 시작하면 `helpers/` 하위 파일로 나눕니다.
+
+권장 구조:
+
+```text
+modules/{module_key}/
+- helpers.php
+- helpers/{area}.php
+```
+
+예:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+require_once TOY_ROOT . '/modules/admin/helpers/roles.php';
+require_once TOY_ROOT . '/modules/admin/helpers/updates.php';
+```
+
+원칙:
+
+- `helpers.php`는 모듈 helper의 명시적 진입점입니다.
+- 하위 helper 파일은 `roles`, `updates`, `sessions`, `privacy`처럼 소유 책임이 드러나는 이름을 사용합니다.
+- action 파일은 가능하면 모듈의 `helpers.php`만 require하고, helper 내부의 하위 파일 순서는 `helpers.php`에서 관리합니다.
+- 하위 helper 파일은 로드 시 DB 변경, route 등록, 출력 같은 부작용을 만들지 않습니다.
+- 다른 모듈의 내부 helper 하위 파일을 직접 require하지 않습니다. 공개 helper가 필요하면 해당 모듈의 `helpers.php`를 통해 사용합니다.
+
 ### `paths.php`
 
 `paths.php`는 현재 모듈이 처리할 수 있는 method/path와 action 파일의 허용 목록입니다. 이 파일은 실행 흐름을 만들지 않고 배열만 반환합니다.
 
 코어는 활성 모듈의 `paths.php`를 읽은 뒤 현재 요청과 일치하는 항목만 선택하고, action 파일 경로가 모듈 디렉터리 안에 있는지 검증한 뒤 include합니다.
+
+활성 모듈 둘 이상이 같은 `METHOD /path`를 선언하면 코어는 한쪽을 임의로 선택하지 않고 요청을 중단합니다. 경로 충돌은 `storage/logs/error.log`에 기록되므로, 모듈 작성자는 공개 path와 관리자 path를 안정적으로 소유해야 합니다.
 
 ### 설정 화면
 
@@ -514,6 +547,7 @@ return [
 - `toy_route()` 같은 전역 path 등록 API를 기본 모델로 사용하지 않음
 - `paths.php`는 실행 흐름을 만들지 않고 배열만 반환
 - action 파일 경로는 모듈 디렉터리 내부의 허용된 상대 경로만 사용
+- 활성 모듈 간 같은 method/path 중복은 오류로 처리
 - 파일명, 클래스명, attribute를 자동 스캔해서 path 매핑을 만들지 않음
 - 현재 요청에 필요한 action 파일만 include
 

@@ -70,6 +70,8 @@ if ($path === '/') {
 }
 
 $moduleKeys = toy_enabled_module_keys($pdo);
+$routeKey = $method . ' ' . $path;
+$routeMatches = [];
 
 foreach ($moduleKeys as $moduleKey) {
     $moduleDir = TOY_ROOT . '/modules/' . $moduleKey;
@@ -84,7 +86,6 @@ foreach ($moduleKeys as $moduleKey) {
         continue;
     }
 
-    $routeKey = $method . ' ' . $path;
     if (!isset($paths[$routeKey])) {
         continue;
     }
@@ -104,7 +105,27 @@ foreach ($moduleKeys as $moduleKey) {
         exit;
     }
 
-    include $realActionFile;
+    $routeMatches[] = [
+        'module_key' => $moduleKey,
+        'action_file' => $realActionFile,
+    ];
+}
+
+if (count($routeMatches) > 1) {
+    $conflicts = array_map(static function (array $match): string {
+        return (string) $match['module_key'];
+    }, $routeMatches);
+
+    toy_log_exception(
+        new RuntimeException('Route conflict: ' . $routeKey . ' -> ' . implode(', ', $conflicts)),
+        'module_route_conflict'
+    );
+    toy_render_error(500, '모듈 요청 경로가 중복되었습니다.');
+    exit;
+}
+
+if (count($routeMatches) === 1) {
+    include $routeMatches[0]['action_file'];
     exit;
 }
 

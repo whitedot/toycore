@@ -25,8 +25,13 @@ if (toy_request_method() === 'POST') {
     if ($errors === [] && $pendingUpdates !== []) {
         if (!toy_admin_acquire_update_lock($pdo)) {
             $errors[] = '다른 업데이트가 실행 중입니다. 잠시 후 다시 시도하세요.';
+            toy_write_operational_marker('update-failed.json', [
+                'stage' => 'acquire_update_lock',
+                'message' => 'Schema update lock could not be acquired.',
+            ]);
         } else {
             try {
+                $pendingUpdates = toy_admin_pending_updates($pdo);
                 foreach ($pendingUpdates as $update) {
                     try {
                         toy_audit_log($pdo, [
@@ -72,6 +77,16 @@ if (toy_request_method() === 'POST') {
                             ],
                         ]);
                         $errors[] = (string) $update['label'] . ' ' . (string) $update['version'] . ' 업데이트 중 오류가 발생했습니다.';
+                        $failureMessage = $exception->getMessage();
+                        $failureMessage = function_exists('mb_substr') ? mb_substr($failureMessage, 0, 500) : substr($failureMessage, 0, 500);
+                        toy_write_operational_marker('update-failed.json', [
+                            'stage' => 'apply_update',
+                            'scope' => (string) $update['scope'],
+                            'module_key' => (string) $update['module_key'],
+                            'version' => (string) $update['version'],
+                            'checksum' => (string) ($update['checksum'] ?? ''),
+                            'message' => $failureMessage,
+                        ]);
                         break;
                     }
                 }
@@ -82,6 +97,7 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        toy_clear_operational_marker('update-failed.json');
         $notice = $appliedUpdates === [] ? '적용할 업데이트가 없습니다.' : '업데이트를 적용했습니다.';
     }
 }

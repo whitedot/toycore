@@ -102,6 +102,15 @@ toy_audit_logs
 
 파일 로그는 시스템 오류 중심, DB 감사 로그는 관리자 작업과 설정 변경 중심으로 사용합니다. 현재 구현은 `storage/logs/error.log`에 예외 요약을 기록합니다.
 
+복구 marker:
+
+```text
+storage/install-failed.json
+storage/update-failed.json
+```
+
+설치나 업데이트가 중간에 실패하면 운영자가 재시도 전 상태를 확인할 수 있도록 최소 복구 marker를 남깁니다. marker에는 실패 단계, 오류 요약, 업데이트 scope/module/version/checksum 같은 운영 식별자만 저장하고 DB 비밀번호, 토큰, 요청 원문은 저장하지 않습니다. 다음 성공 시 해당 marker는 삭제됩니다.
+
 ## 오류 처리 흐름
 
 ```text
@@ -121,6 +130,7 @@ toy_audit_logs
 - 세션 값 출력 금지
 - SQL query 전체 로그는 기본 비활성
 - 개인정보가 포함된 request body 로그 금지
+- 복구 marker에 비밀번호, 토큰, CSRF 값 저장 금지
 
 ## 금지하는 방향
 

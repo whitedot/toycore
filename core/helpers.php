@@ -1058,6 +1058,46 @@ function toy_log_exception(Throwable $exception, string $context): void
     file_put_contents($logDir . '/error.log', $line, FILE_APPEND | LOCK_EX);
 }
 
+function toy_write_operational_marker(string $filename, array $data): void
+{
+    if (preg_match('/\A[a-z0-9_.-]+\.json\z/', $filename) !== 1) {
+        return;
+    }
+
+    try {
+        $storageDir = TOY_ROOT . '/storage';
+        if (!is_dir($storageDir) && !mkdir($storageDir, 0755, true)) {
+            return;
+        }
+
+        $payload = array_merge([
+            'recorded_at' => toy_now(),
+        ], $data);
+        $encoded = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if (!is_string($encoded)) {
+            return;
+        }
+
+        file_put_contents($storageDir . '/' . $filename, $encoded . "\n", LOCK_EX);
+    } catch (Throwable $ignored) {
+    }
+}
+
+function toy_clear_operational_marker(string $filename): void
+{
+    if (preg_match('/\A[a-z0-9_.-]+\.json\z/', $filename) !== 1) {
+        return;
+    }
+
+    try {
+        $path = TOY_ROOT . '/storage/' . $filename;
+        if (is_file($path)) {
+            unlink($path);
+        }
+    } catch (Throwable $ignored) {
+    }
+}
+
 function toy_audit_log(PDO $pdo, array $data): void
 {
     try {

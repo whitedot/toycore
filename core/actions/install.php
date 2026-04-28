@@ -73,6 +73,7 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        $installStage = 'prepare_config';
         $existingAppKey = '';
         if (is_file(TOY_ROOT . '/config/config.php')) {
             try {
@@ -98,17 +99,21 @@ if (toy_request_method() === 'POST') {
         ];
 
         try {
+            $installStage = 'write_config';
             toy_write_config($config);
             toy_apply_runtime_config($config);
 
+            $installStage = 'connect_database';
             $pdo = toy_db($config);
 
+            $installStage = 'execute_schema';
             toy_execute_sql_file($pdo, TOY_ROOT . '/database/core/install.sql');
             toy_execute_sql_file($pdo, TOY_ROOT . '/modules/member/install.sql');
             toy_execute_sql_file($pdo, TOY_ROOT . '/modules/admin/install.sql');
             toy_execute_sql_file($pdo, TOY_ROOT . '/modules/seo/install.sql');
             toy_execute_sql_file($pdo, TOY_ROOT . '/modules/popup_layer/install.sql');
 
+            $installStage = 'save_site_settings';
             $now = toy_now();
             toy_save_site_settings($pdo, [
                 'site.name' => ['value' => $values['site_name'], 'type' => 'string'],
@@ -125,6 +130,7 @@ if (toy_request_method() === 'POST') {
                 ['popup_layer', 'Popup Layer', '2026.04.001'],
             ];
 
+            $installStage = 'register_modules';
             foreach ($modules as $module) {
                 $stmt = $pdo->prepare(
                     'INSERT INTO toy_modules (module_key, name, version, status, is_bundled, installed_at, updated_at)
@@ -142,6 +148,7 @@ if (toy_request_method() === 'POST') {
                 ]);
             }
 
+            $installStage = 'record_schema_versions';
             toy_record_schema_version($pdo, 'core', '', '2026.04.001');
             toy_record_schema_version($pdo, 'core', '', '2026.04.002');
             toy_record_schema_version($pdo, 'core', '', '2026.04.003');
@@ -161,6 +168,7 @@ if (toy_request_method() === 'POST') {
             require TOY_ROOT . '/modules/member/helpers.php';
             require TOY_ROOT . '/modules/admin/helpers.php';
 
+            $installStage = 'create_owner_account';
             $accountId = toy_member_create_account($pdo, $config, [
                 'email' => $values['admin_email'],
                 'password' => $adminPassword,
@@ -171,6 +179,7 @@ if (toy_request_method() === 'POST') {
                 'allow_existing_update' => true,
             ]);
 
+            $installStage = 'grant_owner_role';
             toy_admin_grant_role($pdo, $accountId, 'owner');
             toy_audit_log($pdo, [
                 'actor_account_id' => $accountId,
@@ -185,6 +194,7 @@ if (toy_request_method() === 'POST') {
                 ],
             ]);
 
+            $installStage = 'write_install_lock';
             $storageDir = TOY_ROOT . '/storage';
             if (!is_dir($storageDir) && !mkdir($storageDir, 0755, true)) {
                 throw new RuntimeException('storage directory cannot be created.');
@@ -194,8 +204,18 @@ if (toy_request_method() === 'POST') {
                 throw new RuntimeException('installed.lock cannot be written.');
             }
 
+            toy_clear_operational_marker('install-failed.json');
             toy_redirect('/login?next=/admin');
         } catch (Throwable $exception) {
+            toy_log_exception($exception, 'install_failed_' . $installStage);
+            $failureMessage = $exception->getMessage();
+            $failureMessage = function_exists('mb_substr') ? mb_substr($failureMessage, 0, 500) : substr($failureMessage, 0, 500);
+            toy_write_operational_marker('install-failed.json', [
+                'stage' => $installStage,
+                'message' => $failureMessage,
+                'config_written' => is_file(TOY_ROOT . '/config/config.php'),
+                'installed_lock_written' => is_file(TOY_ROOT . '/storage/installed.lock'),
+            ]);
             $errors[] = '설치 중 오류가 발생했습니다. DB 정보와 권한을 확인하세요.';
             if (!empty($config['debug'])) {
                 $errors[] = $exception->getMessage();
