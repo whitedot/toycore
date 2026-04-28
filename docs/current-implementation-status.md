@@ -23,6 +23,7 @@
 - 설치 전/설치 후 분기
 - 현재 locale 결정
 - 기본 번역 helper
+- 기본 locale 번역 fallback
 - 사이트/모듈 설정 조회 helper
 - 요청 단위 설정 조회 메모리 캐시
 - 활성 모듈 `paths.php` 기반 action include
@@ -150,4 +151,5 @@ sitemap XML 출력 검증
 DB 세션 기록/폐기 검증
 공통 CSS 정적 파일 응답 검증
 SEO meta tag 출력 검증
+번역 fallback 검증
 ```

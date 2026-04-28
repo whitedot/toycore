@@ -147,12 +147,12 @@ toy_set_locale($locale);
 toy_t('welcome.name', ['name' => $name]);
 ```
 
-현재 구현은 번역 파일이 없으면 key를 그대로 반환합니다. 이 덕분에 번역 파일이 준비되지 않은 모듈도 동작을 멈추지 않습니다.
+현재 구현은 현재 locale의 번역 파일이나 key가 없으면 `ko` fallback locale을 한 번 확인하고, 그래도 없으면 key를 그대로 반환합니다. 이 덕분에 번역 파일이 준비되지 않은 모듈도 동작을 멈추지 않습니다.
 
 ## Fallback 정책
 
-- 현재 locale에 번역 키가 없으면 사이트 기본 locale에서 찾음
-- 사이트 기본 locale에도 없으면 번역 키 자체를 반환
+- 현재 locale에 번역 키가 없으면 `ko` fallback locale에서 찾음
+- fallback locale에도 없으면 번역 키 자체를 반환
 - 누락 번역은 개발 모드에서만 표시하거나 로그로 남김
 
 ## 날짜와 시간

@@ -29,6 +29,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 요청 단위 설정 조회 메모리 캐시
 - 현재 locale 결정
 - 기본 번역 helper
+- 기본 locale 번역 fallback
 - HTML escape helper
 - CSRF token 생성과 검증
 - 안전한 redirect helper

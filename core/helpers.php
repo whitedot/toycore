@@ -354,15 +354,27 @@ function toy_t(string $key, array $params = [], ?string $locale = null): string
     }
 
     $translations = toy_load_translations($locale, $moduleKey);
-    $message = isset($translations[$translationKey]) && is_string($translations[$translationKey])
-        ? $translations[$translationKey]
-        : $key;
+    $message = $translations[$translationKey] ?? null;
+
+    if (!is_string($message) && $locale !== toy_fallback_locale()) {
+        $fallbackTranslations = toy_load_translations(toy_fallback_locale(), $moduleKey);
+        $message = $fallbackTranslations[$translationKey] ?? null;
+    }
+
+    if (!is_string($message)) {
+        $message = $key;
+    }
 
     foreach ($params as $name => $value) {
         $message = str_replace('{' . $name . '}', (string) $value, $message);
     }
 
     return $message;
+}
+
+function toy_fallback_locale(): string
+{
+    return 'ko';
 }
 
 function toy_load_translations(string $locale, string $moduleKey = ''): array
