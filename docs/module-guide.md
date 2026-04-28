@@ -281,6 +281,29 @@ return [
 
 코어는 활성 모듈의 `paths.php`를 읽은 뒤 현재 요청과 일치하는 항목만 선택하고, action 파일 경로가 모듈 디렉터리 안에 있는지 검증한 뒤 include합니다.
 
+### 설정 화면
+
+모듈은 운영자가 자주 변경하거나 동작에 직접 영향을 주는 설정에 대해 전용 관리자 화면을 최대한 제공합니다.
+
+기본 방향:
+
+- 범용 `/admin/modules` 설정 key/value 화면은 비상용 또는 낮은 수준의 관리 도구로 둡니다.
+- 모듈 설정은 가능하면 `modules/{module_key}/actions/admin-settings.php`와 전용 view에서 저장합니다.
+- 전용 화면은 설정 이름, 단위, 허용 범위, 기본값의 의미가 드러나야 합니다.
+- 상태 변경은 POST와 CSRF 검증을 사용합니다.
+- 서버에서 허용 범위와 타입을 다시 검증합니다.
+- 설정 변경은 감사 로그에 남깁니다.
+
+예:
+
+```text
+member -> /admin/member-settings
+seo -> /admin/seo
+popup_layer -> /admin/popup-layers
+```
+
+범용 모듈 설정 화면은 전용 화면이 아직 없거나, 긴급히 key/value를 확인해야 할 때만 사용합니다.
+
 ### `actions/`
 
 `actions/` 디렉터리는 요청을 실제로 처리하는 절차형 PHP 파일을 둡니다.

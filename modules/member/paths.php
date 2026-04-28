@@ -7,6 +7,8 @@ return [
     'POST /register' => 'actions/register.php',
     'GET /account' => 'actions/account.php',
     'POST /account' => 'actions/account.php',
+    'GET /admin/member-settings' => 'actions/admin-settings.php',
+    'POST /admin/member-settings' => 'actions/admin-settings.php',
     'GET /account/withdraw' => 'actions/withdraw.php',
     'POST /account/withdraw' => 'actions/withdraw.php',
     'GET /account/privacy-requests' => 'actions/privacy-requests.php',

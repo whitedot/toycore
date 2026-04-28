@@ -34,7 +34,7 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 core + member + admin + seo + popup_layer
 ```
 
-- `member`: 회원가입, 로그인/로그아웃, 계정 화면, 비밀번호 재설정, 이메일 인증, 동의 기록, 탈퇴/익명화, DB 세션, 인증 로그
+- `member`: 회원가입, 로그인/로그아웃, 계정 화면, 비밀번호 재설정, 이메일 인증, 동의 기록, 탈퇴/익명화, DB 세션, 인증 로그, 전용 관리자 설정
 - `admin`: 관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리, 권한, 감사 로그, 개인정보 요청, 보관 정리, 업데이트 실행
 - `seo`: SEO meta helper, `/robots.txt`, `/sitemap.xml`, SEO 관리자 설정, 활성 모듈 `sitemap.php` 확장
 - `popup_layer`: 관리자 팝업 등록/수정/삭제, 활성 모듈의 `extension-points.php` 기반 노출 대상 선택, 화면별 overlay 팝업 출력
@@ -118,6 +118,7 @@ module -> point -> slot -> subject
 ## 설계 문서
 
 - [기본환경 테이블 ERD](docs/erd-basic-environment.md)
+- [구현된 기능 리스트](docs/implemented-features.md)
 - [구현 방향 및 보안 계획](docs/implementation-security-plan.md)
 - [핵심 설계 결정](docs/core-decisions.md)
 - [기본 코어 우선순위](docs/core-foundation-roadmap.md)

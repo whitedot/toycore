@@ -59,20 +59,22 @@ $seo = [
             </form>
         </section>
 
-        <section>
-            <h2>이메일 인증</h2>
-            <?php if ($account['email_verified_at'] === null) { ?>
-                <form method="post" action="/account/email-verification">
-                    <?php echo toy_csrf_field(); ?>
-                    <button type="submit">인증 메일 다시 보내기</button>
-                </form>
-                <?php if ($emailVerificationUrl !== '') { ?>
-                    <p><a href="<?php echo toy_e($emailVerificationUrl); ?>">이메일 인증 링크</a></p>
+        <?php if ($emailVerificationEnabled) { ?>
+            <section>
+                <h2>이메일 인증</h2>
+                <?php if ($account['email_verified_at'] === null) { ?>
+                    <form method="post" action="/account/email-verification">
+                        <?php echo toy_csrf_field(); ?>
+                        <button type="submit">인증 메일 다시 보내기</button>
+                    </form>
+                    <?php if ($emailVerificationUrl !== '') { ?>
+                        <p><a href="<?php echo toy_e($emailVerificationUrl); ?>">이메일 인증 링크</a></p>
+                    <?php } ?>
+                <?php } else { ?>
+                    <p>이메일 인증이 완료되었습니다.</p>
                 <?php } ?>
-            <?php } else { ?>
-                <p>이메일 인증이 완료되었습니다.</p>
-            <?php } ?>
-        </section>
+            </section>
+        <?php } ?>
 
         <section>
             <h2>비밀번호 변경</h2>

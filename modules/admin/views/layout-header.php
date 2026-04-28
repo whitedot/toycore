@@ -6,6 +6,7 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 $adminEnabledModules = isset($pdo) && $pdo instanceof PDO ? toy_enabled_module_keys($pdo) : [];
+$adminMemberEnabled = in_array('member', $adminEnabledModules, true);
 $adminSeoEnabled = in_array('seo', $adminEnabledModules, true);
 $adminPopupLayerEnabled = in_array('popup_layer', $adminEnabledModules, true);
 ?>
@@ -32,6 +33,9 @@ $adminPopupLayerEnabled = in_array('popup_layer', $adminEnabledModules, true);
             <?php } ?>
             <a href="/admin/updates">업데이트</a>
             <a href="/admin/members">회원</a>
+            <?php if ($adminMemberEnabled) { ?>
+                <a href="/admin/member-settings">회원 설정</a>
+            <?php } ?>
             <a href="/admin/roles">권한</a>
             <a href="/admin/audit-logs">감사 로그</a>
             <a href="/admin/privacy-requests">개인정보 요청</a>

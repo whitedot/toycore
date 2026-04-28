@@ -2,7 +2,7 @@
 
 이 문서는 현재 코드 기준으로 Toycore에 구현된 기능을 사용자 관점에서 정리한다.
 
-Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 목표로 한다. 따라서 아래 기능은 코어, 기본 회원 모듈, 기본 관리자 모듈이 제공하는 최소 운영 기능으로 본다.
+Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 목표로 한다. 따라서 아래 기능은 코어와 기본 제공 모듈이 제공하는 현재 운영 기능으로 본다.
 
 ## 설치와 실행
 
@@ -10,8 +10,8 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 설치 전/설치 후 요청 분기
 - `config/config.php` 설정 파일 생성
 - `storage/installed.lock` 설치 완료 파일 생성
-- core, member, admin, seo 설치 SQL 실행
-- 기본 seo 모듈 등록
+- core, member, admin, seo, popup_layer 설치 SQL 실행
+- 기본 seo, popup_layer 모듈 등록
 - 스키마 버전 기록
 - Docker 기반 로컬 PHP 실행 래퍼 제공
 - 설치 시 운영 URL의 HTTPS 여부 확인
@@ -25,6 +25,8 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 활성화된 모듈의 `paths.php` 배열 기반 요청 처리
 - action 파일 상대 경로 검증
 - 모듈 `module.php` 메타데이터 조회
+- 모듈 type 조회
+- 활성 모듈 계약 파일 조회 helper
 - 사이트 설정 조회
 - 모듈 설정 조회
 - 요청 단위 설정 조회 메모리 캐시
@@ -41,6 +43,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `/sitemap.xml` 출력
 - SEO 관리자 설정 화면
 - 활성 모듈 `sitemap.php` 기반 sitemap URL 확장
+- 활성 모듈 `extension-points.php` 기반 확장 지점 조회
 - 다운로드 응답 헤더 helper
 - 기본 mail helper
 - HMAC hash helper
@@ -65,6 +68,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 ## 회원 계정
 
 - 회원가입
+- 회원가입 허용 설정
 - 로그인
 - 로그아웃
 - 내 계정 화면
@@ -75,6 +79,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 탈퇴 시 선택 프로필 삭제
 - 약관 동의 기록
 - 개인정보 처리방침 동의 기록
+- 회원 모듈 전용 관리자 설정
 
 ## 회원 인증 보안
 
@@ -85,6 +90,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 로그인 실패 시 더미 비밀번호 검증으로 계정 존재 타이밍 노출 완화
 - 로그인 실패 로그 기반 시도 제한
 - 로그인 시도 제한 기준의 모듈 설정화
+- 이메일 인증 사용 여부 설정
 - 회원가입 요청 빈도 제한
 - 비밀번호 재설정 요청 빈도 제한
 - 이메일 인증 재발송 빈도 제한
@@ -140,6 +146,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 모듈 활성화 상태 관리
 - 기본 모듈 비활성화 차단
 - 모듈 설정 항목 조회, 저장, 삭제
+- 회원 모듈 전용 설정 화면
 - 회원 목록 조회
 - 회원 상태 변경
 - 회원 비활성화 시 세션 자동 폐기
@@ -157,6 +164,18 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 업데이트 파일 checksum 표시
 - 업데이트 실행 감사 로그 기록
 - 업데이트 실행 owner 권한 제한
+
+## 팝업레이어
+
+- 팝업레이어 목록 조회
+- 팝업레이어 등록, 수정, 삭제
+- 팝업레이어 활성/비활성 상태 관리
+- 노출 시작/종료 시간 설정
+- 닫기 유지 일수 설정
+- 활성 모듈의 `extension-points.php` 기반 노출 대상 선택
+- `module -> point -> subject` 깊이의 대상 규칙 저장
+- 내부 `overlay` slot 기준 팝업 출력
+- 사용자 요청 시 저장된 대상 규칙 테이블 조회
 
 ## 운영과 보관
 
@@ -187,8 +206,11 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 이메일 인증 token 테이블
 - 회원 동의 기록 테이블
 - 관리자 역할 테이블
+- 팝업레이어 테이블
+- 팝업레이어 대상 규칙 테이블
 - 인증 로그 조회용 인덱스
 - 세션, token, 개인정보 요청, 감사 로그 조회용 기본 인덱스
+- 팝업레이어 대상 조회용 인덱스
 
 ## 제공되는 주요 경로
 
@@ -213,6 +235,12 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `POST /password/reset/confirm`
 - `POST /logout`
 
+### 팝업레이어 출력 지점
+
+- `GET /login`
+- `GET /register`
+- `GET /account`
+
 ### 관리자 경로
 
 - `GET /admin`
@@ -220,6 +248,8 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `POST /admin/settings`
 - `GET /admin/modules`
 - `POST /admin/modules`
+- `GET /admin/member-settings`
+- `POST /admin/member-settings`
 - `GET /admin/updates`
 - `POST /admin/updates`
 - `GET /admin/members`
@@ -232,6 +262,11 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `POST /admin/privacy-requests/export`
 - `GET /admin/retention`
 - `POST /admin/retention`
+
+### 팝업레이어 관리자 경로
+
+- `GET /admin/popup-layers`
+- `POST /admin/popup-layers`
 
 ### SEO 경로
 

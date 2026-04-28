@@ -10,8 +10,10 @@ $notice = '';
 $emailVerificationUrl = '';
 $submittedProfile = null;
 $submittedBasics = null;
+$memberSettings = toy_member_settings($pdo);
+$emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 
-if (!empty($config['debug']) && !empty($_SESSION['toy_debug_email_verification_url']) && is_string($_SESSION['toy_debug_email_verification_url'])) {
+if ($emailVerificationEnabled && !empty($config['debug']) && !empty($_SESSION['toy_debug_email_verification_url']) && is_string($_SESSION['toy_debug_email_verification_url'])) {
     $emailVerificationUrl = $_SESSION['toy_debug_email_verification_url'];
 }
 

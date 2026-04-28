@@ -4,9 +4,9 @@ Toycore의 기본환경은 사이트 설정과 모듈 시스템을 중심으로 
 
 회원 인증은 대부분의 사이트에서 기본적으로 사용되지만, 코어에 고정된 기능이 아니라 `member` 모듈로 취급합니다. 따라서 회원 관련 테이블은 기본 배포에 포함될 수 있으나, 구조상으로는 모듈 테이블과 모듈 설정을 통해 활성화되는 기능으로 봅니다.
 
-이 ERD는 코어 전용 테이블만이 아니라 기본 배포(`core + member + admin`)에서 함께 설치되는 테이블까지 보여줍니다. `member`와 `admin`은 기본 제공 모듈이지만 코어에 내장된 테이블 소유권을 갖지는 않습니다.
+이 ERD는 코어 전용 테이블만이 아니라 기본 배포(`core + member + admin + seo + popup_layer`)에서 함께 설치되는 테이블까지 보여줍니다. `member`, `admin`, `seo`, `popup_layer`는 기본 제공 모듈이지만 코어에 내장된 테이블 소유권을 갖지는 않습니다.
 
-아래 ERD에는 MVP 이후의 기본 운영 테이블도 함께 포함합니다. 1차 설치 SQL은 [핵심 설계 결정](core-decisions.md)의 MVP 범위를 우선하며, 감사 로그, 개인정보 요청, 회원 프로필, DB 세션 같은 테이블은 해당 기능 구현 단계에서 추가할 수 있습니다.
+아래 ERD는 현재 설치 SQL과 기본 제공 모듈의 설치 SQL을 기준으로 합니다. 과거 MVP 범위보다 넓어진 감사 로그, 개인정보 요청, 회원 프로필, DB 세션, 팝업레이어 테이블도 현재 구현 범위로 포함합니다.
 
 ## 설계 원칙
 
@@ -110,7 +110,8 @@ erDiagram
         varchar nickname
         varchar phone
         date birth_date
-        text avatar_path
+        varchar avatar_path
+        text profile_text
         datetime created_at
         datetime updated_at
     }
@@ -143,27 +144,74 @@ erDiagram
         bigint account_id FK
         varchar consent_key
         varchar consent_version
-        tinyint is_granted
+        tinyint consented
         varchar ip_address
         text user_agent
-        datetime granted_at
-        datetime withdrawn_at
+        datetime created_at
+    }
+
+    toy_member_password_resets {
+        bigint id PK
+        bigint account_id FK
+        varchar reset_token_hash UK
+        datetime expires_at
+        datetime used_at
+        datetime created_at
+    }
+
+    toy_member_email_verifications {
+        bigint id PK
+        bigint account_id FK
+        varchar email
+        varchar verification_token_hash UK
+        datetime expires_at
+        datetime verified_at
+        datetime created_at
+    }
+
+    toy_admin_account_roles {
+        bigint id PK
+        bigint account_id FK
+        varchar role_key
         datetime created_at
     }
 
     toy_privacy_requests {
         bigint id PK
         bigint account_id FK "nullable"
-        varchar requester_email_hash
-        text requester_snapshot
         varchar request_type
         varchar status
-        text request_note
-        text response_note
-        datetime requested_at
-        datetime completed_at
+        varchar requester_email_hash
+        varchar requester_snapshot
+        text request_message
+        text admin_note
+        bigint handled_by_account_id "nullable"
+        datetime handled_at
         datetime created_at
         datetime updated_at
+    }
+
+    toy_popup_layers {
+        bigint id PK
+        varchar title
+        text body_text
+        varchar status
+        datetime starts_at
+        datetime ends_at
+        int dismiss_cookie_days
+        datetime created_at
+        datetime updated_at
+    }
+
+    toy_popup_layer_targets {
+        bigint id PK
+        bigint popup_layer_id FK
+        varchar module_key
+        varchar point_key
+        varchar slot_key
+        varchar subject_id
+        varchar match_type
+        datetime created_at
     }
 
     toy_sites ||--o{ toy_site_settings : has
@@ -173,7 +221,11 @@ erDiagram
     toy_member_accounts ||--o{ toy_member_sessions : creates
     toy_member_accounts |o--o{ toy_member_auth_logs : optionally_records
     toy_member_accounts ||--o{ toy_member_consents : grants
+    toy_member_accounts ||--o{ toy_member_password_resets : requests
+    toy_member_accounts ||--o{ toy_member_email_verifications : verifies
+    toy_member_accounts ||--o{ toy_admin_account_roles : receives
     toy_member_accounts |o--o{ toy_privacy_requests : optionally_submits
+    toy_popup_layers ||--o{ toy_popup_layer_targets : targets
 ```
 
 ## 테이블 설명
@@ -209,6 +261,8 @@ erDiagram
 | --- | --- | --- |
 | `member` | 회원 | `1` |
 | `admin` | 관리자 | `1` |
+| `seo` | SEO | `1` |
+| `popup_layer` | 팝업레이어 | `1` |
 | `board` | 게시판 | `0` |
 | `page` | 페이지 | `0` |
 
@@ -222,9 +276,10 @@ erDiagram
 
 | module | setting_key | setting_value |
 | --- | --- | --- |
-| `member` | `allow_signup` | `1` |
+| `member` | `allow_registration` | `1` |
+| `member` | `email_verification_enabled` | `1` |
 | `member` | `login_identifier` | `email` |
-| `member` | `session_lifetime` | `7200` |
+| `member` | `login_throttle_window_seconds` | `900` |
 
 권장 유니크 키:
 
@@ -332,6 +387,38 @@ hash_hmac('sha256', normalized_identifier, app_key)
 - `account_id`, `consent_key`
 - `account_id`, `consent_key`, `consent_version`
 
+현재 구현은 동의/미동의 여부를 `consented`에 저장하고, 동의 시점을 `created_at`으로 기록합니다.
+
+### `toy_member_password_resets`
+
+비밀번호 재설정 요청 token의 hash, 만료 시각, 사용 시각을 저장합니다. token 원문은 저장하지 않습니다.
+
+권장 인덱스:
+
+- `reset_token_hash`
+- `account_id`
+- `expires_at`
+
+### `toy_member_email_verifications`
+
+이메일 인증 token의 hash, 대상 이메일, 만료 시각, 인증 완료 시각을 저장합니다. token 원문은 저장하지 않습니다.
+
+권장 인덱스:
+
+- `verification_token_hash`
+- `account_id`
+- `expires_at`
+
+## 관리자 모듈
+
+### `toy_admin_account_roles`
+
+`member` 계정에 관리자 role key를 연결합니다. 초기 구현은 별도 permission 테이블 없이 `owner`, `admin`, `manager` 같은 단순 role key로 시작합니다.
+
+권장 유니크 키:
+
+- `account_id`, `role_key`
+
 ### `toy_privacy_requests`
 
 개인정보 열람, 정정, 삭제, 처리 제한, 이동권, 처리 반대, 동의 철회 같은 요청을 기록합니다.
@@ -347,6 +434,34 @@ hash_hmac('sha256', normalized_identifier, app_key)
 
 초기 구현에서는 자동 처리보다 관리자 검토와 처리 이력 보존을 우선합니다.
 
+## 팝업레이어 모듈
+
+### `toy_popup_layers`
+
+팝업레이어 본문과 노출 상태, 기간, 닫기 유지일을 저장합니다.
+
+권장 인덱스:
+
+- `status`, `starts_at`, `ends_at`
+- `updated_at`
+
+### `toy_popup_layer_targets`
+
+팝업레이어가 노출될 extension point 조건을 저장합니다.
+
+주요 값:
+
+- `module_key`: 대상 모듈
+- `point_key`: 대상 extension point
+- `slot_key`: 팝업레이어는 내부 기본값 `overlay`를 사용
+- `subject_id`: 특정 상품, 게시판, 글 같은 세부 대상 ID
+- `match_type`: `all`, `exact`
+
+권장 인덱스:
+
+- `popup_layer_id`
+- `module_key`, `point_key`, `slot_key`, `match_type`, `subject_id`, `popup_layer_id`
+
 ## 초기 모듈 상태 예시
 
 기본 설치 시 다음과 같이 시작할 수 있습니다.
@@ -355,9 +470,11 @@ hash_hmac('sha256', normalized_identifier, app_key)
 toy_modules
 - member: enabled, default bundled module
 - admin: enabled, default bundled module
+- seo: enabled, default bundled module
+- popup_layer: enabled, default bundled module
 ```
 
-이 구조에서는 회원 인증과 관리자 화면이 기본적으로 켜져 있지만, 코드 관점에서는 여전히 `member`와 `admin` 모듈로 분리됩니다.
+이 구조에서는 회원 인증, 관리자 화면, SEO 운영 기반, 팝업레이어가 기본적으로 켜져 있지만, 코드 관점에서는 여전히 각 모듈로 분리됩니다.
 
 ## 구현 시 고려사항
 

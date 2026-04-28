@@ -34,42 +34,46 @@ if ($popupLayerEnabled) {
             </ul>
         <?php } ?>
 
-        <form method="post" action="/register">
-            <?php echo toy_csrf_field(); ?>
-            <p>
-                <label>이메일<br>
-                    <input type="email" name="email" value="<?php echo toy_e($values['email']); ?>" required>
-                </label>
-            </p>
-            <p>
-                <label>표시 이름<br>
-                    <input type="text" name="display_name" value="<?php echo toy_e($values['display_name']); ?>" maxlength="120" required>
-                </label>
-            </p>
-            <p>
-                <label>비밀번호<br>
-                    <input type="password" name="password" required>
-                </label>
-            </p>
-            <p>
-                <label>비밀번호 확인<br>
-                    <input type="password" name="password_confirm" required>
-                </label>
-            </p>
-            <p>
-                <label>
-                    <input type="checkbox" name="terms_consent" value="1" required>
-                    필수 약관에 동의합니다.
-                </label>
-            </p>
-            <p>
-                <label>
-                    <input type="checkbox" name="privacy_consent" value="1" required>
-                    개인정보 처리방침에 동의합니다.
-                </label>
-            </p>
-            <button type="submit">가입</button>
-        </form>
+        <?php if ($registrationAllowed) { ?>
+            <form method="post" action="/register">
+                <?php echo toy_csrf_field(); ?>
+                <p>
+                    <label>이메일<br>
+                        <input type="email" name="email" value="<?php echo toy_e($values['email']); ?>" required>
+                    </label>
+                </p>
+                <p>
+                    <label>표시 이름<br>
+                        <input type="text" name="display_name" value="<?php echo toy_e($values['display_name']); ?>" maxlength="120" required>
+                    </label>
+                </p>
+                <p>
+                    <label>비밀번호<br>
+                        <input type="password" name="password" required>
+                    </label>
+                </p>
+                <p>
+                    <label>비밀번호 확인<br>
+                        <input type="password" name="password_confirm" required>
+                    </label>
+                </p>
+                <p>
+                    <label>
+                        <input type="checkbox" name="terms_consent" value="1" required>
+                        필수 약관에 동의합니다.
+                    </label>
+                </p>
+                <p>
+                    <label>
+                        <input type="checkbox" name="privacy_consent" value="1" required>
+                        개인정보 처리방침에 동의합니다.
+                    </label>
+                </p>
+                <button type="submit">가입</button>
+            </form>
+        <?php } else { ?>
+            <p>현재 회원가입을 사용할 수 없습니다.</p>
+        <?php } ?>
 
         <p><a href="/login">로그인</a></p>
     </main>

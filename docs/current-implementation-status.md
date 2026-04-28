@@ -12,8 +12,8 @@
 - 운영 설치 시 HTTPS URL 확인
 - `config/config.php` 생성
 - `storage/installed.lock` 생성
-- core/member/admin/seo 설치 SQL 실행
-- 기본 seo 모듈 등록
+- core/member/admin/seo/popup_layer 설치 SQL 실행
+- 기본 seo, popup_layer 모듈 등록
 - 스키마 버전 기록
 - Docker 기반 로컬 PHP 실행 래퍼
 
@@ -29,6 +29,8 @@
 - 활성 모듈 `paths.php` 기반 action include
 - action 상대 경로 검증
 - 모듈 `module.php` 메타데이터 조회 helper
+- 모듈 type 조회 helper
+- 활성 모듈 계약 파일 조회 helper
 - 기본 home/error view
 - 공통 CSS 파일
 - CSRF helper
@@ -43,6 +45,7 @@
 - `seo` 모듈의 `/sitemap.xml` 출력
 - `seo` 모듈 관리자 설정 화면
 - 활성 모듈 `sitemap.php` 기반 sitemap URL 확장
+- 활성 모듈 `extension-points.php` 기반 확장 지점 조회
 - 다운로드 응답 헤더 helper
 - 기본 mail helper
 - HMAC hash helper
@@ -57,10 +60,12 @@
 ### 회원
 
 - 회원가입
+- 회원가입 허용 설정
 - 회원가입 요청 빈도 제한
 - 로그인/로그아웃
 - 로그인 실패 시 더미 비밀번호 검증으로 계정 존재 타이밍 노출 완화
 - 회원가입 이메일 인증 메일 발송 요청
+- 이메일 인증 사용 여부 설정
 - 이메일 인증 메일 재발송 빈도 제한
 - 내 계정 화면
 - 표시 이름/선호 locale 수정
@@ -93,6 +98,18 @@
 - 모듈별 개인정보 JSON 내보내기 확장
 - 인증 로그 기록
 
+### 팝업레이어
+
+- 팝업레이어 목록/등록/수정/삭제
+- 팝업레이어 활성/비활성 상태 관리
+- 노출 시작/종료 시간 설정
+- 닫기 유지 일수 설정
+- 활성 모듈 `extension-points.php` 기반 노출 대상 선택
+- `module -> point -> subject` 대상 규칙 저장
+- 내부 `overlay` slot 기준 팝업 출력
+- 사용자 요청 시 저장된 대상 규칙 테이블 조회
+- 회원 로그인/회원가입/계정 화면 팝업 출력 지점 연결
+
 ### 관리자
 
 - 관리자 대시보드
@@ -106,6 +123,10 @@
 - 회원 비활성 상태 변경 시 세션 자동 폐기
 - 회원 활성 세션 수 조회
 - 회원 세션 강제 폐기
+- 회원 모듈 전용 설정 화면
+- 회원가입 허용 설정
+- 이메일 인증 사용 설정
+- 로그인/회원가입/비밀번호 재설정/이메일 인증 시도 제한 설정
 - 관리자 역할 부여/회수
 - 마지막 owner 회수 차단
 - 감사 로그 조회
@@ -132,6 +153,7 @@
 - 배포 보호 기준 문서화
 - `storage/logs/error.log` 오류 기록
 - 모듈 업데이트 SQL 적용
+- 팝업레이어 대상 조회 인덱스
 
 ## 남은 작업
 

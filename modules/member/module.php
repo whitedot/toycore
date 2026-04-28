@@ -2,10 +2,12 @@
 
 return [
     'name' => 'Member',
-    'version' => '2026.04.005',
+    'version' => '2026.04.006',
     'type' => 'module',
     'description' => 'Member account and authentication module.',
     'settings' => [
+        'allow_registration' => true,
+        'email_verification_enabled' => true,
         'login_identifier' => 'email',
         'login_throttle_window_seconds' => 900,
         'login_throttle_account_limit' => 5,

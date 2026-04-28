@@ -9,6 +9,9 @@ if ($account !== null) {
     toy_redirect('/account');
 }
 
+$memberSettings = toy_member_settings($pdo);
+$registrationAllowed = (bool) $memberSettings['allow_registration'];
+$emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $errors = [];
 $values = [
     'email' => '',
@@ -17,6 +20,10 @@ $values = [
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
+
+    if (!$registrationAllowed) {
+        $errors[] = '현재 회원가입이 비활성화되어 있습니다.';
+    }
 
     $values = [
         'email' => toy_post_string('email', 255),
@@ -72,18 +79,21 @@ if (toy_request_method() === 'POST') {
                 'display_name' => $values['display_name'],
                 'locale' => (string) ($site['default_locale'] ?? 'ko'),
                 'status' => 'active',
+                'email_verified_at' => $emailVerificationEnabled ? null : toy_now(),
             ]);
 
-            $verificationToken = toy_member_create_email_verification($pdo, $config, $accountId, $values['email']);
-            $verificationUrl = toy_absolute_url($site, '/email/verify?token=' . rawurlencode($verificationToken));
-            $mailSent = toy_send_mail(
-                $site,
-                $values['email'],
-                '이메일 인증 안내',
-                "아래 링크를 열어 이메일 인증을 완료하세요.\n\n" . $verificationUrl
-            );
-            if (!$mailSent || !empty($config['debug'])) {
-                $_SESSION['toy_debug_email_verification_url'] = $verificationUrl;
+            if ($emailVerificationEnabled) {
+                $verificationToken = toy_member_create_email_verification($pdo, $config, $accountId, $values['email']);
+                $verificationUrl = toy_absolute_url($site, '/email/verify?token=' . rawurlencode($verificationToken));
+                $mailSent = toy_send_mail(
+                    $site,
+                    $values['email'],
+                    '이메일 인증 안내',
+                    "아래 링크를 열어 이메일 인증을 완료하세요.\n\n" . $verificationUrl
+                );
+                if (!$mailSent || !empty($config['debug'])) {
+                    $_SESSION['toy_debug_email_verification_url'] = $verificationUrl;
+                }
             }
             toy_member_record_consent($pdo, $accountId, 'terms', '2026.04.001', true);
             toy_member_record_consent($pdo, $accountId, 'privacy', '2026.04.001', true);
