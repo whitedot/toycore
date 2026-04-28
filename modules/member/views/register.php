@@ -5,6 +5,10 @@ $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
 ];
+$popupLayerEnabled = isset($pdo) && $pdo instanceof PDO && toy_module_enabled($pdo, 'popup_layer');
+if ($popupLayerEnabled) {
+    require_once TOY_ROOT . '/modules/popup_layer/helpers.php';
+}
 ?>
 <!doctype html>
 <html lang="<?php echo toy_e(toy_locale()); ?>">
@@ -17,6 +21,10 @@ $seo = [
 <body>
     <main>
         <h1><?php echo toy_e($pageTitle); ?></h1>
+
+        <?php if ($popupLayerEnabled) { ?>
+            <?php echo toy_popup_layer_render($pdo, ['module_key' => 'member', 'point_key' => 'member.register']); ?>
+        <?php } ?>
 
         <?php if ($errors !== []) { ?>
             <ul>
@@ -62,6 +70,7 @@ $seo = [
             </p>
             <button type="submit">가입</button>
         </form>
+
         <p><a href="/login">로그인</a></p>
     </main>
 </body>

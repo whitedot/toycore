@@ -346,3 +346,42 @@ DB 세션
 설정 조회 helper의 요청 단위 메모리 캐시는 현재 구현에 포함됩니다. 파일 캐시는 `storage/cache`의 웹 직접 접근 차단 기준을 운영 환경별로 확인한 뒤 선택 적용합니다.
 
 문서에 후속 기능의 설계가 있더라도, 실제 `paths.php`와 디렉터리에는 구현된 action만 둡니다.
+
+## 13. 모듈 간 영향은 계약 파일로 연결한다
+
+Toycore는 숨은 event bus, 자동 boot hook, 서비스 프로바이더로 모듈 간 영향을 연결하지 않습니다.
+
+모듈 간 연결이 필요하면 다음 순서를 따릅니다.
+
+```text
+1. 모듈은 extension-points.php로 외부 확장이 붙을 수 있는 위치를 선언한다.
+2. 확장 모듈은 관리자 설정 시점에 활성 모듈의 extension-points.php를 읽는다.
+3. 확장 모듈은 자기 정책에 맞는 지점만 선택 가능하게 한다.
+4. 실제 화면 처리 위치에서는 소유 모듈이 helper를 명시적으로 호출한다.
+```
+
+예:
+
+```text
+popup_layer 모듈 -> 관리자 설정 시점에 활성 모듈의 extension-points.php를 읽어 노출 대상 목록 구성
+member 모듈 -> 로그인/회원가입 화면에서 toy_popup_layer_render()를 명시 호출
+```
+
+사용자 요청에서는 `extension-points.php`를 읽지 않습니다. 사용자 요청은 화면에서 전달한 `module_key`, `point_key`, `slot_key`, `subject_id`로 저장된 확장 모듈 규칙만 조회합니다.
+
+코어는 계약 파일 위치를 안전하게 찾는 helper까지만 제공합니다. 계약 값의 의미, 검증, 정책은 소비 모듈이 책임집니다. 범용 slot dispatcher는 여러 확장 모듈이 같은 slot을 실제로 공유하기 전까지 코어로 승격하지 않습니다.
+
+선택 UI 깊이는 기본적으로 다음 4단계를 최대치로 봅니다.
+
+```text
+module -> point -> slot -> subject
+```
+
+팝업레이어처럼 화면 overlay 성격의 확장은 `module -> point -> subject`까지만 노출하고, `slot_key`는 내부 기본값으로 처리합니다. 5단계 이상이 필요하면 단계를 늘리지 않고 filters/options로 분리합니다.
+
+모듈과 플러그인은 같은 설치/활성화 registry를 사용할 수 있지만, 개념은 구분합니다.
+
+```text
+module = 자기 도메인과 정책을 소유하는 확장
+plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
+```

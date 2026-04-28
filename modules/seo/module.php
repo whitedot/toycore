@@ -3,6 +3,7 @@
 return [
     'name' => 'SEO',
     'version' => '2026.04.002',
+    'type' => 'module',
     'description' => 'SEO output helpers and sitemap endpoint.',
     'settings' => [
         'title_suffix' => '',

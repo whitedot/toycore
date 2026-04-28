@@ -3,6 +3,7 @@
 return [
     'name' => 'Member',
     'version' => '2026.04.005',
+    'type' => 'module',
     'description' => 'Member account and authentication module.',
     'settings' => [
         'login_identifier' => 'email',

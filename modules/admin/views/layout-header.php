@@ -5,7 +5,9 @@ $seo = [
     'title' => $adminPageTitle,
     'robots' => 'noindex, nofollow',
 ];
-$adminSeoEnabled = isset($pdo) && $pdo instanceof PDO && in_array('seo', toy_enabled_module_keys($pdo), true);
+$adminEnabledModules = isset($pdo) && $pdo instanceof PDO ? toy_enabled_module_keys($pdo) : [];
+$adminSeoEnabled = in_array('seo', $adminEnabledModules, true);
+$adminPopupLayerEnabled = in_array('popup_layer', $adminEnabledModules, true);
 ?>
 <!doctype html>
 <html lang="<?php echo toy_e(toy_locale()); ?>">
@@ -24,6 +26,9 @@ $adminSeoEnabled = isset($pdo) && $pdo instanceof PDO && in_array('seo', toy_ena
             <a href="/admin/modules">모듈</a>
             <?php if ($adminSeoEnabled) { ?>
                 <a href="/admin/seo">SEO</a>
+            <?php } ?>
+            <?php if ($adminPopupLayerEnabled) { ?>
+                <a href="/admin/popup-layers">팝업레이어</a>
             <?php } ?>
             <a href="/admin/updates">업데이트</a>
             <a href="/admin/members">회원</a>

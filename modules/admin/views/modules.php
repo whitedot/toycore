@@ -21,6 +21,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <tr>
             <th>키</th>
             <th>이름</th>
+            <th>유형</th>
             <th>설치 버전</th>
             <th>코드 버전</th>
             <th>상태</th>
@@ -36,6 +37,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <tr>
                 <td><?php echo toy_e((string) $module['module_key']); ?></td>
                 <td><?php echo toy_e((string) $module['name']); ?></td>
+                <td><?php echo toy_e((string) ($module['code_type'] ?? 'module')); ?></td>
                 <td><?php echo toy_e((string) $module['version']); ?></td>
                 <td><?php echo toy_e((string) ($module['code_version'] !== '' ? $module['code_version'] : '-')); ?></td>
                 <td><?php echo toy_e((string) $module['status']); ?></td>

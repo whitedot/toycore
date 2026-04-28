@@ -217,12 +217,71 @@ function toy_enabled_module_keys(PDO $pdo): array
     $moduleKeys = [];
     foreach ($stmt->fetchAll() as $row) {
         $moduleKey = (string) ($row['module_key'] ?? '');
-        if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) === 1) {
+        if (toy_is_safe_module_key($moduleKey)) {
             $moduleKeys[] = $moduleKey;
         }
     }
 
     return $moduleKeys;
+}
+
+function toy_is_safe_module_key(string $moduleKey): bool
+{
+    return preg_match('/\A[a-z0-9_]+\z/', $moduleKey) === 1;
+}
+
+function toy_module_enabled(PDO $pdo, string $moduleKey): bool
+{
+    if (!toy_is_safe_module_key($moduleKey)) {
+        return false;
+    }
+
+    return in_array($moduleKey, toy_enabled_module_keys($pdo), true);
+}
+
+function toy_module_type(string $moduleKey): string
+{
+    $metadata = toy_module_metadata($moduleKey);
+    $type = (string) ($metadata['type'] ?? 'module');
+
+    return in_array($type, ['module', 'plugin'], true) ? $type : 'module';
+}
+
+function toy_enabled_module_contract_files(PDO $pdo, string $contractFile, array $excludedModuleKeys = []): array
+{
+    if (preg_match('/\A[a-z0-9][a-z0-9_.-]{0,80}\.php\z/', $contractFile) !== 1) {
+        return [];
+    }
+
+    $excluded = [];
+    foreach ($excludedModuleKeys as $moduleKey) {
+        if (is_string($moduleKey) && toy_is_safe_module_key($moduleKey)) {
+            $excluded[$moduleKey] = true;
+        }
+    }
+
+    $files = [];
+    foreach (toy_enabled_module_keys($pdo) as $moduleKey) {
+        if (isset($excluded[$moduleKey])) {
+            continue;
+        }
+
+        $moduleDir = TOY_ROOT . '/modules/' . $moduleKey;
+        $file = $moduleDir . '/' . $contractFile;
+        if (!is_file($file)) {
+            continue;
+        }
+
+        $realModuleDir = realpath($moduleDir);
+        $realFile = realpath($file);
+        if ($realModuleDir === false || $realFile === false || strpos($realFile, $realModuleDir . DIRECTORY_SEPARATOR) !== 0) {
+            continue;
+        }
+
+        $files[$moduleKey] = $realFile;
+    }
+
+    return $files;
 }
 
 function toy_site_settings(PDO $pdo, bool $publicOnly = false): array
@@ -259,7 +318,7 @@ function toy_module_settings(PDO $pdo, string $moduleKey): array
 {
     static $cache = [];
 
-    if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+    if (!toy_is_safe_module_key($moduleKey)) {
         return [];
     }
 
@@ -295,7 +354,7 @@ function toy_module_metadata(string $moduleKey): array
 {
     static $cache = [];
 
-    if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+    if (!toy_is_safe_module_key($moduleKey)) {
         return [];
     }
 

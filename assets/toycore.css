@@ -87,6 +87,10 @@ textarea {
     resize: vertical;
 }
 
+input[type="number"] {
+    max-width: 160px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -119,7 +123,51 @@ dd {
     margin: 0;
 }
 
+.toy-popup-layer-stack {
+    display: grid;
+    gap: 12px;
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1000;
+    width: min(420px, calc(100% - 32px));
+    margin: 0;
+}
+
+.toy-popup-layer {
+    position: relative;
+    border: 1px solid #9fb3ce;
+    border-radius: 6px;
+    background: #ffffff;
+    box-shadow: 0 8px 20px rgba(32, 36, 42, 0.12);
+    padding: 16px 44px 16px 16px;
+}
+
+.toy-popup-layer h2 {
+    margin: 0 0 8px;
+    font-size: 18px;
+}
+
+.toy-popup-layer-body {
+    color: #303741;
+}
+
+.toy-popup-layer-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    line-height: 1;
+}
+
 @media (max-width: 720px) {
+    .toy-popup-layer-stack {
+        right: 16px;
+        bottom: 16px;
+    }
+
     table {
         display: block;
         overflow-x: auto;

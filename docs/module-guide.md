@@ -17,6 +17,208 @@ modules/{module_key}/
 - sitemap.php
 ```
 
+## 모듈과 플러그인
+
+Toycore에서 설치/활성화 가능한 확장 단위는 같은 `toy_modules` 등록 흐름을 사용합니다. 다만 개념은 구분합니다.
+
+```text
+module = 자기 도메인과 정책을 소유하는 확장
+plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
+```
+
+판단 기준:
+
+- 자기 테이블, 관리자 화면, route, 정책을 소유하면 모듈입니다.
+- 다른 모듈의 확장 지점에 붙어 기능을 보강하면 플러그인입니다.
+- `member`, `admin`, `seo`, `popup_layer`처럼 독립 기능을 소유하는 기본 확장은 모듈입니다.
+- 소셜 로그인 제공자, 특정 에디터 연동, 결제 수단 어댑터처럼 다른 모듈의 계약에 붙는 확장은 플러그인입니다.
+
+현재 DB registry는 `toy_modules`를 유지합니다. 모듈/플러그인 구분은 `module.php`의 `type` 값으로 표시합니다.
+
+```php
+<?php
+
+return [
+    'name' => 'Popup Layer',
+    'version' => '2026.04.001',
+    'type' => 'module',
+];
+```
+
+`type`은 `module` 또는 `plugin`만 사용합니다. 타입은 운영자가 확장 성격을 이해하기 위한 값이며, 요청 흐름을 자동으로 바꾸지 않습니다.
+
+## 모듈 계약 파일
+
+모듈 간 영향은 숨은 event bus나 자동 등록 대신 명시적인 계약 파일로 연결합니다.
+
+계약 파일은 다음 원칙을 지킵니다.
+
+- 활성 모듈만 계약 파일을 제공할 수 있습니다.
+- 계약 파일은 모듈 디렉터리 바로 아래에 둡니다.
+- 계약 파일은 실행 흐름을 만들지 않고 배열 또는 callable만 반환합니다.
+- 소비 모듈은 `toy_enabled_module_contract_files()`로 활성 모듈의 계약 파일 목록을 얻은 뒤 직접 검증하고 읽습니다.
+- 계약 파일을 제공하는 모듈은 자기 도메인의 공개 가능한 정보만 선언합니다.
+
+## Extension Points
+
+Toycore용 모듈은 외부 확장이 붙을 수 있는 화면이나 기능 위치를 `extension-points.php`로 선언할 수 있습니다.
+
+`extension-points.php`는 팝업레이어 전용 파일이 아닙니다. 팝업레이어, 배너, 쿠폰, 추천, 분석 같은 확장 모듈이 자기 정책에 맞게 읽어 사용할 수 있는 표준 확장 지점 목록입니다.
+
+기본 용어:
+
+```text
+extension point = 확장 가능한 화면/기능 단위
+slot = extension point 안의 구체적인 출력 위치
+subject = 특정 상품, 게시판, 글 같은 세부 대상
+```
+
+선택 깊이:
+
+```text
+1단계: module
+2단계: point
+3단계: slot
+4단계: subject
+```
+
+Toycore의 확장 선택 UI는 4단계를 최대치로 봅니다. 5단계 이상이 필요해 보이면 단계를 늘리지 않고 `filters`, `schedule`, `device`, `locale`, `member_status` 같은 조건 필드로 분리합니다.
+
+확장 모듈은 자기에게 필요한 깊이까지만 사용합니다.
+
+```text
+popup_layer = module -> point -> subject
+banner = module -> point -> slot -> subject
+analytics = module -> point
+```
+
+규칙:
+
+- `extension-points.php`는 배열 또는 callable을 반환합니다.
+- 프론트 요청에서는 이 파일을 읽지 않습니다.
+- 관리자 설정 화면처럼 확장 대상을 고르는 시점에만 읽습니다.
+- 실제 출력 위치는 각 모듈의 화면 파일에서 helper를 명시적으로 호출합니다.
+- 코어는 파일을 안전하게 찾는 helper까지만 제공합니다.
+- 계약 값의 의미, 필터링, 출력 정책은 확장 모듈이 책임집니다.
+
+예:
+
+```text
+modules/member/extension-points.php
+```
+
+```php
+<?php
+
+return [
+    [
+        'point_key' => 'member.login',
+        'label' => '로그인',
+        'surface' => 'public',
+        'output' => true,
+        'slots' => [
+            [
+                'slot_key' => 'overlay',
+                'label' => '화면',
+                'kind' => 'overlay',
+            ],
+        ],
+    ],
+];
+```
+
+필드 의미:
+
+- `point_key`: 모듈 안에서 안정적으로 유지되는 확장 지점 key
+- `label`: 관리자 화면에 표시할 이름
+- `surface`: `public`, `admin` 같은 노출 영역
+- `output`: 출력형 확장이 붙을 수 있는지 여부
+- `slots`: 실제 출력 위치 목록
+- `slot_key`: point 안에서 안정적으로 유지되는 위치 key
+- `kind`: `content`, `overlay`, `head`, `script` 같은 위치 성격
+- `subjects`: 선택 사항. 특정 상품/게시판/글 같은 세부 대상 선택 정보를 제공할 때 사용
+
+현재 `popup_layer` 구현은 관리자 UI에서 `module_key`, `point_key`, 수동 `subject_id`를 사용합니다. `slot_key`는 내부적으로 `overlay` 고정값을 저장하므로 관리자에게 노출하지 않습니다. `subjects.options`와 `subjects.selector`는 커뮤니티, 커머스처럼 세부 대상 선택 UI가 필요한 모듈을 위한 표준 필드이며, 검색/선택 UI는 후속 관리자 화면에서 이 규격을 읽어 확장합니다.
+
+작은 목록은 `subjects.options`로 직접 제공할 수 있습니다.
+
+```php
+<?php
+
+return [
+    [
+        'point_key' => 'community.board.view',
+        'label' => '게시판 보기',
+        'surface' => 'public',
+        'output' => true,
+        'slots' => [
+            [
+                'slot_key' => 'before_content',
+                'label' => '본문 위',
+                'kind' => 'content',
+            ],
+        ],
+        'subjects' => [
+            'type' => 'board',
+            'label' => '게시판',
+            'options' => [
+                ['value' => 'notice', 'label' => '공지사항'],
+                ['value' => 'free', 'label' => '자유게시판'],
+            ],
+        ],
+    ],
+];
+```
+
+상품처럼 대상이 많을 수 있으면 전체 options를 반환하지 않고 검색형 selector 정보를 제공합니다.
+
+```php
+'subjects' => [
+    'type' => 'product',
+    'label' => '상품',
+    'selector' => [
+        'mode' => 'search',
+        'action' => '/admin/commerce/products/search',
+    ],
+],
+```
+
+화면을 소유한 모듈은 필요한 위치에서 팝업레이어 helper를 명시적으로 호출합니다.
+
+```php
+<?php
+if (toy_module_enabled($pdo, 'popup_layer')) {
+    require_once TOY_ROOT . '/modules/popup_layer/helpers.php';
+    echo toy_popup_layer_render($pdo, [
+        'module_key' => 'member',
+        'point_key' => 'member.login',
+    ]);
+}
+?>
+```
+
+특정 subject에만 출력하려면 화면 모듈이 현재 subject id를 전달합니다.
+
+```php
+<?php
+echo toy_popup_layer_render($pdo, [
+    'module_key' => 'commerce',
+    'point_key' => 'commerce.product.view',
+    'subject_id' => (string) $product['id'],
+]);
+?>
+```
+
+이 구조에서 팝업레이어 모듈은 커머스나 회원 모듈 내부 파일을 직접 include하지 않고, 화면 소유 모듈은 팝업레이어 테이블 구조를 직접 조회하지 않습니다.
+
+성능 기준:
+
+- 사용자 요청에서 `extension-points.php`를 읽지 않습니다.
+- 사용자 요청에서는 저장된 규칙 테이블만 조회합니다.
+- 조회 조건에는 `module_key`, `point_key`, `slot_key`, `match_type`, `subject_id` 인덱스를 둡니다.
+- 한 요청에서 같은 slot이 반복 호출될 가능성이 생기면 확장 모듈 helper 안에 요청 단위 static cache를 둡니다.
+- 대량 subject는 options 전체 반환을 금지하고 검색형 selector를 사용합니다.
+
 권장 예시:
 
 ```text

@@ -166,6 +166,7 @@ foreach ($stmt->fetchAll() as $row) {
     $metadata = toy_module_metadata((string) $row['module_key']);
     $row['code_name'] = is_string($metadata['name'] ?? null) ? (string) $metadata['name'] : '';
     $row['code_version'] = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
+    $row['code_type'] = toy_module_type((string) $row['module_key']);
     $row['description'] = is_string($metadata['description'] ?? null) ? (string) $metadata['description'] : '';
     $modules[] = $row;
 }

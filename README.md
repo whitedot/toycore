@@ -24,6 +24,97 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 
 특정 빌드 도구, 복잡한 프론트엔드 프레임워크, 고사양 서버 환경을 전제로 하지 않습니다. 필요한 기능을 명확하게 나누고, 배포와 운영이 단순한 구조를 우선합니다.
 
+## 현재 구현 범위
+
+현재 코드는 웹 설치, 기본 관리자 진입, 회원 인증, SEO 출력, 업데이트 실행, 개인정보/감사 로그 기반, 팝업레이어 모듈의 1차 구조를 포함합니다.
+
+기본 설치 흐름은 다음 모듈을 명시적으로 설치하고 활성화합니다.
+
+```text
+core + member + admin + seo + popup_layer
+```
+
+- `member`: 회원가입, 로그인/로그아웃, 계정 화면, 비밀번호 재설정, 이메일 인증, 동의 기록, 탈퇴/익명화, DB 세션, 인증 로그
+- `admin`: 관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리, 권한, 감사 로그, 개인정보 요청, 보관 정리, 업데이트 실행
+- `seo`: SEO meta helper, `/robots.txt`, `/sitemap.xml`, SEO 관리자 설정, 활성 모듈 `sitemap.php` 확장
+- `popup_layer`: 관리자 팝업 등록/수정/삭제, 활성 모듈의 `extension-points.php` 기반 노출 대상 선택, 화면별 overlay 팝업 출력
+
+자세한 구현 범위는 [현재 구현 상태](docs/current-implementation-status.md)를 기준으로 확인합니다.
+
+## 모듈 구조
+
+Toycore의 모듈은 프레임워크 패키지가 아니라, 정해진 디렉터리에 놓인 절차형 PHP 파일과 DB에 저장된 설치/활성 상태로 동작합니다.
+
+```text
+modules/{module_key}/
+- module.php
+- paths.php
+- actions/
+- views/
+- lang/
+- install.sql
+- updates/
+```
+
+요청 흐름은 숨은 dispatcher 대신 명시적 파일 읽기를 따릅니다.
+
+```text
+index.php
+-> method/path 확인
+-> 활성 모듈 조회
+-> 각 모듈의 paths.php 확인
+-> 현재 요청에 맞는 action 파일 검증 후 include
+```
+
+모듈과 플러그인은 같은 설치/활성화 registry를 사용할 수 있지만 개념은 구분합니다.
+
+```text
+module = 자기 도메인과 정책을 소유하는 확장
+plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
+```
+
+현재 DB registry 이름은 `toy_modules`를 유지하고, 확장의 성격은 `module.php`의 `type` 값으로 표시합니다. 자세한 작성 규칙은 [모듈 작성 가이드](docs/module-guide.md)를 따릅니다.
+
+## Extension Points
+
+Toycore는 전역 hook/event dispatcher를 기본 구조로 두지 않습니다. 모듈 간 영향이 필요하면 각 모듈이 명시적 계약 파일을 제공하고, 소비 모듈이 필요한 시점에 그 파일을 읽습니다.
+
+외부 출력이나 확장이 붙을 수 있는 화면/기능 위치는 `extension-points.php`로 선언합니다.
+
+```php
+<?php
+
+return [
+    [
+        'point_key' => 'member.login',
+        'label' => '로그인',
+        'surface' => 'public',
+        'output' => true,
+        'slots' => [
+            [
+                'slot_key' => 'overlay',
+                'label' => '화면',
+                'kind' => 'overlay',
+            ],
+        ],
+    ],
+];
+```
+
+선택 깊이는 기본적으로 다음 4단계를 최대치로 봅니다.
+
+```text
+module -> point -> slot -> subject
+```
+
+팝업레이어처럼 화면 overlay 성격의 확장은 `module -> point -> subject`까지만 노출하고, `slot_key`는 내부 기본값으로 처리합니다. 5단계 이상이 필요하면 단계를 늘리지 않고 `filters`, `schedule`, `device`, `locale`, `member_status` 같은 조건 필드로 분리합니다.
+
+성능 기준도 명확히 나눕니다.
+
+- 관리자 설정 시점: 활성 모듈의 `extension-points.php`를 읽어 선택 가능한 대상을 구성
+- 사용자 요청 시점: `extension-points.php`를 읽지 않고 저장된 규칙 테이블만 조회
+- 대량 subject: 전체 options를 반환하지 않고 검색형 selector로 확장
+
 ## 설계 문서
 
 - [기본환경 테이블 ERD](docs/erd-basic-environment.md)
