@@ -802,12 +802,105 @@ function toy_execute_sql_file(PDO $pdo, string $file): void
         throw new RuntimeException('SQL file cannot be read: ' . $file);
     }
 
-    $statements = array_filter(array_map('trim', explode(';', $sql)));
-    foreach ($statements as $statement) {
-        if ($statement !== '') {
-            $pdo->exec($statement);
-        }
+    foreach (toy_split_sql_statements($sql) as $statement) {
+        $pdo->exec($statement);
     }
+}
+
+function toy_split_sql_statements(string $sql): array
+{
+    $statements = [];
+    $statement = '';
+    $quote = '';
+    $lineComment = false;
+    $blockComment = false;
+    $length = strlen($sql);
+
+    for ($i = 0; $i < $length; $i++) {
+        $char = $sql[$i];
+        $next = $i + 1 < $length ? $sql[$i + 1] : '';
+
+        if ($lineComment) {
+            $statement .= $char;
+            if ($char === "\n") {
+                $lineComment = false;
+            }
+            continue;
+        }
+
+        if ($blockComment) {
+            $statement .= $char;
+            if ($char === '*' && $next === '/') {
+                $statement .= $next;
+                $i++;
+                $blockComment = false;
+            }
+            continue;
+        }
+
+        if ($quote !== '') {
+            $statement .= $char;
+            if ($char === '\\' && $quote !== '`' && $next !== '') {
+                $statement .= $next;
+                $i++;
+                continue;
+            }
+
+            if ($char === $quote) {
+                if ($next === $quote) {
+                    $statement .= $next;
+                    $i++;
+                    continue;
+                }
+                $quote = '';
+            }
+            continue;
+        }
+
+        if ($char === '\'' || $char === '"' || $char === '`') {
+            $quote = $char;
+            $statement .= $char;
+            continue;
+        }
+
+        if ($char === '-' && $next === '-' && ($i + 2 >= $length || ctype_space($sql[$i + 2]))) {
+            $statement .= $char . $next;
+            $i++;
+            $lineComment = true;
+            continue;
+        }
+
+        if ($char === '#') {
+            $statement .= $char;
+            $lineComment = true;
+            continue;
+        }
+
+        if ($char === '/' && $next === '*') {
+            $statement .= $char . $next;
+            $i++;
+            $blockComment = true;
+            continue;
+        }
+
+        if ($char === ';') {
+            $trimmed = trim($statement);
+            if ($trimmed !== '') {
+                $statements[] = $trimmed;
+            }
+            $statement = '';
+            continue;
+        }
+
+        $statement .= $char;
+    }
+
+    $trimmed = trim($statement);
+    if ($trimmed !== '') {
+        $statements[] = $trimmed;
+    }
+
+    return $statements;
 }
 
 function toy_fetch_http_response(string $url): ?array

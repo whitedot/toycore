@@ -34,6 +34,7 @@
 - 활성 모듈 계약 파일 조회 helper
 - 기본 home/error view
 - 공통 CSS 파일
+- 팝업레이어 닫기 동작을 위한 CSP 호환 정적 JavaScript 파일
 - CSRF helper
 - HTML escape helper
 - redirect helper
@@ -154,6 +155,10 @@
 - 배포 보호 기준 문서화
 - `storage/logs/error.log` 오류 기록
 - 모듈 업데이트 SQL 적용
+- 모듈 업데이트 SQL statement 분리 실행
+- 업데이트 파일 경로와 checksum 적용 전 검증
+- 업데이트 동시 실행 방지 lock
+- 비활성 설치 모듈의 업데이트 파일 확인
 - 팝업레이어 대상 조회 인덱스
 
 ## 남은 작업
