@@ -4,9 +4,9 @@ Toycore의 기본환경은 사이트 설정과 모듈 시스템을 중심으로 
 
 회원 인증은 대부분의 사이트에서 기본적으로 사용되지만, 코어에 고정된 기능이 아니라 `member` 모듈로 취급합니다. 따라서 회원 관련 테이블은 기본 배포에 포함될 수 있으나, 구조상으로는 모듈 테이블과 모듈 설정을 통해 활성화되는 기능으로 봅니다.
 
-이 ERD는 코어 전용 테이블만이 아니라 기본 배포 코드에 포함된 모듈 테이블까지 보여줍니다. `member`와 `admin`은 필수 모듈이고, `seo`, `popup_layer`, `point`, `deposit`, `reward`는 설치 화면이나 관리자 모듈 화면에서 선택 설치할 수 있는 기본 제공 모듈입니다.
+이 ERD는 코어 전용 테이블만이 아니라 기본 배포 코드에 포함된 모듈 테이블까지 보여줍니다. `member`와 `admin`은 필수 모듈이고, `seo`, `popup_layer`, `point`, `deposit`, `reward`, `site_menu`, `banner`, `notification`은 설치 화면이나 관리자 모듈 화면에서 선택 설치할 수 있는 기본 제공 모듈입니다.
 
-아래 ERD는 현재 설치 SQL과 기본 제공 모듈의 설치 SQL을 기준으로 합니다. 과거 MVP 범위보다 넓어진 감사 로그, 개인정보 요청, 회원 프로필, DB 세션, 팝업레이어, 포인트, 예치금, 적립금 테이블도 현재 구현 범위로 포함합니다.
+아래 ERD는 현재 설치 SQL과 기본 제공 모듈의 설치 SQL을 기준으로 합니다. 과거 MVP 범위보다 넓어진 감사 로그, 개인정보 요청, 회원 프로필, DB 세션, 팝업레이어, 포인트, 예치금, 적립금, 사이트 메뉴, 배너, 알림 테이블도 현재 구현 범위로 포함합니다.
 
 ## 설계 원칙
 
@@ -264,6 +264,87 @@ erDiagram
         datetime created_at
     }
 
+    toy_site_menus {
+        bigint id PK
+        varchar menu_key UK
+        varchar label
+        varchar status
+        datetime created_at
+        datetime updated_at
+    }
+
+    toy_site_menu_items {
+        bigint id PK
+        bigint menu_id FK
+        bigint parent_id "nullable"
+        varchar label
+        varchar url
+        varchar target
+        varchar status
+        int sort_order
+        datetime created_at
+        datetime updated_at
+    }
+
+    toy_banners {
+        bigint id PK
+        varchar title
+        text body_text
+        varchar link_url
+        varchar image_url
+        varchar status
+        datetime starts_at
+        datetime ends_at
+        int sort_order
+        datetime created_at
+        datetime updated_at
+    }
+
+    toy_banner_targets {
+        bigint id PK
+        bigint banner_id FK
+        varchar module_key
+        varchar point_key
+        varchar slot_key
+        varchar subject_id
+        varchar match_type
+        datetime created_at
+    }
+
+    toy_notifications {
+        bigint id PK
+        bigint account_id FK "nullable"
+        varchar audience
+        varchar title
+        text body_text
+        varchar link_url
+        varchar status
+        datetime read_at
+        bigint created_by_account_id "nullable"
+        datetime created_at
+        datetime updated_at
+    }
+
+    toy_notification_deliveries {
+        bigint id PK
+        bigint notification_id FK
+        varchar channel
+        varchar recipient
+        varchar status
+        varchar provider_message_id
+        varchar error_message
+        datetime attempted_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    toy_notification_reads {
+        bigint id PK
+        bigint notification_id FK
+        bigint account_id FK
+        datetime read_at
+    }
+
     toy_modules ||--o{ toy_module_settings : configures
 
     toy_member_accounts ||--o| toy_member_profiles : has
@@ -281,6 +362,13 @@ erDiagram
     toy_member_accounts ||--o{ toy_deposit_transactions : records
     toy_member_accounts ||--o| toy_reward_balances : has
     toy_member_accounts ||--o{ toy_reward_transactions : records
+    toy_site_menus ||--o{ toy_site_menu_items : contains
+    toy_banners ||--o{ toy_banner_targets : targets
+    toy_member_accounts |o--o{ toy_notifications : receives
+    toy_member_accounts |o--o{ toy_notifications : creates
+    toy_notifications ||--o{ toy_notification_deliveries : queues
+    toy_notifications ||--o{ toy_notification_reads : read_by
+    toy_member_accounts ||--o{ toy_notification_reads : reads
 ```
 
 ## 테이블 설명
@@ -318,6 +406,9 @@ erDiagram
 | `point` | 포인트 | `1` |
 | `deposit` | 예치금 | `1` |
 | `reward` | 적립금 | `1` |
+| `site_menu` | 사이트 메뉴 | `1` |
+| `banner` | 배너 | `1` |
+| `notification` | 알림 | `1` |
 | `board` | 게시판 | `0` |
 | `page` | 페이지 | `0` |
 
@@ -543,6 +634,76 @@ hash_hmac('sha256', normalized_identifier, app_key)
 - `created_by_account_id`
 - `created_at`
 
+## 사이트 메뉴 모듈
+
+### `toy_site_menus`
+
+사이트 공통 메뉴 단위를 저장합니다. 현재 기본 출력은 `header` 메뉴를 홈 화면 navigation slot에 연결합니다.
+
+권장 인덱스:
+
+- `menu_key` unique
+- `status`
+
+### `toy_site_menu_items`
+
+메뉴 항목을 저장합니다. 현재 구현은 1단계 메뉴를 우선 사용하지만, 이후 계층 메뉴를 위해 `parent_id`를 nullable로 둡니다.
+
+권장 인덱스:
+
+- `menu_id`, `url` unique
+- `menu_id`, `status`, `sort_order`, `id`
+- `parent_id`
+
+## 배너 모듈
+
+### `toy_banners`
+
+배너 제목, 본문, 링크 URL, 내부 이미지 URL, 노출 상태, 노출 기간, 정렬 순서를 저장합니다.
+
+권장 인덱스:
+
+- `status`, `starts_at`, `ends_at`
+- `sort_order`, `id`
+
+### `toy_banner_targets`
+
+배너가 출력될 extension point 조건을 저장합니다. 팝업레이어와 같은 선택 깊이를 사용하지만, 배너는 `kind=content` slot을 대상으로 합니다.
+
+권장 인덱스:
+
+- `banner_id`
+- `module_key`, `point_key`, `slot_key`, `match_type`, `subject_id`, `banner_id`
+
+## 알림 모듈
+
+### `toy_notifications`
+
+사이트 내 알림 본문과 대상 정보를 저장합니다. 특정 회원 알림은 `account_id`를 사용하고, 전체 공지는 `audience=all`과 nullable `account_id`를 사용합니다.
+
+권장 인덱스:
+
+- `account_id`, `status`, `read_at`, `id`
+- `audience`, `status`, `id`
+
+### `toy_notification_deliveries`
+
+알림의 채널별 발송 대기열을 저장합니다. `site`, `email`, `sms`, `alimtalk` 채널을 구분하고 실제 provider 연동 전에도 상태를 수동 기록할 수 있습니다.
+
+권장 인덱스:
+
+- `notification_id`
+- `channel`, `status`, `id`
+
+### `toy_notification_reads`
+
+전체 공지형 알림의 회원별 읽음 상태를 저장합니다. 개인 알림의 읽음 상태는 `toy_notifications.read_at`에 직접 저장하고, 전체 공지는 이 테이블로 회원별 읽음 상태를 분리합니다.
+
+권장 인덱스:
+
+- `notification_id`, `account_id` unique
+- `account_id`, `read_at`
+
 ## 초기 모듈 상태 예시
 
 필수 모듈은 기본 설치 시 항상 등록되고 활성화됩니다.
@@ -561,9 +722,12 @@ toy_modules
 - point: enabled, bundled module if selected
 - deposit: enabled, bundled module if selected
 - reward: enabled, bundled module if selected
+- site_menu: enabled, bundled module if selected
+- banner: enabled, bundled module if selected
+- notification: enabled, bundled module if selected
 ```
 
-이 구조에서는 회원 인증과 관리자 화면은 항상 준비되지만, SEO 운영 기반, 팝업레이어, 포인트 모듈, 예치금 모듈, 적립금 모듈은 운영자가 필요한 경우에만 각각 설치할 수 있습니다. 코드 관점에서도 세 원장 기능은 서로 다른 독립 모듈입니다.
+이 구조에서는 회원 인증과 관리자 화면은 항상 준비되지만, SEO 운영 기반, 팝업레이어, 포인트 모듈, 예치금 모듈, 적립금 모듈, 사이트 메뉴, 배너, 알림은 운영자가 필요한 경우에만 각각 설치할 수 있습니다. 코드 관점에서도 세 원장 기능과 운영 모듈은 서로 다른 독립 모듈입니다.
 
 ## 구현 시 고려사항
 
