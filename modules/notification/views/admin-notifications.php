@@ -125,7 +125,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <?php foreach ($notifications as $notification) { ?>
                     <tr>
                         <td><?php echo toy_e((string) $notification['id']); ?></td>
-                        <td><?php echo toy_e((string) $notification['audience'] . ':' . (string) ($notification['account_id'] ?? '')); ?></td>
+                        <td><?php echo toy_e((string) $notification['audience']); ?></td>
                         <td><?php echo toy_e((string) $notification['status']); ?></td>
                         <td><?php echo toy_e((string) ($notification['created_by_account_id'] ?? '')); ?></td>
                         <td><?php echo toy_e((string) $notification['created_at']); ?></td>

@@ -220,7 +220,7 @@ if (toy_request_method() === 'POST') {
 }
 
 $notifications = [];
-$notificationSql = 'SELECT id, account_id, audience, status, read_at, created_by_account_id, created_at
+$notificationSql = 'SELECT id, audience, status, read_at, created_by_account_id, created_at
                     FROM toy_notifications';
 $notificationParams = [];
 if ($filters['audience'] !== '') {
