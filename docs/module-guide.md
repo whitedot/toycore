@@ -11,6 +11,7 @@ modules/{module_key}/
 - module.php
 - paths.php
 - admin-menu.php (optional)
+- output-slots.php (optional)
 - actions/
 - views/
 - lang/
@@ -48,6 +49,34 @@ return [
 
 `type`은 `module` 또는 `plugin`만 사용합니다. 타입은 운영자가 확장 성격을 이해하기 위한 값이며, 요청 흐름을 자동으로 바꾸지 않습니다.
 
+## 모듈 의존성
+
+다른 모듈이나 계약 파일이 있어야 정상 동작하는 모듈은 `module.php`에 `requires`를 선언합니다.
+
+```php
+<?php
+
+return [
+    'name' => 'Example Plugin',
+    'version' => '2026.04.001',
+    'type' => 'plugin',
+    'requires' => [
+        'modules' => [
+            'member',
+            'seo' => '2026.04.002',
+        ],
+        'contracts' => [
+            [
+                'module' => 'member',
+                'file' => 'extension-points.php',
+            ],
+        ],
+    ],
+];
+```
+
+관리자 모듈 설치와 활성화 흐름은 `enabled` 상태로 만들기 전에 선언된 의존 모듈이 활성화되어 있는지 확인합니다. `module_key => version` 형태로 쓰면 최소 설치 버전도 확인합니다. 설치 후 `disabled` 상태로 둘 때는 의존성 검사를 강제하지 않습니다.
+
 ## 모듈 계약 파일
 
 모듈 간 영향은 숨은 event bus나 자동 등록 대신 명시적인 계약 파일로 연결합니다.
@@ -59,6 +88,28 @@ return [
 - 계약 파일은 실행 흐름을 만들지 않고 배열 또는 callable만 반환합니다.
 - 소비 모듈은 `toy_enabled_module_contract_files()`로 활성 모듈의 계약 파일 목록을 얻은 뒤 직접 검증하고 읽습니다.
 - 계약 파일을 제공하는 모듈은 자기 도메인의 공개 가능한 정보만 선언합니다.
+
+## Output Slots
+
+화면 출력 지점에 여러 확장 모듈이 붙을 수 있을 때는 소유 모듈 view에서 특정 확장 모듈 helper를 직접 호출하지 않습니다.
+
+소유 모듈은 공통 helper를 호출합니다.
+
+```php
+<?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login']); ?>
+```
+
+출력 확장 모듈은 `output-slots.php`에서 renderer callable을 반환합니다.
+
+```php
+<?php
+
+return static function (PDO $pdo, array $context): string {
+    return '';
+};
+```
+
+renderer는 현재 요청에서 즉시 출력할 HTML 문자열을 반환합니다. 아무것도 출력하지 않을 때는 빈 문자열을 반환합니다.
 
 ## Admin Menu
 
@@ -209,17 +260,14 @@ return [
 ],
 ```
 
-화면을 소유한 모듈은 필요한 위치에서 팝업레이어 helper를 명시적으로 호출합니다.
+화면을 소유한 모듈은 필요한 위치에서 공통 출력 슬롯 helper를 호출합니다.
 
 ```php
 <?php
-if (toy_module_enabled($pdo, 'popup_layer')) {
-    require_once TOY_ROOT . '/modules/popup_layer/helpers.php';
-    echo toy_popup_layer_render($pdo, [
-        'module_key' => 'member',
-        'point_key' => 'member.login',
-    ]);
-}
+echo toy_render_output_slot($pdo, [
+    'module_key' => 'member',
+    'point_key' => 'member.login',
+]);
 ?>
 ```
 
@@ -227,7 +275,7 @@ if (toy_module_enabled($pdo, 'popup_layer')) {
 
 ```php
 <?php
-echo toy_popup_layer_render($pdo, [
+echo toy_render_output_slot($pdo, [
     'module_key' => 'commerce',
     'point_key' => 'commerce.product.view',
     'subject_id' => (string) $product['id'],

@@ -88,6 +88,8 @@ Toycore의 모듈은 프레임워크 패키지가 아니라, 정해진 디렉터
 modules/{module_key}/
 - module.php
 - paths.php
+- admin-menu.php
+- output-slots.php
 - actions/
 - views/
 - lang/

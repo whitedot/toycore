@@ -77,6 +77,7 @@ if (toy_request_method() === 'POST') {
                 'updated_at' => toy_now(),
             ]);
         }
+        toy_clear_module_settings_cache('seo');
 
         toy_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],

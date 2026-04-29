@@ -43,6 +43,25 @@ function toy_module_enabled(PDO $pdo, string $moduleKey): bool
     return in_array($moduleKey, toy_enabled_module_keys($pdo), true);
 }
 
+function toy_module_registry_status(PDO $pdo, string $moduleKey): string
+{
+    $module = toy_module_registry_entry($pdo, $moduleKey);
+    return is_array($module) ? (string) ($module['status'] ?? '') : '';
+}
+
+function toy_module_registry_entry(PDO $pdo, string $moduleKey): ?array
+{
+    if (!toy_is_safe_module_key($moduleKey)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT module_key, version, status FROM toy_modules WHERE module_key = :module_key LIMIT 1');
+    $stmt->execute(['module_key' => $moduleKey]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
 function toy_module_type(string $moduleKey): string
 {
     $metadata = toy_module_metadata($moduleKey);
@@ -176,9 +195,17 @@ function toy_save_site_settings(PDO $pdo, array $settings): void
 function toy_module_settings(PDO $pdo, string $moduleKey): array
 {
     static $cache = [];
+    static $cacheTokens = [];
 
     if (!toy_is_safe_module_key($moduleKey)) {
         return [];
+    }
+
+    $currentToken = (int) ($GLOBALS['toy_module_settings_cache_token'] ?? 0)
+        + (int) ($GLOBALS['toy_module_settings_cache_token_' . $moduleKey] ?? 0);
+    if (!isset($cacheTokens[$moduleKey]) || $cacheTokens[$moduleKey] !== $currentToken) {
+        unset($cache[$moduleKey]);
+        $cacheTokens[$moduleKey] = $currentToken;
     }
 
     if (isset($cache[$moduleKey])) {
@@ -209,6 +236,18 @@ function toy_module_setting(PDO $pdo, string $moduleKey, string $key, mixed $def
     return array_key_exists($key, $settings) ? $settings[$key] : $default;
 }
 
+function toy_clear_module_settings_cache(?string $moduleKey = null): void
+{
+    if ($moduleKey !== null && !toy_is_safe_module_key($moduleKey)) {
+        return;
+    }
+
+    $GLOBALS['toy_module_settings_cache_token'] = (int) ($GLOBALS['toy_module_settings_cache_token'] ?? 0) + 1;
+    if ($moduleKey !== null) {
+        $GLOBALS['toy_module_settings_cache_token_' . $moduleKey] = (int) ($GLOBALS['toy_module_settings_cache_token_' . $moduleKey] ?? 0) + 1;
+    }
+}
+
 function toy_module_metadata(string $moduleKey): array
 {
     static $cache = [];
@@ -231,6 +270,62 @@ function toy_module_metadata(string $moduleKey): array
     $cache[$moduleKey] = is_array($metadata) ? $metadata : [];
 
     return $cache[$moduleKey];
+}
+
+function toy_module_requirement_errors(PDO $pdo, string $moduleKey, array $metadata, string $targetStatus = 'enabled'): array
+{
+    if ($targetStatus !== 'enabled') {
+        return [];
+    }
+
+    $errors = [];
+    $requires = isset($metadata['requires']) && is_array($metadata['requires']) ? $metadata['requires'] : [];
+    $requiredModules = isset($requires['modules']) && is_array($requires['modules']) ? $requires['modules'] : [];
+
+    foreach ($requiredModules as $key => $value) {
+        $requiredModuleKey = is_string($key) ? $key : (string) $value;
+        if (!toy_is_safe_module_key($requiredModuleKey) || $requiredModuleKey === $moduleKey) {
+            $errors[] = '모듈 의존성 선언이 올바르지 않습니다.';
+            continue;
+        }
+
+        $requiredModule = toy_module_registry_entry($pdo, $requiredModuleKey);
+        if (!is_array($requiredModule) || (string) ($requiredModule['status'] ?? '') !== 'enabled') {
+            $errors[] = $requiredModuleKey . ' 모듈을 먼저 활성화해야 합니다.';
+            continue;
+        }
+
+        $minimumVersion = is_string($key) ? (string) $value : '';
+        if ($minimumVersion !== '' && strcmp((string) ($requiredModule['version'] ?? ''), $minimumVersion) < 0) {
+            $errors[] = $requiredModuleKey . ' 모듈 ' . $minimumVersion . ' 이상이 필요합니다.';
+        }
+    }
+
+    $requiredContracts = isset($requires['contracts']) && is_array($requires['contracts']) ? $requires['contracts'] : [];
+    foreach ($requiredContracts as $contract) {
+        if (!is_array($contract)) {
+            $errors[] = '계약 파일 의존성 선언이 올바르지 않습니다.';
+            continue;
+        }
+
+        $requiredModuleKey = (string) ($contract['module'] ?? '');
+        $file = (string) ($contract['file'] ?? '');
+        if (!toy_is_safe_module_key($requiredModuleKey) || preg_match('/\A[a-z0-9][a-z0-9_.-]{0,80}\.php\z/', $file) !== 1) {
+            $errors[] = '계약 파일 의존성 선언이 올바르지 않습니다.';
+            continue;
+        }
+
+        if (toy_module_registry_status($pdo, $requiredModuleKey) !== 'enabled') {
+            $errors[] = $requiredModuleKey . ' 모듈을 먼저 활성화해야 합니다.';
+            continue;
+        }
+
+        if (!is_file(TOY_ROOT . '/modules/' . $requiredModuleKey . '/' . $file)) {
+            $errors[] = $requiredModuleKey . ' 모듈의 ' . $file . ' 계약 파일이 필요합니다.';
+        }
+    }
+
+    return array_values(array_unique($errors));
 }
 
 function toy_cast_setting_value(mixed $value, string $type): mixed

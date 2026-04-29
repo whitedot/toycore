@@ -5,6 +5,9 @@ return [
     'version' => '2026.04.002',
     'type' => 'module',
     'description' => 'SEO output helpers and sitemap endpoint.',
+    'requires' => [
+        'modules' => ['admin'],
+    ],
     'settings' => [
         'title_suffix' => '',
         'default_description' => '',

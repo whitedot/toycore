@@ -47,6 +47,7 @@ if (toy_request_method() === 'POST') {
         $realModuleDir = realpath($moduleDir);
         $installSql = $moduleDir . '/install.sql';
         $metadata = toy_module_metadata($moduleKey);
+        $existingModule = null;
 
         if ($realModulesDir === false || $realModuleDir === false || strpos($realModuleDir, $realModulesDir . DIRECTORY_SEPARATOR) !== 0) {
             $errors[] = '설치할 모듈 디렉터리를 찾을 수 없습니다.';
@@ -61,9 +62,16 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('SELECT id FROM toy_modules WHERE module_key = :module_key LIMIT 1');
+            foreach (toy_module_requirement_errors($pdo, $moduleKey, $metadata, $status) as $requirementError) {
+                $errors[] = $requirementError;
+            }
+        }
+
+        if ($errors === []) {
+            $stmt = $pdo->prepare('SELECT id, status FROM toy_modules WHERE module_key = :module_key LIMIT 1');
             $stmt->execute(['module_key' => $moduleKey]);
-            if (is_array($stmt->fetch())) {
+            $existingModule = $stmt->fetch();
+            if (is_array($existingModule) && !in_array((string) $existingModule['status'], ['failed', 'installing'], true)) {
                 $errors[] = '이미 설치된 모듈입니다.';
             }
         }
@@ -75,12 +83,21 @@ if (toy_request_method() === 'POST') {
         if (!is_array($module)) {
             $errors[] = '모듈을 찾을 수 없습니다.';
         }
+
+        if ($errors === [] && $intent === 'status' && in_array((string) $module['status'], ['failed', 'installing'], true)) {
+            $errors[] = '설치가 완료되지 않은 모듈은 재설치를 먼저 실행하세요.';
+        }
+
+        if ($errors === [] && $intent === 'status' && $status === 'enabled') {
+            $metadata = toy_module_metadata($moduleKey);
+            foreach (toy_module_requirement_errors($pdo, $moduleKey, $metadata, $status) as $requirementError) {
+                $errors[] = $requirementError;
+            }
+        }
     }
 
     if ($errors === [] && $intent === 'install') {
         try {
-            toy_execute_sql_file($pdo, $installSql);
-
             $now = toy_now();
             $moduleName = is_string($metadata['name'] ?? null) && (string) $metadata['name'] !== ''
                 ? (string) $metadata['name']
@@ -89,21 +106,49 @@ if (toy_request_method() === 'POST') {
                 ? (string) $metadata['version']
                 : '2026.04.001';
 
-            $stmt = $pdo->prepare(
-                'INSERT INTO toy_modules (module_key, name, version, status, is_bundled, installed_at, updated_at)
-                 VALUES (:module_key, :name, :version, :status, :is_bundled, :installed_at, :updated_at)'
-            );
-            $stmt->execute([
-                'module_key' => $moduleKey,
-                'name' => $moduleName,
-                'version' => $moduleVersion,
-                'status' => $status,
-                'is_bundled' => 0,
-                'installed_at' => $now,
-                'updated_at' => $now,
-            ]);
+            if (is_array($existingModule)) {
+                $stmt = $pdo->prepare(
+                    "UPDATE toy_modules
+                     SET name = :name, version = :version, status = 'installing', updated_at = :updated_at
+                     WHERE module_key = :module_key"
+                );
+                $stmt->execute([
+                    'name' => $moduleName,
+                    'version' => $moduleVersion,
+                    'updated_at' => $now,
+                    'module_key' => $moduleKey,
+                ]);
+            } else {
+                $stmt = $pdo->prepare(
+                    "INSERT INTO toy_modules (module_key, name, version, status, is_bundled, installed_at, updated_at)
+                     VALUES (:module_key, :name, :version, 'installing', :is_bundled, :installed_at, :updated_at)"
+                );
+                $stmt->execute([
+                    'module_key' => $moduleKey,
+                    'name' => $moduleName,
+                    'version' => $moduleVersion,
+                    'is_bundled' => 0,
+                    'installed_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+
+            toy_execute_sql_file($pdo, $installSql);
 
             toy_record_schema_version($pdo, 'module', $moduleKey, $moduleVersion);
+
+            $completedAt = toy_now();
+            $stmt = $pdo->prepare(
+                'UPDATE toy_modules
+                 SET status = :status, installed_at = :installed_at, updated_at = :updated_at
+                 WHERE module_key = :module_key'
+            );
+            $stmt->execute([
+                'status' => $status,
+                'installed_at' => $completedAt,
+                'updated_at' => $completedAt,
+                'module_key' => $moduleKey,
+            ]);
 
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -121,6 +166,19 @@ if (toy_request_method() === 'POST') {
 
             $notice = '모듈을 설치했습니다.';
         } catch (Throwable $exception) {
+            try {
+                $stmt = $pdo->prepare(
+                    "UPDATE toy_modules
+                     SET status = 'failed', updated_at = :updated_at
+                     WHERE module_key = :module_key AND status = 'installing'"
+                );
+                $stmt->execute([
+                    'updated_at' => toy_now(),
+                    'module_key' => $moduleKey,
+                ]);
+            } catch (Throwable $ignored) {
+            }
+
             toy_log_exception($exception, 'module_install_failed');
             $errors[] = '모듈 설치 중 오류가 발생했습니다.';
         }
@@ -160,6 +218,7 @@ if (toy_request_method() === 'POST') {
                 'created_at' => toy_now(),
                 'updated_at' => toy_now(),
             ]);
+            toy_clear_module_settings_cache($moduleKey);
 
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -190,6 +249,7 @@ if (toy_request_method() === 'POST') {
                 'module_id' => (int) $module['id'],
                 'setting_key' => $settingKey,
             ]);
+            toy_clear_module_settings_cache($moduleKey);
 
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],

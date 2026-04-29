@@ -45,19 +45,35 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) ($module['installed_at'] ?? '')); ?></td>
                 <td><?php echo toy_e((string) ($module['description'] !== '' ? $module['description'] : '-')); ?></td>
                 <td>
-                    <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
-                        <?php echo toy_csrf_field(); ?>
-                        <input type="hidden" name="intent" value="status">
-                        <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
-                        <select name="status"<?php echo $isRequired ? ' disabled' : ''; ?>>
-                            <?php foreach ($allowedStatuses as $status) { ?>
-                                <option value="<?php echo toy_e($status); ?>"<?php echo $module['status'] === $status ? ' selected' : ''; ?>>
-                                    <?php echo toy_e($status); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                        <button type="submit"<?php echo $isRequired ? ' disabled' : ''; ?>>저장</button>
-                    </form>
+                    <?php if (in_array((string) $module['status'], ['failed', 'installing'], true)) { ?>
+                        <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
+                            <?php echo toy_csrf_field(); ?>
+                            <input type="hidden" name="intent" value="install">
+                            <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
+                            <select name="status">
+                                <?php foreach ($allowedInstallStatuses as $status) { ?>
+                                    <option value="<?php echo toy_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
+                                        <?php echo toy_e($status); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                            <button type="submit">재설치</button>
+                        </form>
+                    <?php } else { ?>
+                        <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
+                            <?php echo toy_csrf_field(); ?>
+                            <input type="hidden" name="intent" value="status">
+                            <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
+                            <select name="status"<?php echo $isRequired ? ' disabled' : ''; ?>>
+                                <?php foreach ($allowedStatuses as $status) { ?>
+                                    <option value="<?php echo toy_e($status); ?>"<?php echo $module['status'] === $status ? ' selected' : ''; ?>>
+                                        <?php echo toy_e($status); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                            <button type="submit"<?php echo $isRequired ? ' disabled' : ''; ?>>저장</button>
+                        </form>
+                    <?php } ?>
                 </td>
             </tr>
         <?php } ?>

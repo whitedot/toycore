@@ -13,6 +13,10 @@ function toy_admin_module_menu_items(PDO $pdo): array
             continue;
         }
 
+        $pathsFile = TOY_ROOT . '/modules/' . $moduleKey . '/paths.php';
+        $paths = is_file($pathsFile) ? include $pathsFile : [];
+        $paths = is_array($paths) ? $paths : [];
+
         $rawItems = isset($menu['items']) && is_array($menu['items']) ? $menu['items'] : $menu;
         foreach ($rawItems as $rawItem) {
             if (!is_array($rawItem)) {
@@ -21,7 +25,11 @@ function toy_admin_module_menu_items(PDO $pdo): array
 
             $label = trim((string) ($rawItem['label'] ?? ''));
             $path = trim((string) ($rawItem['path'] ?? ''));
-            if ($label === '' || preg_match('/\A\/admin(?:\/[a-z0-9][a-z0-9_-]*)*\z/', $path) !== 1) {
+            if (
+                $label === ''
+                || preg_match('/\A\/admin(?:\/[a-z0-9][a-z0-9_-]*)*\z/', $path) !== 1
+                || !isset($paths['GET ' . $path])
+            ) {
                 continue;
             }
 

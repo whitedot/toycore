@@ -5,10 +5,6 @@ $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
 ];
-$popupLayerEnabled = isset($pdo) && $pdo instanceof PDO && toy_module_enabled($pdo, 'popup_layer');
-if ($popupLayerEnabled) {
-    require_once TOY_ROOT . '/modules/popup_layer/helpers.php';
-}
 $identifierLabel = ((string) ($memberSettings['login_identifier'] ?? 'email') === 'login_id') ? '아이디 또는 이메일' : '이메일 또는 아이디';
 ?>
 <!doctype html>
@@ -23,9 +19,7 @@ $identifierLabel = ((string) ($memberSettings['login_identifier'] ?? 'email') ==
     <main>
         <h1><?php echo toy_e($pageTitle); ?></h1>
 
-        <?php if ($popupLayerEnabled) { ?>
-            <?php echo toy_popup_layer_render($pdo, ['module_key' => 'member', 'point_key' => 'member.login']); ?>
-        <?php } ?>
+        <?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login']); ?>
 
         <?php if ($errors !== []) { ?>
             <ul>

@@ -121,6 +121,40 @@ function toy_stylesheet_tag(): string
     return '<link rel="stylesheet" href="' . toy_e(toy_url('/assets/toycore.css')) . '">';
 }
 
+function toy_render_output_slot(PDO $pdo, array $context): string
+{
+    $moduleKey = (string) ($context['module_key'] ?? '');
+    $pointKey = (string) ($context['point_key'] ?? '');
+    $slotKey = (string) ($context['slot_key'] ?? 'overlay');
+
+    if (
+        !toy_is_safe_module_key($moduleKey)
+        || preg_match('/\A[a-z0-9][a-z0-9_.-]{0,119}\z/', $pointKey) !== 1
+        || preg_match('/\A[a-z0-9][a-z0-9_.-]{0,79}\z/', $slotKey) !== 1
+    ) {
+        return '';
+    }
+
+    $context['module_key'] = $moduleKey;
+    $context['point_key'] = $pointKey;
+    $context['slot_key'] = $slotKey;
+
+    $output = [];
+    foreach (toy_enabled_module_contract_files($pdo, 'output-slots.php', [$moduleKey]) as $file) {
+        $renderer = include $file;
+        if (!is_callable($renderer)) {
+            continue;
+        }
+
+        $rendered = $renderer($pdo, $context);
+        if (is_string($rendered) && $rendered !== '') {
+            $output[] = $rendered;
+        }
+    }
+
+    return implode("\n", $output);
+}
+
 function toy_url(string $path): string
 {
     if (!toy_is_safe_relative_url($path)) {
