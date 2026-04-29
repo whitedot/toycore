@@ -39,7 +39,7 @@
 
 | 문서 | 종류 | 용도 |
 | --- | --- | --- |
-| `local-development.md` | 로컬 개발 | PHP 내장 서버와 문법 검사 명령 |
+| `local-development.md` | 로컬 개발 | PHP 내장 서버, 기본 점검 스크립트, 문법 검사 명령 |
 | `deployment-protection.md` | 배포 보호 | 내부 디렉터리 직접 접근 차단 기준 |
 | `deployment-examples.md` | 배포 예시 | PHP 내장 서버, Apache, Nginx, 공유호스팅 예시 |
 
