@@ -38,6 +38,15 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <input type="number" name="sessions_days" value="<?php echo toy_e((string) $values['sessions_days']); ?>" min="1" max="3650" required>
         </label>
     </p>
+    <?php if ($hasNotificationTables) { ?>
+        <p>
+            <label>알림 보관일<br>
+                <input type="number" name="notifications_days" value="<?php echo toy_e((string) $values['notifications_days']); ?>" min="1" max="3650" required>
+            </label>
+        </p>
+    <?php } else { ?>
+        <input type="hidden" name="notifications_days" value="<?php echo toy_e((string) $values['notifications_days']); ?>">
+    <?php } ?>
     <p>
         <label>
             <input type="checkbox" name="cleanup_confirmed" value="1" required>
@@ -92,6 +101,26 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <td><?php echo toy_e((string) $previewCounts['sessions']); ?></td>
             <td><?php echo toy_e((string) ($deletedCounts['sessions'] ?? '')); ?></td>
         </tr>
+        <?php if ($hasNotificationTables) { ?>
+            <tr>
+                <td>알림</td>
+                <td><?php echo toy_e($previewCutoffs['notifications']); ?></td>
+                <td><?php echo toy_e((string) $previewCounts['notifications']); ?></td>
+                <td><?php echo toy_e((string) ($deletedCounts['notifications'] ?? '')); ?></td>
+            </tr>
+            <tr>
+                <td>알림 발송 대기열</td>
+                <td><?php echo toy_e($previewCutoffs['notifications']); ?></td>
+                <td><?php echo toy_e((string) $previewCounts['notification_deliveries']); ?></td>
+                <td><?php echo toy_e((string) ($deletedCounts['notification_deliveries'] ?? '')); ?></td>
+            </tr>
+            <tr>
+                <td>알림 읽음 기록</td>
+                <td><?php echo toy_e($previewCutoffs['notifications']); ?></td>
+                <td><?php echo toy_e((string) $previewCounts['notification_reads']); ?></td>
+                <td><?php echo toy_e((string) ($deletedCounts['notification_reads'] ?? '')); ?></td>
+            </tr>
+        <?php } ?>
     </tbody>
 </table>
 

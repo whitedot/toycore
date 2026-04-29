@@ -13,6 +13,7 @@ $defaults = [
     'audit_logs_days' => 365,
     'used_tokens_days' => 30,
     'sessions_days' => 30,
+    'notifications_days' => 365,
 ];
 $values = $defaults;
 $errors = [];
@@ -32,6 +33,20 @@ function toy_admin_retention_count(PDO $pdo, string $sql, array $params): int
     return is_array($row) ? (int) $row['count_value'] : 0;
 }
 
+function toy_admin_retention_notification_tables_exist(PDO $pdo): bool
+{
+    try {
+        $pdo->query('SELECT 1 FROM toy_notifications LIMIT 1');
+        $pdo->query('SELECT 1 FROM toy_notification_deliveries LIMIT 1');
+        $pdo->query('SELECT 1 FROM toy_notification_reads LIMIT 1');
+        return true;
+    } catch (PDOException $exception) {
+        return false;
+    }
+}
+
+$hasNotificationTables = toy_admin_retention_notification_tables_exist($pdo);
+
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
     $cleanupConfirmed = ($_POST['cleanup_confirmed'] ?? '') === '1';
@@ -42,6 +57,7 @@ if (toy_request_method() === 'POST') {
         'audit_logs_days' => (int) toy_post_string('audit_logs_days', 5),
         'used_tokens_days' => (int) toy_post_string('used_tokens_days', 5),
         'sessions_days' => (int) toy_post_string('sessions_days', 5),
+        'notifications_days' => (int) toy_post_string('notifications_days', 5),
     ];
 
     foreach ($values as $key => $days) {
@@ -60,6 +76,7 @@ if (toy_request_method() === 'POST') {
         $auditCutoff = toy_admin_retention_cutoff($values['audit_logs_days']);
         $tokenCutoff = toy_admin_retention_cutoff($values['used_tokens_days']);
         $sessionCutoff = toy_admin_retention_cutoff($values['sessions_days']);
+        $notificationCutoff = toy_admin_retention_cutoff($values['notifications_days']);
 
         $stmt = $pdo->prepare('DELETE FROM toy_member_auth_logs WHERE created_at < :cutoff');
         $stmt->execute(['cutoff' => $authCutoff]);
@@ -90,6 +107,30 @@ if (toy_request_method() === 'POST') {
             $deletedCounts['sessions'] = $stmt->rowCount();
         }
 
+        if ($hasNotificationTables) {
+            $stmt = $pdo->prepare(
+                'DELETE d
+                 FROM toy_notification_deliveries d
+                 INNER JOIN toy_notifications n ON n.id = d.notification_id
+                 WHERE n.created_at < :cutoff'
+            );
+            $stmt->execute(['cutoff' => $notificationCutoff]);
+            $deletedCounts['notification_deliveries'] = $stmt->rowCount();
+
+            $stmt = $pdo->prepare(
+                'DELETE r
+                 FROM toy_notification_reads r
+                 INNER JOIN toy_notifications n ON n.id = r.notification_id
+                 WHERE n.created_at < :cutoff'
+            );
+            $stmt->execute(['cutoff' => $notificationCutoff]);
+            $deletedCounts['notification_reads'] = $stmt->rowCount();
+
+            $stmt = $pdo->prepare('DELETE FROM toy_notifications WHERE created_at < :cutoff');
+            $stmt->execute(['cutoff' => $notificationCutoff]);
+            $deletedCounts['notifications'] = $stmt->rowCount();
+        }
+
         toy_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'admin',
@@ -113,6 +154,7 @@ $previewCutoffs = [
     'audit_logs' => toy_admin_retention_cutoff($values['audit_logs_days']),
     'used_tokens' => toy_admin_retention_cutoff($values['used_tokens_days']),
     'sessions' => toy_admin_retention_cutoff($values['sessions_days']),
+    'notifications' => toy_admin_retention_cutoff($values['notifications_days']),
 ];
 
 $previewCounts = [
@@ -146,6 +188,27 @@ $previewCounts = [
             'revoked_cutoff' => $previewCutoffs['sessions'],
             'expired_cutoff' => $previewCutoffs['sessions'],
         ]
+    ) : 0,
+    'notifications' => $hasNotificationTables ? toy_admin_retention_count(
+        $pdo,
+        'SELECT COUNT(*) AS count_value FROM toy_notifications WHERE created_at < :cutoff',
+        ['cutoff' => $previewCutoffs['notifications']]
+    ) : 0,
+    'notification_deliveries' => $hasNotificationTables ? toy_admin_retention_count(
+        $pdo,
+        'SELECT COUNT(*) AS count_value
+         FROM toy_notification_deliveries d
+         INNER JOIN toy_notifications n ON n.id = d.notification_id
+         WHERE n.created_at < :cutoff',
+        ['cutoff' => $previewCutoffs['notifications']]
+    ) : 0,
+    'notification_reads' => $hasNotificationTables ? toy_admin_retention_count(
+        $pdo,
+        'SELECT COUNT(*) AS count_value
+         FROM toy_notification_reads r
+         INNER JOIN toy_notifications n ON n.id = r.notification_id
+         WHERE n.created_at < :cutoff',
+        ['cutoff' => $previewCutoffs['notifications']]
     ) : 0,
 ];
 
