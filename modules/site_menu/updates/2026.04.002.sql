@@ -1,3 +1,10 @@
+DELETE i
+FROM toy_site_menu_items i
+INNER JOIN toy_site_menu_items kept
+    ON kept.menu_id = i.menu_id
+    AND kept.url = i.url
+    AND kept.id < i.id;
+
 ALTER TABLE toy_site_menu_items
     ADD UNIQUE KEY uq_toy_site_menu_items_menu_url (menu_id, url);
 
