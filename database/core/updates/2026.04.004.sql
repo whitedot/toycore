@@ -1,11 +1,11 @@
-SET @toy_has_sites = (
+SET @schema_has_sites = (
     SELECT COUNT(*)
     FROM INFORMATION_SCHEMA.TABLES
     WHERE TABLE_SCHEMA = DATABASE()
       AND TABLE_NAME = 'toy_sites'
 );
 
-SET @toy_has_site_settings_public = (
+SET @schema_has_site_settings_public = (
     SELECT COUNT(*)
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE()
@@ -13,8 +13,8 @@ SET @toy_has_site_settings_public = (
       AND COLUMN_NAME = 'is_public'
 );
 
-SET @toy_sql = IF(
-    @toy_has_sites > 0 AND @toy_has_site_settings_public > 0,
+SET @schema_sql = IF(
+    @schema_has_sites > 0 AND @schema_has_site_settings_public > 0,
     'INSERT INTO toy_site_settings (setting_key, setting_value, value_type, is_public, created_at, updated_at)
      SELECT ''site.name'', name, ''string'', 1, NOW(), NOW()
      FROM toy_sites
@@ -22,7 +22,7 @@ SET @toy_sql = IF(
      LIMIT 1
      ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), value_type = VALUES(value_type), is_public = VALUES(is_public), updated_at = VALUES(updated_at)',
     IF(
-        @toy_has_sites > 0,
+        @schema_has_sites > 0,
         'INSERT INTO toy_site_settings (setting_key, setting_value, value_type, created_at, updated_at)
          SELECT ''site.name'', name, ''string'', NOW(), NOW()
          FROM toy_sites
@@ -32,12 +32,12 @@ SET @toy_sql = IF(
         'DO 0'
     )
 );
-PREPARE toy_stmt FROM @toy_sql;
-EXECUTE toy_stmt;
-DEALLOCATE PREPARE toy_stmt;
+PREPARE schema_stmt FROM @schema_sql;
+EXECUTE schema_stmt;
+DEALLOCATE PREPARE schema_stmt;
 
-SET @toy_sql = IF(
-    @toy_has_sites > 0 AND @toy_has_site_settings_public > 0,
+SET @schema_sql = IF(
+    @schema_has_sites > 0 AND @schema_has_site_settings_public > 0,
     'INSERT INTO toy_site_settings (setting_key, setting_value, value_type, is_public, created_at, updated_at)
      SELECT ''site.base_url'', base_url, ''string'', 1, NOW(), NOW()
      FROM toy_sites
@@ -45,7 +45,7 @@ SET @toy_sql = IF(
      LIMIT 1
      ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), value_type = VALUES(value_type), is_public = VALUES(is_public), updated_at = VALUES(updated_at)',
     IF(
-        @toy_has_sites > 0,
+        @schema_has_sites > 0,
         'INSERT INTO toy_site_settings (setting_key, setting_value, value_type, created_at, updated_at)
          SELECT ''site.base_url'', base_url, ''string'', NOW(), NOW()
          FROM toy_sites
@@ -55,12 +55,12 @@ SET @toy_sql = IF(
         'DO 0'
     )
 );
-PREPARE toy_stmt FROM @toy_sql;
-EXECUTE toy_stmt;
-DEALLOCATE PREPARE toy_stmt;
+PREPARE schema_stmt FROM @schema_sql;
+EXECUTE schema_stmt;
+DEALLOCATE PREPARE schema_stmt;
 
-SET @toy_sql = IF(
-    @toy_has_sites > 0 AND @toy_has_site_settings_public > 0,
+SET @schema_sql = IF(
+    @schema_has_sites > 0 AND @schema_has_site_settings_public > 0,
     'INSERT INTO toy_site_settings (setting_key, setting_value, value_type, is_public, created_at, updated_at)
      SELECT ''site.timezone'', timezone, ''string'', 0, NOW(), NOW()
      FROM toy_sites
@@ -68,7 +68,7 @@ SET @toy_sql = IF(
      LIMIT 1
      ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), value_type = VALUES(value_type), is_public = VALUES(is_public), updated_at = VALUES(updated_at)',
     IF(
-        @toy_has_sites > 0,
+        @schema_has_sites > 0,
         'INSERT INTO toy_site_settings (setting_key, setting_value, value_type, created_at, updated_at)
          SELECT ''site.timezone'', timezone, ''string'', NOW(), NOW()
          FROM toy_sites
@@ -78,12 +78,12 @@ SET @toy_sql = IF(
         'DO 0'
     )
 );
-PREPARE toy_stmt FROM @toy_sql;
-EXECUTE toy_stmt;
-DEALLOCATE PREPARE toy_stmt;
+PREPARE schema_stmt FROM @schema_sql;
+EXECUTE schema_stmt;
+DEALLOCATE PREPARE schema_stmt;
 
-SET @toy_sql = IF(
-    @toy_has_sites > 0 AND @toy_has_site_settings_public > 0,
+SET @schema_sql = IF(
+    @schema_has_sites > 0 AND @schema_has_site_settings_public > 0,
     'INSERT INTO toy_site_settings (setting_key, setting_value, value_type, is_public, created_at, updated_at)
      SELECT ''site.default_locale'', default_locale, ''string'', 1, NOW(), NOW()
      FROM toy_sites
@@ -91,7 +91,7 @@ SET @toy_sql = IF(
      LIMIT 1
      ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), value_type = VALUES(value_type), is_public = VALUES(is_public), updated_at = VALUES(updated_at)',
     IF(
-        @toy_has_sites > 0,
+        @schema_has_sites > 0,
         'INSERT INTO toy_site_settings (setting_key, setting_value, value_type, created_at, updated_at)
          SELECT ''site.default_locale'', default_locale, ''string'', NOW(), NOW()
          FROM toy_sites
@@ -101,12 +101,12 @@ SET @toy_sql = IF(
         'DO 0'
     )
 );
-PREPARE toy_stmt FROM @toy_sql;
-EXECUTE toy_stmt;
-DEALLOCATE PREPARE toy_stmt;
+PREPARE schema_stmt FROM @schema_sql;
+EXECUTE schema_stmt;
+DEALLOCATE PREPARE schema_stmt;
 
-SET @toy_sql = IF(
-    @toy_has_sites > 0 AND @toy_has_site_settings_public > 0,
+SET @schema_sql = IF(
+    @schema_has_sites > 0 AND @schema_has_site_settings_public > 0,
     'INSERT INTO toy_site_settings (setting_key, setting_value, value_type, is_public, created_at, updated_at)
      SELECT ''site.status'', status, ''string'', 1, NOW(), NOW()
      FROM toy_sites
@@ -114,7 +114,7 @@ SET @toy_sql = IF(
      LIMIT 1
      ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), value_type = VALUES(value_type), is_public = VALUES(is_public), updated_at = VALUES(updated_at)',
     IF(
-        @toy_has_sites > 0,
+        @schema_has_sites > 0,
         'INSERT INTO toy_site_settings (setting_key, setting_value, value_type, created_at, updated_at)
          SELECT ''site.status'', status, ''string'', NOW(), NOW()
          FROM toy_sites
@@ -124,8 +124,8 @@ SET @toy_sql = IF(
         'DO 0'
     )
 );
-PREPARE toy_stmt FROM @toy_sql;
-EXECUTE toy_stmt;
-DEALLOCATE PREPARE toy_stmt;
+PREPARE schema_stmt FROM @schema_sql;
+EXECUTE schema_stmt;
+DEALLOCATE PREPARE schema_stmt;
 
 DROP TABLE IF EXISTS toy_sites;
