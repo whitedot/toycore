@@ -19,6 +19,22 @@ find modules examples/sample_module -mindepth 1 -maxdepth 1 -type d -print0 \
         fi
     ' sh
 
+find modules examples/sample_module -mindepth 1 -maxdepth 1 -type d -print0 \
+    | xargs -0 -n1 sh -c '
+        module_dir="$1"
+        admin_menu="${module_dir}/admin-menu.php"
+        paths="${module_dir}/paths.php"
+        test -f "${admin_menu}" || exit 0
+
+        sed -n "s/.*'\''path'\''[[:space:]]*=>[[:space:]]*'\''\\(\\/admin\\/[^'\'']*\\)'\''.*/\\1/p" "${admin_menu}" \
+            | while IFS= read -r path; do
+                grep -Eq "'\''GET ${path}'\''[[:space:]]*=>" "${paths}" || {
+                    echo "Admin menu path is missing from ${paths}: ${path}" >&2
+                    exit 1
+                }
+            done
+    ' sh
+
 echo "toycore non-Docker checks completed."
 
 if ! command -v docker >/dev/null 2>&1; then
