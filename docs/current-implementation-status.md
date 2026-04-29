@@ -19,6 +19,15 @@
 - 선택한 기본 제공 모듈의 설치 SQL 실행
 - 스키마 버전 기록
 
+### 모듈 리포지토리 분리
+
+- `banner`, `popup_layer`, `site_menu`, `notification`, `seo`, `point`, `deposit`, `reward` 8개 모듈의 별도 Git 리포지토리 생성
+- 각 모듈 리포지토리에 `module/` 하위 런타임 구조 적용
+- 각 모듈 리포지토리에 `README.md`와 `CHANGELOG.md` 추가
+- 각 모듈 리포지토리의 `module.php`에 Toycore 호환 메타데이터 추가
+- Toycore 본체에는 현재 모듈 복사본 유지
+- 릴리스 zip 생성과 본체 모듈 제거는 아직 미적용
+
 ### 코어
 
 - 요청 method/path 해석

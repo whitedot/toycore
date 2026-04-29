@@ -126,6 +126,8 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 
 최소 모듈 구조 예시는 [sample_module](examples/sample_module/README.md)에서 확인할 수 있습니다.
 
+`banner`, `popup_layer`, `site_menu`, `notification`, `seo`, `point`, `deposit`, `reward`는 1차로 별도 모듈 리포지토리에도 분리되어 있습니다. 현재 Toycore 본체의 모듈 복사본은 기본 번들 검증과 설치 호환성을 위해 유지합니다. 자세한 기준과 리포지토리 목록은 [모듈 별도 리포지토리 관리 방안](docs/module-repository-strategy.md)을 따릅니다.
+
 ## Extension Points
 
 Toycore는 전역 hook/event dispatcher를 기본 구조로 두지 않습니다. 모듈 간 영향이 필요하면 각 모듈이 명시적 계약 파일을 제공하고, 소비 모듈이 필요한 시점에 그 파일을 읽습니다.

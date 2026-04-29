@@ -39,6 +39,35 @@ git@github.com:whitedot/toycore-module-deposit.git
 git@github.com:whitedot/toycore-module-reward.git
 ```
 
+2026-04-29 기준 1차 분리 작업 상태:
+
+| 모듈 | 리포지토리 | 초기 커밋 | 설치 디렉터리 |
+| --- | --- | --- | --- |
+| `banner` | `toycore-module-banner` | `dca3565` | `modules/banner` |
+| `popup_layer` | `toycore-module-popup-layer` | `3d27ee2` | `modules/popup_layer` |
+| `site_menu` | `toycore-module-site-menu` | `2fdfe54` | `modules/site_menu` |
+| `notification` | `toycore-module-notification` | `fc8f91d` | `modules/notification` |
+| `seo` | `toycore-module-seo` | `0675451` | `modules/seo` |
+| `point` | `toycore-module-point` | `365907e` | `modules/point` |
+| `deposit` | `toycore-module-deposit` | `e4d12d2` | `modules/deposit` |
+| `reward` | `toycore-module-reward` | `7125a87` | `modules/reward` |
+
+1차 분리 작업의 범위:
+
+- 각 모듈 리포지토리를 생성하고 `main` 브랜치에 초기 커밋을 push했다.
+- 각 리포지토리는 `module/` 아래에 Toycore 런타임 파일을 둔다.
+- 각 리포지토리에 `README.md`와 `CHANGELOG.md`를 추가했다.
+- 각 모듈의 `module.php`에 `toycore.min_version`과 `toycore.tested_with` 메타데이터를 추가했다.
+- Toycore 본체의 `modules/{module_key}` 복사본은 아직 유지한다.
+- 아직 GitHub Releases용 zip 산출물은 만들지 않았다.
+- 아직 Toycore 본체에서 선택 모듈 디렉터리를 제거하지 않았다.
+
+현재 상태에서의 원본 기준:
+
+- 런타임 검증과 기본 번들 설치는 Toycore 본체의 `modules/{module_key}` 복사본을 기준으로 계속 동작한다.
+- 별도 리포지토리는 모듈별 독립 개발과 릴리스 zip 실험을 위한 원본 후보로 사용한다.
+- 별도 리포지토리에서 변경한 내용은 본체 복사본에 반영하거나, 본체가 외부 모듈을 가져오는 정책이 확정되기 전까지 두 위치의 차이를 명시적으로 관리해야 한다.
+
 분리 우선순위가 높다:
 
 - 특정 사이트에서만 필요한 도메인 기능
