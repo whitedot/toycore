@@ -157,33 +157,24 @@ function toy_record_installed_module_schema_versions(PDO $pdo, string $moduleKey
         throw new InvalidArgumentException('Module key is invalid.');
     }
 
-    if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $currentVersion) !== 1) {
-        toy_record_schema_version($pdo, 'module', $moduleKey, $currentVersion);
-        return;
-    }
-
-    $baseVersion = substr($currentVersion, 0, 8) . '001';
-    $versions = [$currentVersion => true];
-    if (strcmp($baseVersion, $currentVersion) <= 0) {
-        $versions[$baseVersion] = true;
-    }
-
-    foreach (toy_schema_update_versions(TOY_ROOT . '/modules/' . $moduleKey . '/updates') as $version) {
-        if (strcmp($version, $currentVersion) <= 0) {
-            $versions[$version] = true;
-        }
-    }
-
-    ksort($versions, SORT_STRING);
-    foreach (array_keys($versions) as $version) {
-        toy_record_schema_version($pdo, 'module', $moduleKey, (string) $version);
-    }
+    toy_record_installed_schema_versions(
+        $pdo,
+        'module',
+        $moduleKey,
+        $currentVersion,
+        TOY_ROOT . '/modules/' . $moduleKey . '/updates'
+    );
 }
 
 function toy_record_installed_core_schema_versions(PDO $pdo, string $currentVersion): void
 {
+    toy_record_installed_schema_versions($pdo, 'core', '', $currentVersion, TOY_ROOT . '/database/core/updates');
+}
+
+function toy_record_installed_schema_versions(PDO $pdo, string $scope, string $moduleKey, string $currentVersion, string $updatesDirectory): void
+{
     if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $currentVersion) !== 1) {
-        toy_record_schema_version($pdo, 'core', '', $currentVersion);
+        toy_record_schema_version($pdo, $scope, $moduleKey, $currentVersion);
         return;
     }
 
@@ -193,7 +184,7 @@ function toy_record_installed_core_schema_versions(PDO $pdo, string $currentVers
         $versions[$baseVersion] = true;
     }
 
-    foreach (toy_schema_update_versions(TOY_ROOT . '/database/core/updates') as $version) {
+    foreach (toy_schema_update_versions($updatesDirectory) as $version) {
         if (strcmp($version, $currentVersion) <= 0) {
             $versions[$version] = true;
         }
@@ -201,6 +192,6 @@ function toy_record_installed_core_schema_versions(PDO $pdo, string $currentVers
 
     ksort($versions, SORT_STRING);
     foreach (array_keys($versions) as $version) {
-        toy_record_schema_version($pdo, 'core', '', (string) $version);
+        toy_record_schema_version($pdo, $scope, $moduleKey, (string) $version);
     }
 }
