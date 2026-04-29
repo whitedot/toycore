@@ -936,6 +936,45 @@ Toycore는 저가형 웹호스팅을 고려한다.
 
 별도 리포지토리 배포를 고려하는 모듈은 모듈 루트에 `README.md`, `CHANGELOG.md`, `LICENSE`를 두는 것을 권장한다. 자세한 운영안은 [모듈 별도 리포지토리 관리 방안](module-repository-strategy.md)을 따른다.
 
+Git을 사용할 수 없는 운영 환경을 기본 지원 대상으로 본다. 따라서 별도 리포지토리 모듈도 운영 설치는 zip 업로드 방식으로 가능해야 한다.
+
+권장 배포 흐름:
+
+```text
+1. 모듈 리포지토리에서 개발
+2. GitHub Releases 등에 {module_key}-{version}.zip 첨부
+3. 운영자가 zip을 다운로드
+4. 압축을 풀어 toycore/modules/{module_key}/에 업로드
+5. /admin/modules에서 설치/활성화
+6. 파일 교체 후 /admin/updates에서 DB 업데이트 실행
+```
+
+릴리스 zip은 압축 해제 시 바로 모듈 키 디렉터리가 나오도록 만든다.
+
+```text
+banner-2026.05.001.zip
+-> banner/
+   - module.php
+   - install.sql
+   - paths.php
+   - actions/
+   - views/
+```
+
+새 모듈을 추가할 때 다음 조건에 해당하면 구현 전에 별도 리포지토리 생성을 요청한다.
+
+- 선택 설치 성격의 도메인 모듈이다.
+- 운영/마케팅/콘텐츠/커머스/분석처럼 사이트마다 필요 여부가 갈린다.
+- 외부 서비스 연동이 있다.
+- 코어와 다른 릴리스 주기가 예상된다.
+
+요청 예:
+
+```text
+새 모듈 board는 별도 리포지토리 대상입니다.
+git@github.com:whitedot/toycore-module-board.git 생성이 필요합니다.
+```
+
 ## 25. 금지하는 방향
 
 Toycore 기본 구현에서는 다음 방식을 사용하지 않는다.

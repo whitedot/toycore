@@ -179,26 +179,78 @@ v2026.05.001
 
 ## 7. 설치 방식
 
+Toycore에서 Git 리포지토리는 개발과 릴리스 관리를 위한 도구다. 운영 설치 방식은 Git 사용을 전제로 하지 않는다.
+
+기본 원칙:
+
+- 개발자는 별도 Git 리포지토리에서 모듈을 개발한다.
+- 릴리스 시점에는 운영자가 업로드할 수 있는 zip 산출물을 만든다.
+- 운영자는 zip을 내려받아 `modules/{module_key}`에 업로드한다.
+- Toycore는 `/admin/modules`와 `/admin/updates`로 설치/활성화/업데이트를 처리한다.
+- Git, Composer, SSH, CLI가 없어도 설치할 수 있어야 한다.
+
 ### 수동 복사
 
 가장 공유호스팅 친화적인 방식이다.
 
 ```text
-1. 모듈 zip 다운로드
-2. module/ 디렉터리 내용을 toycore/modules/{module_key}/에 업로드
-3. /admin/modules에서 설치
-4. 필요하면 활성화
+1. GitHub Releases 또는 배포 페이지에서 모듈 zip 다운로드
+2. zip 압축 해제
+3. 압축 안의 모듈 디렉터리를 toycore/modules/{module_key}/에 업로드
+4. /admin/modules에서 설치
+5. 필요하면 활성화
+```
+
+zip은 압축을 풀었을 때 바로 모듈 키 디렉터리가 나오도록 만든다.
+
+```text
+banner-2026.05.001.zip
+-> banner/
+   - module.php
+   - install.sql
+   - paths.php
+   - actions/
+   - views/
+```
+
+업로드 후 Toycore 설치본에서는 다음 구조가 되어야 한다.
+
+```text
+toycore/modules/banner/
+- module.php
+- install.sql
+- paths.php
+- actions/
+- views/
+```
+
+모듈 리포지토리의 내부 구조가 `module/` 하위에 런타임 파일을 두는 방식이라면, 릴리스 zip을 만들 때 `module/` 디렉터리 이름은 제거하고 `{module_key}/`로 패키징한다.
+
+```text
+toycore-module-banner/module/* -> banner/*
 ```
 
 장점:
 
 - Git, Composer, SSH가 없어도 된다.
 - FTP와 파일 관리자만으로 가능하다.
+- 현재 Toycore의 `/admin/modules` 설치 흐름을 그대로 사용할 수 있다.
 
 단점:
 
 - 버전 추적과 업데이트 실수 가능성이 있다.
 - 파일 삭제가 필요한 릴리스에서 잔여 파일이 남을 수 있다.
+
+업데이트 방식:
+
+```text
+1. 새 버전 zip 다운로드
+2. 기존 toycore/modules/{module_key}/ 파일을 새 파일로 교체
+3. /admin/updates에서 미적용 SQL 확인
+4. DB 백업 확인 후 업데이트 실행
+```
+
+업데이트 zip에는 최신 `install.sql`과 누적 `updates/` 파일이 함께 들어 있어야 한다. 운영자가 Git 이력을 볼 수 없더라도 `/admin/updates`가 SQL 파일 기준으로 필요한 업데이트를 확인할 수 있어야 한다.
 
 ### Git submodule
 
@@ -340,6 +392,36 @@ toycore-module-index
 - CHANGELOG에 버전별 DB 변경이 적혀 있는가?
 - 개인정보 내보내기와 sitemap이 필요한 경우 계약 파일이 있는가?
 - 코어 리포지토리에서 제거해도 필수 설치 흐름이 깨지지 않는가?
+
+## 10-1. 새 모듈 추가 전 리포지토리 확인 규칙
+
+새 모듈을 추가할 때는 구현 전에 먼저 저장 위치를 결정한다.
+
+코어 리포지토리에 바로 추가해도 되는 경우:
+
+- `member` 또는 `admin`처럼 필수 설치 흐름에 직접 필요한 모듈
+- 모듈 계약을 설명하기 위한 샘플
+- 아직 공개 계약이 안정되지 않아 실험용으로 짧게 검증해야 하는 모듈
+
+별도 리포지토리를 먼저 요청해야 하는 경우:
+
+- 도메인 테이블과 관리자 화면을 소유하는 선택 모듈
+- 운영/마케팅/콘텐츠/커머스/분석처럼 사이트마다 필요 여부가 갈리는 모듈
+- 외부 서비스 연동이 있는 모듈
+- 독립 릴리스가 예상되는 모듈
+- 나중에 유료, 비공개, 고객별 변형 가능성이 있는 모듈
+
+작업자가 새 모듈을 만들 때 별도 리포지토리가 필요하다고 판단하면, 구현 전에 리포지토리 생성을 요청한다.
+
+요청 형식:
+
+```text
+새 모듈 {module_key}는 별도 리포지토리 대상입니다.
+다음 리포지토리를 만들어 주세요:
+git@github.com:whitedot/toycore-module-{module-key}.git
+```
+
+리포지토리가 이미 있다면 해당 원격을 사용한다. 리포지토리가 아직 없다면 코어 리포지토리에 임시로 크게 구현하지 않고, 최소 설계와 파일 계약만 먼저 정리한다.
 
 ## 11. 권장 전환 단계
 
