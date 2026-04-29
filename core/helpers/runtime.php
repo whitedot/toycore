@@ -146,6 +146,36 @@ function toy_is_installed(): bool
     return is_file(TOY_ROOT . '/config/config.php') && is_file(TOY_ROOT . '/storage/installed.lock');
 }
 
+function toy_is_safe_table_prefix(string $prefix): bool
+{
+    return preg_match('/\A[a-z][a-z0-9]{0,20}_\z/', $prefix) === 1;
+}
+
+function toy_table_prefix(array $config): string
+{
+    $db = $config['db'] ?? [];
+    if (!is_array($db)) {
+        return 'toy_';
+    }
+
+    $prefix = (string) ($db['table_prefix'] ?? 'toy_');
+    return toy_is_safe_table_prefix($prefix) ? $prefix : 'toy_';
+}
+
+function toy_prefix_sql_identifiers(string $sql, string $prefix): string
+{
+    if ($prefix === 'toy_') {
+        return $sql;
+    }
+
+    if (!toy_is_safe_table_prefix($prefix)) {
+        $prefix = 'toy_';
+    }
+
+    $rewritten = preg_replace('/\btoy_([A-Za-z0-9_]+)\b/', $prefix . '$1', $sql);
+    return is_string($rewritten) ? $rewritten : $sql;
+}
+
 function toy_load_config(): array
 {
     $configFile = TOY_ROOT . '/config/config.php';
@@ -186,6 +216,37 @@ function toy_apply_site_runtime_settings(?array $site): void
     }
 }
 
+class ToyPrefixedPDO extends PDO
+{
+    private string $toyTablePrefix;
+
+    public function __construct(string $dsn, ?string $username = null, ?string $password = null, ?array $options = null, string $tablePrefix = 'toy_')
+    {
+        $this->toyTablePrefix = toy_is_safe_table_prefix($tablePrefix) ? $tablePrefix : 'toy_';
+        parent::__construct($dsn, $username, $password, $options);
+    }
+
+    public function prepare(string $query, array $options = []): PDOStatement|false
+    {
+        return parent::prepare(toy_prefix_sql_identifiers($query, $this->toyTablePrefix), $options);
+    }
+
+    public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
+    {
+        $query = toy_prefix_sql_identifiers($query, $this->toyTablePrefix);
+        if ($fetchMode === null) {
+            return parent::query($query);
+        }
+
+        return parent::query($query, $fetchMode, ...$fetchModeArgs);
+    }
+
+    public function exec(string $statement): int|false
+    {
+        return parent::exec(toy_prefix_sql_identifiers($statement, $this->toyTablePrefix));
+    }
+}
+
 function toy_db(array $config): PDO
 {
     $db = $config['db'] ?? [];
@@ -198,13 +259,14 @@ function toy_db(array $config): PDO
     $user = (string) ($db['user'] ?? '');
     $password = (string) ($db['password'] ?? '');
     $charset = (string) ($db['charset'] ?? 'utf8mb4');
+    $tablePrefix = toy_table_prefix($config);
 
     $dsn = 'mysql:host=' . $host . ';dbname=' . $name . ';charset=' . $charset;
-    return new PDO($dsn, $user, $password, [
+    return new ToyPrefixedPDO($dsn, $user, $password, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
+    ], $tablePrefix);
 }
 
 function toy_client_ip(): string

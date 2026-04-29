@@ -5,6 +5,7 @@ declare(strict_types=1);
 function toy_member_create_account(PDO $pdo, array $config, array $data): int
 {
     $email = toy_normalize_identifier((string) ($data['email'] ?? ''));
+    $loginId = toy_normalize_login_id((string) ($data['login_id'] ?? ''));
     $password = (string) ($data['password'] ?? '');
     $displayName = trim((string) ($data['display_name'] ?? ''));
     $locale = trim((string) ($data['locale'] ?? 'ko'));
@@ -16,6 +17,10 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
         throw new InvalidArgumentException('Email is invalid.');
     }
 
+    if ($loginId !== '' && !toy_member_is_valid_login_id($loginId)) {
+        throw new InvalidArgumentException('Login ID is invalid.');
+    }
+
     if ($password === '') {
         throw new InvalidArgumentException('Password is required.');
     }
@@ -24,7 +29,9 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
         $displayName = $email;
     }
 
-    $identifierHash = toy_hmac_hash($email, $config);
+    $identifierValue = $loginId !== '' ? $loginId : $email;
+    $identifierHash = toy_hmac_hash($identifierValue, $config);
+    $loginIdHash = $loginId !== '' ? toy_hmac_hash($loginId, $config) : null;
     $emailHash = toy_hmac_hash($email, $config);
     $now = toy_now();
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
@@ -41,6 +48,7 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
         $stmt = $pdo->prepare(
             'UPDATE toy_member_accounts
              SET account_identifier_hash = :account_identifier_hash,
+                 login_id_hash = :login_id_hash,
                  password_hash = :password_hash,
                  display_name = :display_name,
                  locale = :locale,
@@ -51,6 +59,7 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
         );
         $stmt->execute([
             'account_identifier_hash' => $identifierHash,
+            'login_id_hash' => $loginIdHash,
             'password_hash' => $passwordHash,
             'display_name' => $displayName,
             'locale' => $locale,
@@ -67,10 +76,11 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
         'INSERT INTO toy_member_accounts
             (account_identifier_hash, login_id_hash, email, email_hash, password_hash, display_name, locale, status, email_verified_at, created_at, updated_at)
          VALUES
-            (:account_identifier_hash, NULL, :email, :email_hash, :password_hash, :display_name, :locale, :status, :email_verified_at, :created_at, :updated_at)'
+            (:account_identifier_hash, :login_id_hash, :email, :email_hash, :password_hash, :display_name, :locale, :status, :email_verified_at, :created_at, :updated_at)'
     );
     $stmt->execute([
         'account_identifier_hash' => $identifierHash,
+        'login_id_hash' => $loginIdHash,
         'email' => $email,
         'email_hash' => $emailHash,
         'password_hash' => $passwordHash,
@@ -85,6 +95,21 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
     return (int) $pdo->lastInsertId();
 }
 
+function toy_member_normalize_login_id(string $loginId): string
+{
+    return toy_normalize_login_id($loginId);
+}
+
+function toy_member_is_valid_login_id(string $loginId): bool
+{
+    return preg_match('/\A[a-z][a-z0-9_]{3,39}\z/', $loginId) === 1;
+}
+
+function toy_normalize_login_id(string $loginId): string
+{
+    return strtolower(trim($loginId));
+}
+
 function toy_member_find_by_identifier(PDO $pdo, array $config, string $identifier): ?array
 {
     $normalizedIdentifier = toy_normalize_identifier($identifier);
@@ -97,6 +122,26 @@ function toy_member_find_by_identifier(PDO $pdo, array $config, string $identifi
          LIMIT 1'
     );
     $stmt->execute(['hash' => $identifierHash]);
+    $account = $stmt->fetch();
+
+    return is_array($account) ? $account : null;
+}
+
+function toy_member_find_by_email(PDO $pdo, array $config, string $email): ?array
+{
+    $normalizedEmail = toy_normalize_identifier($email);
+    if (!filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)) {
+        return null;
+    }
+
+    $emailHash = toy_hmac_hash($normalizedEmail, $config);
+    $stmt = $pdo->prepare(
+        'SELECT ' . toy_member_account_select_columns() . '
+         FROM toy_member_accounts
+         WHERE email_hash = :email_hash
+         LIMIT 1'
+    );
+    $stmt->execute(['email_hash' => $emailHash]);
     $account = $stmt->fetch();
 
     return is_array($account) ? $account : null;

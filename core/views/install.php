@@ -5,6 +5,7 @@ $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
 ];
+$selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 ?>
 <!doctype html>
 <html lang="ko">
@@ -14,12 +15,44 @@ $seo = [
     <?php echo toy_seo_tags($seo, null); ?>
     <?php echo toy_stylesheet_tag(); ?>
 </head>
-<body>
-    <main>
-        <h1><?php echo toy_e($pageTitle); ?></h1>
+<body class="toy-install-page">
+    <main class="toy-install-shell">
+        <section class="toy-install-intro">
+            <div>
+                <p class="toy-install-kicker">초기 설정</p>
+                <h1><?php echo toy_e($pageTitle); ?></h1>
+                <p>Toycore 실행에 필요한 DB 연결, 사이트 기본값, 최초 관리자 계정, 기본 제공 모듈을 한 번에 설정합니다.</p>
+            </div>
+            <ol class="toy-install-steps" aria-label="설치 단계">
+                <li>환경 확인</li>
+                <li>DB 연결</li>
+                <li>사이트 설정</li>
+                <li>관리자 생성</li>
+                <li>모듈 설치</li>
+            </ol>
+        </section>
+
+        <?php if ($previousInstallFailure !== null) { ?>
+            <section class="toy-install-alert toy-install-alert-warning">
+                <h2>이전 설치 시도 기록</h2>
+                <p>
+                    단계:
+                    <code><?php echo toy_e($previousInstallFailure['stage']); ?></code>
+                    <?php if ($previousInstallFailure['recorded_at'] !== '') { ?>
+                        <span>기록 시각: <?php echo toy_e($previousInstallFailure['recorded_at']); ?></span>
+                    <?php } ?>
+                </p>
+                <p>
+                    config 생성:
+                    <?php echo $previousInstallFailure['config_written'] ? '예' : '아니오'; ?>,
+                    설치 잠금:
+                    <?php echo $previousInstallFailure['installed_lock_written'] ? '예' : '아니오'; ?>
+                </p>
+            </section>
+        <?php } ?>
 
         <?php if ($errors !== []) { ?>
-            <section>
+            <section class="toy-install-alert toy-install-alert-error">
                 <h2>확인 필요</h2>
                 <ul>
                     <?php foreach ($errors as $error) { ?>
@@ -29,111 +62,197 @@ $seo = [
             </section>
         <?php } ?>
 
-        <form method="post" action="/">
+        <section class="toy-install-panel">
+            <div class="toy-install-panel-head">
+                <div>
+                    <p class="toy-install-kicker">환경 확인</p>
+                    <h2>설치 전 상태</h2>
+                </div>
+                <p>운영 설치에서는 HTTPS와 내부 파일 직접 접근 차단이 필요합니다.</p>
+            </div>
+            <div class="toy-install-check-grid">
+                <?php foreach ($installChecks as $check) { ?>
+                    <div class="toy-install-check">
+                        <span class="toy-install-status toy-install-status-<?php echo toy_e((string) $check['status']); ?>">
+                            <?php echo ((string) $check['status'] === 'ok') ? '확인됨' : (((string) $check['status'] === 'warning') ? '주의' : '필요'); ?>
+                        </span>
+                        <strong><?php echo toy_e((string) $check['label']); ?></strong>
+                        <p><?php echo toy_e((string) $check['message']); ?></p>
+                    </div>
+                <?php } ?>
+            </div>
+        </section>
+
+        <form method="post" action="/" class="toy-install-form">
             <?php echo toy_csrf_field(); ?>
 
-            <fieldset>
-                <legend>DB 정보</legend>
-                <p>
-                    <label>DB host<br>
-                        <input type="text" name="db_host" value="<?php echo toy_e($values['db_host']); ?>" required>
-                    </label>
-                </p>
-                <p>
-                    <label>DB name<br>
-                        <input type="text" name="db_name" value="<?php echo toy_e($values['db_name']); ?>" required>
-                    </label>
-                </p>
-                <p>
-                    <label>DB user<br>
-                        <input type="text" name="db_user" value="<?php echo toy_e($values['db_user']); ?>" required>
-                    </label>
-                </p>
-                <p>
-                    <label>DB password<br>
-                        <input type="password" name="db_password" value="<?php echo toy_e($values['db_password']); ?>">
-                    </label>
-                </p>
-            </fieldset>
+            <section class="toy-install-panel">
+                <div class="toy-install-panel-head">
+                    <div>
+                        <p class="toy-install-kicker">데이터베이스</p>
+                        <h2>DB 연결 정보</h2>
+                    </div>
+                    <p>빈 DB 또는 Toycore 전용 DB를 사용하세요. 테이블 prefix는 <code>toy_</code>입니다.</p>
+                </div>
 
-            <fieldset>
-                <legend>사이트 정보</legend>
-                <p>
-                    <label>사이트 이름<br>
-                        <input type="text" name="site_name" value="<?php echo toy_e($values['site_name']); ?>" required>
-                    </label>
-                </p>
-                <p>
-                    <label>기본 URL<br>
-                        <input type="url" name="base_url" value="<?php echo toy_e($values['base_url']); ?>">
-                    </label>
-                </p>
-                <p>
-                    <label>timezone<br>
-                        <input type="text" name="timezone" value="<?php echo toy_e($values['timezone']); ?>" required>
-                    </label>
-                </p>
-                <p>
-                    <label>기본 locale<br>
-                        <input type="text" name="default_locale" value="<?php echo toy_e($values['default_locale']); ?>" required>
-                    </label>
-                </p>
-            </fieldset>
-
-            <fieldset>
-                <legend>최초 관리자</legend>
-                <p>
-                    <label>이메일<br>
-                        <input type="email" name="admin_email" value="<?php echo toy_e($values['admin_email']); ?>" required>
-                    </label>
-                </p>
-                <p>
-                    <label>표시 이름<br>
-                        <input type="text" name="admin_display_name" value="<?php echo toy_e($values['admin_display_name']); ?>" required>
-                    </label>
-                </p>
-                <p>
-                    <label>비밀번호<br>
-                        <input type="password" name="admin_password" required>
-                    </label>
-                </p>
-                <p>
-                    <label>비밀번호 확인<br>
-                        <input type="password" name="admin_password_confirm" required>
-                    </label>
-                </p>
-            </fieldset>
-
-            <fieldset>
-                <legend>모듈 선택</legend>
-                <p>필수 모듈은 항상 설치됩니다.</p>
-                <ul>
-                    <?php foreach ($requiredModules as $moduleKey => $module) { ?>
-                        <li>
-                            <?php echo toy_e((string) $module['name']); ?>
-                            <code><?php echo toy_e((string) $moduleKey); ?></code>
-                        </li>
-                    <?php } ?>
-                </ul>
-
-                <p>선택 모듈</p>
-                <?php foreach ($optionalModules as $moduleKey => $module) { ?>
+                <div class="toy-install-field-grid">
                     <p>
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="optional_modules[]"
-                                value="<?php echo toy_e((string) $moduleKey); ?>"
-                                <?php echo in_array($moduleKey, $selectedOptionalModuleKeys, true) ? 'checked' : ''; ?>
-                            >
-                            <?php echo toy_e((string) $module['label']); ?>
-                            <code><?php echo toy_e((string) $moduleKey); ?></code>
-                        </label>
+                        <label for="db_host">DB host</label>
+                        <input id="db_host" type="text" name="db_host" value="<?php echo toy_e($values['db_host']); ?>" autocomplete="off" required>
+                        <span class="toy-install-help">일반 웹호스팅은 보통 localhost를 사용합니다.</span>
                     </p>
-                <?php } ?>
-            </fieldset>
+                    <p>
+                        <label for="db_name">DB name</label>
+                        <input id="db_name" type="text" name="db_name" value="<?php echo toy_e($values['db_name']); ?>" autocomplete="off" required>
+                    </p>
+                    <p>
+                        <label for="db_user">DB user</label>
+                        <input id="db_user" type="text" name="db_user" value="<?php echo toy_e($values['db_user']); ?>" autocomplete="off" required>
+                    </p>
+                    <p>
+                        <label for="db_password">DB password</label>
+                        <input id="db_password" type="password" name="db_password" autocomplete="new-password">
+                        <span class="toy-install-help">보안을 위해 오류 후에도 비밀번호는 다시 표시하지 않습니다.</span>
+                    </p>
+                    <p>
+                        <label for="db_table_prefix">테이블 prefix</label>
+                        <input id="db_table_prefix" type="text" name="db_table_prefix" value="<?php echo toy_e($values['db_table_prefix']); ?>" pattern="[a-z][a-z0-9]{0,20}_" required>
+                        <span class="toy-install-help">기본값은 toy_입니다. 예: toy_, site1_</span>
+                    </p>
+                </div>
+            </section>
 
-            <button type="submit">설치</button>
+            <section class="toy-install-panel">
+                <div class="toy-install-panel-head">
+                    <div>
+                        <p class="toy-install-kicker">사이트</p>
+                        <h2>기본 정보</h2>
+                    </div>
+                    <p>설치 후 관리자 설정에서 다시 변경할 수 있습니다.</p>
+                </div>
+
+                <div class="toy-install-field-grid">
+                    <p>
+                        <label for="site_name">사이트 이름</label>
+                        <input id="site_name" type="text" name="site_name" value="<?php echo toy_e($values['site_name']); ?>" required>
+                    </p>
+                    <p>
+                        <label for="base_url">기본 URL</label>
+                        <input id="base_url" type="url" name="base_url" value="<?php echo toy_e($values['base_url']); ?>" placeholder="https://example.com">
+                        <span class="toy-install-help">운영 사이트는 HTTPS URL이어야 합니다.</span>
+                    </p>
+                    <p>
+                        <label for="timezone">timezone</label>
+                        <select id="timezone" name="timezone" required>
+                            <?php foreach ($timezoneOptions as $timezoneOption) { ?>
+                                <option value="<?php echo toy_e($timezoneOption); ?>"<?php echo $values['timezone'] === $timezoneOption ? ' selected' : ''; ?>>
+                                    <?php echo toy_e($timezoneOption); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </p>
+                    <p>
+                        <label for="default_locale">기본 locale</label>
+                        <input id="default_locale" type="text" name="default_locale" value="<?php echo toy_e($values['default_locale']); ?>" required>
+                        <span class="toy-install-help">예: ko, en-US</span>
+                    </p>
+                </div>
+            </section>
+
+            <section class="toy-install-panel">
+                <div class="toy-install-panel-head">
+                    <div>
+                        <p class="toy-install-kicker">관리자</p>
+                        <h2>최초 관리자 계정</h2>
+                    </div>
+                    <p>이 계정에 owner 권한이 부여됩니다.</p>
+                </div>
+
+                <div class="toy-install-field-grid">
+                    <div class="toy-install-field-wide">
+                        <span class="toy-install-label">로그인 방식</span>
+                        <div class="toy-install-choice-row">
+                            <label>
+                                <input type="radio" name="admin_identifier_type" value="email"<?php echo $values['admin_identifier_type'] === 'email' ? ' checked' : ''; ?>>
+                                이메일로 로그인
+                            </label>
+                            <label>
+                                <input type="radio" name="admin_identifier_type" value="login_id"<?php echo $values['admin_identifier_type'] === 'login_id' ? ' checked' : ''; ?>>
+                                아이디로 로그인
+                            </label>
+                        </div>
+                        <span class="toy-install-help">아이디를 선택해도 이메일은 비밀번호 재설정과 계정 안내를 위해 필요합니다.</span>
+                    </div>
+                    <p>
+                        <label for="admin_email">이메일</label>
+                        <input id="admin_email" type="email" name="admin_email" value="<?php echo toy_e($values['admin_email']); ?>" autocomplete="email" required>
+                    </p>
+                    <p>
+                        <label for="admin_login_id">로그인 아이디</label>
+                        <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo toy_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
+                        <span class="toy-install-help">아이디 로그인 선택 시 사용합니다. 예: admin, site_admin</span>
+                    </p>
+                    <p>
+                        <label for="admin_display_name">표시 이름</label>
+                        <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo toy_e($values['admin_display_name']); ?>" required>
+                    </p>
+                    <p>
+                        <label for="admin_password">비밀번호</label>
+                        <input id="admin_password" type="password" name="admin_password" autocomplete="new-password" minlength="8" required>
+                        <span class="toy-install-help">8자 이상 입력하세요.</span>
+                    </p>
+                    <p>
+                        <label for="admin_password_confirm">비밀번호 확인</label>
+                        <input id="admin_password_confirm" type="password" name="admin_password_confirm" autocomplete="new-password" minlength="8" required>
+                    </p>
+                </div>
+            </section>
+
+            <section class="toy-install-panel">
+                <div class="toy-install-panel-head">
+                    <div>
+                        <p class="toy-install-kicker">모듈</p>
+                        <h2>설치할 기능</h2>
+                    </div>
+                    <p>선택하지 않은 기본 제공 모듈은 설치 후 관리자 모듈 화면에서 추가할 수 있습니다.</p>
+                </div>
+
+                <h3>필수 모듈</h3>
+                <div class="toy-install-module-grid">
+                    <?php foreach ($requiredModules as $moduleKey => $module) { ?>
+                        <div class="toy-install-module">
+                            <span class="toy-install-status toy-install-status-ok">필수</span>
+                            <strong><?php echo toy_e((string) $module['label']); ?></strong>
+                            <code><?php echo toy_e((string) $moduleKey); ?></code>
+                            <p><?php echo toy_e((string) $module['description']); ?></p>
+                        </div>
+                    <?php } ?>
+                </div>
+
+                <h3>선택 모듈</h3>
+                <div class="toy-install-module-grid">
+                    <?php foreach ($optionalModules as $moduleKey => $module) { ?>
+                        <label class="toy-install-module toy-install-module-option">
+                            <span class="toy-install-module-title">
+                                <input
+                                    type="checkbox"
+                                    name="optional_modules[]"
+                                    value="<?php echo toy_e((string) $moduleKey); ?>"
+                                    <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
+                                >
+                                <strong><?php echo toy_e((string) $module['label']); ?></strong>
+                            </span>
+                            <code><?php echo toy_e((string) $moduleKey); ?></code>
+                            <p><?php echo toy_e((string) $module['description']); ?></p>
+                        </label>
+                    <?php } ?>
+                </div>
+            </section>
+
+            <div class="toy-install-actions">
+                <p>설치하면 설정 파일과 DB 테이블을 생성하고, 완료 후 관리자 로그인 화면으로 이동합니다.</p>
+                <button type="submit">설치 시작</button>
+            </div>
         </form>
     </main>
 </body>

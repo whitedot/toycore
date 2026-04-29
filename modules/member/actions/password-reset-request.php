@@ -18,7 +18,7 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
-        $account = toy_member_find_by_identifier($pdo, $config, $email);
+        $account = toy_member_find_by_email($pdo, $config, $email);
         $activeAccount = $account !== null && $account['status'] === 'active' ? $account : null;
         $throttle = toy_member_password_reset_throttle_status($pdo, $activeAccount !== null ? (int) $activeAccount['id'] : null);
 

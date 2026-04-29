@@ -9,6 +9,7 @@ $popupLayerEnabled = isset($pdo) && $pdo instanceof PDO && toy_module_enabled($p
 if ($popupLayerEnabled) {
     require_once TOY_ROOT . '/modules/popup_layer/helpers.php';
 }
+$identifierLabel = ((string) ($memberSettings['login_identifier'] ?? 'email') === 'login_id') ? '아이디 또는 이메일' : '이메일 또는 아이디';
 ?>
 <!doctype html>
 <html lang="<?php echo toy_e(toy_locale()); ?>">
@@ -38,8 +39,8 @@ if ($popupLayerEnabled) {
             <?php echo toy_csrf_field(); ?>
             <input type="hidden" name="next" value="<?php echo toy_e($next); ?>">
             <p>
-                <label>이메일<br>
-                    <input type="email" name="identifier" value="<?php echo toy_e($identifier); ?>" required>
+                <label><?php echo toy_e($identifierLabel); ?><br>
+                    <input type="text" name="identifier" value="<?php echo toy_e($identifier); ?>" autocomplete="username" required>
                 </label>
             </p>
             <p>

@@ -2,17 +2,54 @@
 
 declare(strict_types=1);
 
+require_once TOY_ROOT . '/modules/member/helpers.php';
+
 $errors = [];
 $requiredModules = [
-    'member' => ['name' => 'Member', 'version' => '2026.04.006'],
-    'admin' => ['name' => 'Admin', 'version' => '2026.04.001'],
+    'member' => [
+        'name' => 'Member',
+        'version' => '2026.04.006',
+        'label' => '회원',
+        'description' => '회원가입, 로그인, 계정 화면, 비밀번호 재설정, 이메일 인증을 제공합니다.',
+    ],
+    'admin' => [
+        'name' => 'Admin',
+        'version' => '2026.04.001',
+        'label' => '관리자',
+        'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리 화면을 제공합니다.',
+    ],
 ];
 $optionalModules = [
-    'seo' => ['name' => 'SEO', 'version' => '2026.04.002', 'label' => 'SEO'],
-    'popup_layer' => ['name' => 'Popup Layer', 'version' => '2026.04.001', 'label' => '팝업레이어'],
-    'point' => ['name' => 'Point', 'version' => '2026.04.001', 'label' => '포인트'],
-    'deposit' => ['name' => 'Deposit', 'version' => '2026.04.001', 'label' => '예치금'],
-    'reward' => ['name' => 'Reward', 'version' => '2026.04.001', 'label' => '적립금'],
+    'seo' => [
+        'name' => 'SEO',
+        'version' => '2026.04.002',
+        'label' => 'SEO',
+        'description' => 'robots.txt, sitemap.xml, 기본 meta 설정 화면을 설치합니다.',
+    ],
+    'popup_layer' => [
+        'name' => 'Popup Layer',
+        'version' => '2026.04.001',
+        'label' => '팝업레이어',
+        'description' => '화면별 팝업 노출 규칙과 관리자 등록 화면을 설치합니다.',
+    ],
+    'point' => [
+        'name' => 'Point',
+        'version' => '2026.04.001',
+        'label' => '포인트',
+        'description' => '회원별 포인트 잔액과 거래 원장, 관리자 지급/차감 화면을 설치합니다.',
+    ],
+    'deposit' => [
+        'name' => 'Deposit',
+        'version' => '2026.04.001',
+        'label' => '예치금',
+        'description' => '회원별 예치금 잔액과 입금/사용/환불/출금 원장을 설치합니다.',
+    ],
+    'reward' => [
+        'name' => 'Reward',
+        'version' => '2026.04.001',
+        'label' => '적립금',
+        'description' => '회원별 적립금 잔액과 거래 원장, 관리자 지급/차감 화면을 설치합니다.',
+    ],
 ];
 $selectedOptionalModuleKeys = array_keys($optionalModules);
 $values = [
@@ -20,13 +57,72 @@ $values = [
     'db_name' => '',
     'db_user' => '',
     'db_password' => '',
+    'db_table_prefix' => 'toy_',
     'site_name' => 'Toycore',
     'base_url' => '',
     'timezone' => 'Asia/Seoul',
     'default_locale' => 'ko',
+    'admin_identifier_type' => 'email',
+    'admin_login_id' => '',
     'admin_email' => '',
     'admin_display_name' => '관리자',
 ];
+
+$currentBaseUrl = toy_current_base_url();
+if ($values['base_url'] === '' && toy_is_http_url($currentBaseUrl)) {
+    $values['base_url'] = $currentBaseUrl;
+}
+
+$previousInstallFailure = null;
+$previousInstallFailurePath = TOY_ROOT . '/storage/install-failed.json';
+if (is_file($previousInstallFailurePath) && is_readable($previousInstallFailurePath)) {
+    $previousInstallFailureJson = file_get_contents($previousInstallFailurePath);
+    $decodedPreviousInstallFailure = is_string($previousInstallFailureJson) ? json_decode($previousInstallFailureJson, true) : null;
+    if (is_array($decodedPreviousInstallFailure)) {
+        $previousInstallFailure = [
+            'recorded_at' => (string) ($decodedPreviousInstallFailure['recorded_at'] ?? ''),
+            'stage' => (string) ($decodedPreviousInstallFailure['stage'] ?? ''),
+            'config_written' => !empty($decodedPreviousInstallFailure['config_written']),
+            'installed_lock_written' => !empty($decodedPreviousInstallFailure['installed_lock_written']),
+        ];
+    }
+}
+
+$configPath = TOY_ROOT . '/config/config.php';
+$configWritable = is_file($configPath)
+    ? is_writable($configPath)
+    : (is_dir(TOY_ROOT . '/config') ? is_writable(TOY_ROOT . '/config') : is_writable(TOY_ROOT));
+$storageWritable = is_dir(TOY_ROOT . '/storage')
+    ? is_writable(TOY_ROOT . '/storage')
+    : is_writable(TOY_ROOT);
+$installChecks = [
+    [
+        'label' => 'PHP',
+        'status' => 'ok',
+        'message' => PHP_VERSION,
+    ],
+    [
+        'label' => 'PDO MySQL',
+        'status' => extension_loaded('pdo_mysql') ? 'ok' : 'error',
+        'message' => extension_loaded('pdo_mysql') ? '사용 가능' : 'pdo_mysql 확장이 필요합니다.',
+    ],
+    [
+        'label' => '설정 파일',
+        'status' => $configWritable ? 'ok' : 'error',
+        'message' => $configWritable ? 'config/config.php 생성 가능' : 'config 디렉터리 쓰기 권한이 필요합니다.',
+    ],
+    [
+        'label' => '저장소',
+        'status' => $storageWritable ? 'ok' : 'error',
+        'message' => $storageWritable ? 'storage 디렉터리 쓰기 가능' : 'storage 디렉터리 쓰기 권한이 필요합니다.',
+    ],
+    [
+        'label' => '현재 URL',
+        'status' => $currentBaseUrl === '' ? 'warning' : (toy_is_local_host($currentBaseUrl) || parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? 'ok' : 'warning'),
+        'message' => $currentBaseUrl === '' ? '요청 host를 확인할 수 없습니다.' : $currentBaseUrl,
+    ],
+];
+$timezoneOptions = timezone_identifiers_list();
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
@@ -34,6 +130,8 @@ if (toy_request_method() === 'POST') {
     foreach ($values as $key => $default) {
         $values[$key] = toy_post_string($key, $key === 'db_password' ? 255 : 120);
     }
+
+    $values['db_table_prefix'] = strtolower($values['db_table_prefix']);
 
     $postedOptionalModules = $_POST['optional_modules'] ?? [];
     $selectedOptionalModuleKeys = [];
@@ -56,16 +154,53 @@ if (toy_request_method() === 'POST') {
     $adminPassword = toy_post_string('admin_password', 255);
     $adminPasswordConfirm = toy_post_string('admin_password_confirm', 255);
 
-    if ($values['db_name'] === '' || $values['db_user'] === '') {
-        $errors[] = 'DB 이름과 DB 사용자를 입력하세요.';
+    if (!extension_loaded('pdo_mysql')) {
+        $errors[] = 'pdo_mysql PHP 확장을 사용할 수 없습니다.';
+    }
+
+    if (!$configWritable) {
+        $errors[] = 'config/config.php 파일을 만들 수 있도록 config 디렉터리 권한을 확인하세요.';
+    }
+
+    if (!$storageWritable) {
+        $errors[] = 'storage 디렉터리에 설치 잠금 파일을 만들 수 있도록 권한을 확인하세요.';
+    }
+
+    if ($values['db_host'] === '' || $values['db_name'] === '' || $values['db_user'] === '') {
+        $errors[] = 'DB host, DB 이름, DB 사용자를 입력하세요.';
+    }
+
+    if (!toy_is_safe_table_prefix($values['db_table_prefix'])) {
+        $errors[] = 'DB 테이블 prefix는 영문 소문자로 시작하고, 영문 소문자/숫자를 사용하며, underscore로 끝나야 합니다. 예: toy_';
+    }
+
+    if ($values['site_name'] === '') {
+        $errors[] = '사이트 이름을 입력하세요.';
     }
 
     if (!filter_var($values['admin_email'], FILTER_VALIDATE_EMAIL)) {
         $errors[] = '관리자 이메일 형식이 올바르지 않습니다.';
     }
 
+    if ($values['admin_display_name'] === '') {
+        $errors[] = '관리자 표시 이름을 입력하세요.';
+    }
+
+    if (!in_array($values['admin_identifier_type'], ['email', 'login_id'], true)) {
+        $errors[] = '최초 관리자 로그인 방식이 올바르지 않습니다.';
+    }
+
+    $values['admin_login_id'] = toy_member_normalize_login_id($values['admin_login_id']);
+    if ($values['admin_identifier_type'] === 'login_id' && !toy_member_is_valid_login_id($values['admin_login_id'])) {
+        $errors[] = '관리자 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해 4~40자로 입력하세요.';
+    }
+
     if (!in_array($values['timezone'], timezone_identifiers_list(), true)) {
         $errors[] = 'timezone 값이 올바르지 않습니다.';
+    }
+
+    if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $values['default_locale']) !== 1) {
+        $errors[] = '기본 locale은 ko 또는 en-US 같은 형식으로 입력하세요.';
     }
 
     if ($values['base_url'] !== '') {
@@ -125,6 +260,7 @@ if (toy_request_method() === 'POST') {
                 'user' => $values['db_user'],
                 'password' => $values['db_password'],
                 'charset' => 'utf8mb4',
+                'table_prefix' => $values['db_table_prefix'],
             ],
         ];
 
@@ -215,12 +351,13 @@ if (toy_request_method() === 'POST') {
                 toy_record_schema_version($pdo, 'module', $moduleKey, (string) $optionalModules[$moduleKey]['version']);
             }
 
-            require TOY_ROOT . '/modules/member/helpers.php';
-            require TOY_ROOT . '/modules/admin/helpers.php';
+            require_once TOY_ROOT . '/modules/member/helpers.php';
+            require_once TOY_ROOT . '/modules/admin/helpers.php';
 
             $installStage = 'create_owner_account';
             $accountId = toy_member_create_account($pdo, $config, [
                 'email' => $values['admin_email'],
+                'login_id' => $values['admin_identifier_type'] === 'login_id' ? $values['admin_login_id'] : '',
                 'password' => $adminPassword,
                 'display_name' => $values['admin_display_name'],
                 'locale' => $values['default_locale'],

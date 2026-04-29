@@ -12,6 +12,7 @@ if ($account !== null) {
 $errors = [];
 $identifier = '';
 $next = toy_member_safe_next_path(toy_get_string('next', 255));
+$memberSettings = toy_member_settings($pdo);
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();

@@ -128,6 +128,283 @@ dd {
     margin: 0;
 }
 
+.toy-install-page {
+    background: #eef2f6;
+}
+
+.toy-install-shell {
+    width: min(1120px, calc(100% - 32px));
+}
+
+.toy-install-intro,
+.toy-install-panel,
+.toy-install-alert,
+.toy-install-actions {
+    border: 1px solid #d3dae5;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(32, 36, 42, 0.06);
+}
+
+.toy-install-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+    gap: 24px;
+    align-items: start;
+    padding: 28px;
+    margin-bottom: 20px;
+}
+
+.toy-install-intro p {
+    max-width: 720px;
+    margin: 0;
+    color: #47505c;
+}
+
+.toy-install-kicker {
+    margin: 0 0 6px;
+    color: #5d6b7c;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.toy-install-steps {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: toy-install-step;
+}
+
+.toy-install-steps li {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 10px;
+    align-items: center;
+    min-height: 34px;
+    color: #303741;
+}
+
+.toy-install-steps li::before {
+    content: counter(toy-install-step);
+    counter-increment: toy-install-step;
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #243b5a;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.toy-install-alert {
+    padding: 18px 20px;
+    margin-bottom: 18px;
+}
+
+.toy-install-alert h2,
+.toy-install-alert p,
+.toy-install-alert ul {
+    margin-bottom: 8px;
+}
+
+.toy-install-alert-error {
+    border-color: #d7a3a3;
+    background: #fff7f7;
+}
+
+.toy-install-alert-warning {
+    border-color: #d9c48d;
+    background: #fffaf0;
+}
+
+.toy-install-panel {
+    padding: 22px;
+    margin-bottom: 20px;
+}
+
+.toy-install-panel-head {
+    display: flex;
+    gap: 20px;
+    align-items: start;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.toy-install-panel-head h2 {
+    margin-bottom: 0;
+}
+
+.toy-install-panel-head > p {
+    max-width: 420px;
+    margin: 0;
+    color: #5d6b7c;
+}
+
+.toy-install-check-grid,
+.toy-install-field-grid,
+.toy-install-module-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.toy-install-check-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.toy-install-field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.toy-install-module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 18px;
+}
+
+.toy-install-check,
+.toy-install-module {
+    min-width: 0;
+    border: 1px solid #d8dde6;
+    border-radius: 8px;
+    background: #fbfcfe;
+    padding: 14px;
+}
+
+.toy-install-check strong,
+.toy-install-module strong {
+    display: block;
+    margin: 8px 0 2px;
+}
+
+.toy-install-check p,
+.toy-install-module p,
+.toy-install-field-grid p {
+    margin: 0;
+}
+
+.toy-install-check p,
+.toy-install-module p,
+.toy-install-help {
+    color: #5d6b7c;
+    font-size: 14px;
+}
+
+.toy-install-status {
+    display: inline-block;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.toy-install-status-ok {
+    border-color: #99c7aa;
+    background: #effaf3;
+    color: #24603a;
+}
+
+.toy-install-status-warning {
+    border-color: #d9c48d;
+    background: #fff9e6;
+    color: #725600;
+}
+
+.toy-install-status-error {
+    border-color: #d7a3a3;
+    background: #fff0f0;
+    color: #8a2a2a;
+}
+
+.toy-install-field-grid label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
+.toy-install-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
+.toy-install-field-wide {
+    grid-column: 1 / -1;
+}
+
+.toy-install-choice-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+}
+
+.toy-install-choice-row label {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    margin: 0;
+    font-weight: 400;
+}
+
+.toy-install-field-grid input,
+.toy-install-field-grid select {
+    width: 100%;
+}
+
+.toy-install-choice-row input {
+    width: auto;
+}
+
+.toy-install-help {
+    display: block;
+    margin-top: 6px;
+}
+
+.toy-install-module code {
+    display: inline-block;
+    margin: 4px 0 8px;
+}
+
+.toy-install-module-option {
+    cursor: pointer;
+}
+
+.toy-install-module-title {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.toy-install-module-title strong {
+    margin: 0;
+}
+
+.toy-install-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    margin-bottom: 0;
+}
+
+.toy-install-actions p {
+    margin: 0;
+    color: #47505c;
+}
+
+.toy-install-actions button {
+    min-width: 140px;
+    border-color: #243b5a;
+    background: #243b5a;
+    color: #ffffff;
+    font-weight: 700;
+}
+
 .toy-popup-layer-stack {
     display: grid;
     gap: 12px;
@@ -168,6 +445,30 @@ dd {
 }
 
 @media (max-width: 720px) {
+    .toy-install-intro,
+    .toy-install-panel-head,
+    .toy-install-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .toy-install-intro,
+    .toy-install-panel,
+    .toy-install-alert,
+    .toy-install-actions {
+        padding: 16px;
+    }
+
+    .toy-install-check-grid,
+    .toy-install-field-grid,
+    .toy-install-module-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .toy-install-actions button {
+        width: 100%;
+    }
+
     .toy-popup-layer-stack {
         right: 16px;
         bottom: 16px;
