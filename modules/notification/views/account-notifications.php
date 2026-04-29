@@ -24,6 +24,31 @@ $seo = [
             <p><?php echo toy_e($notice); ?></p>
         <?php } ?>
 
+        <section>
+            <h2>요약</h2>
+            <dl>
+                <dt>전체</dt>
+                <dd><?php echo toy_e((string) $notificationSummary['total']); ?></dd>
+                <dt>읽지 않음</dt>
+                <dd><?php echo toy_e((string) $notificationSummary['unread']); ?></dd>
+            </dl>
+        </section>
+
+        <form method="get" action="<?php echo toy_e(toy_url('/account/notifications')); ?>">
+            <p>
+                <label>상태<br>
+                    <select name="status">
+                        <?php foreach (['' => '전체', 'unread' => '읽지 않음', 'read' => '읽음'] as $value => $label) { ?>
+                            <option value="<?php echo toy_e((string) $value); ?>"<?php echo $filters['status'] === (string) $value ? ' selected' : ''; ?>>
+                                <?php echo toy_e($label); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
+            </p>
+            <button type="submit">조회</button>
+        </form>
+
         <?php if ($notifications === []) { ?>
             <p>알림이 없습니다.</p>
         <?php } else { ?>

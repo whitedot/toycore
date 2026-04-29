@@ -7,6 +7,12 @@ require_once TOY_ROOT . '/modules/member/helpers.php';
 $account = toy_member_require_login($pdo);
 $errors = [];
 $notice = '';
+$filters = [
+    'status' => toy_get_string('status', 20),
+];
+if (!in_array($filters['status'], ['', 'unread', 'read'], true)) {
+    $filters['status'] = '';
+}
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
@@ -90,23 +96,47 @@ if (toy_request_method() === 'POST') {
 }
 
 $notifications = [];
+$notificationSql = "SELECT n.id, n.title, n.body_text, n.link_url,
+                           CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN n.status ELSE 'read' END AS status,
+                           COALESCE(n.read_at, r.read_at) AS read_at,
+                           n.created_at
+                    FROM toy_notifications n
+                    LEFT JOIN toy_notification_reads r ON r.notification_id = n.id AND r.account_id = :read_account_id
+                    WHERE (n.account_id = :account_id OR n.audience = 'all')";
+$notificationParams = [
+    'read_account_id' => (int) $account['id'],
+    'account_id' => (int) $account['id'],
+];
+
+if ($filters['status'] === 'unread') {
+    $notificationSql .= ' AND COALESCE(n.read_at, r.read_at) IS NULL';
+} elseif ($filters['status'] === 'read') {
+    $notificationSql .= ' AND COALESCE(n.read_at, r.read_at) IS NOT NULL';
+}
+
+$notificationSql .= ' ORDER BY n.id DESC LIMIT 100';
+$stmt = $pdo->prepare($notificationSql);
+$stmt->execute($notificationParams);
+foreach ($stmt->fetchAll() as $row) {
+    $notifications[] = $row;
+}
+
 $stmt = $pdo->prepare(
-    "SELECT n.id, n.title, n.body_text, n.link_url,
-            CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN n.status ELSE 'read' END AS status,
-            COALESCE(n.read_at, r.read_at) AS read_at,
-            n.created_at
+    "SELECT
+        COUNT(*) AS total_count,
+        SUM(CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN 1 ELSE 0 END) AS unread_count
      FROM toy_notifications n
      LEFT JOIN toy_notification_reads r ON r.notification_id = n.id AND r.account_id = :read_account_id
-     WHERE n.account_id = :account_id OR n.audience = 'all'
-     ORDER BY n.id DESC
-     LIMIT 100"
+     WHERE n.account_id = :account_id OR n.audience = 'all'"
 );
 $stmt->execute([
     'read_account_id' => (int) $account['id'],
     'account_id' => (int) $account['id'],
 ]);
-foreach ($stmt->fetchAll() as $row) {
-    $notifications[] = $row;
-}
+$summaryRow = $stmt->fetch();
+$notificationSummary = [
+    'total' => is_array($summaryRow) ? (int) $summaryRow['total_count'] : 0,
+    'unread' => is_array($summaryRow) ? (int) $summaryRow['unread_count'] : 0,
+];
 
 include TOY_ROOT . '/modules/notification/views/account-notifications.php';
