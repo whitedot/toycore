@@ -9,9 +9,6 @@ return [
         'modules' => ['member', 'admin'],
     ],
     'contracts' => [
-        'provides' => [
-            'output-slots.php',
-        ],
         'consumes' => [
             'menu-links.php',
         ],
