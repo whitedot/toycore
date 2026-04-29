@@ -156,7 +156,7 @@ return [
 module -> point -> slot -> subject
 ```
 
-팝업레이어처럼 화면 overlay 성격의 확장은 `module -> point -> subject`까지만 노출하고, `slot_key`는 내부 기본값으로 처리합니다. 5단계 이상이 필요하면 단계를 늘리지 않고 `filters`, `schedule`, `device`, `locale`, `member_status` 같은 조건 필드로 분리합니다.
+팝업레이어도 선언된 slot을 읽어 `module -> point -> slot -> subject` 범위에서 대상을 선택합니다. slot 선언이 없으면 호환을 위해 `overlay` 기본 위치로 처리합니다. 5단계 이상이 필요하면 단계를 늘리지 않고 `filters`, `schedule`, `device`, `locale`, `member_status` 같은 조건 필드로 분리합니다.
 
 성능 기준도 명확히 나눕니다.
 

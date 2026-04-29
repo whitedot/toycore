@@ -119,8 +119,8 @@
 - 노출 시작/종료 시간 설정
 - 닫기 유지 일수 설정
 - 활성 모듈 `extension-points.php` 기반 노출 대상 선택
-- `module -> point -> subject` 대상 규칙 저장
-- 내부 `overlay` slot 기준 팝업 출력
+- `module -> point -> slot -> subject` 대상 규칙 저장
+- 선언된 slot 또는 기본 `overlay` slot 기준 팝업 출력
 - 사용자 요청 시 저장된 대상 규칙 테이블 조회
 - 회원 로그인/회원가입/계정 화면 팝업 출력 지점 연결
 

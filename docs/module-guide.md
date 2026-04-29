@@ -164,7 +164,7 @@ Toycore의 확장 선택 UI는 4단계를 최대치로 봅니다. 5단계 이상
 확장 모듈은 자기에게 필요한 깊이까지만 사용합니다.
 
 ```text
-popup_layer = module -> point -> subject
+popup_layer = module -> point -> slot -> subject
 banner = module -> point -> slot -> subject
 analytics = module -> point
 ```
