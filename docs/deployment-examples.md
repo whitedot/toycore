@@ -25,6 +25,47 @@ storage/installed.lock
 
 이 파일들은 Git에 포함하지 않습니다.
 
+## 배포 패키지 종류
+
+Toycore는 소스 리포지토리에 선택 모듈 복사본을 유지할 수 있지만, 배포 산출물은 작게 나눌 수 있습니다.
+
+```text
+toycore-minimal
+- core
+- member
+- admin
+
+toycore-standard
+- toycore-minimal
+- seo
+- popup_layer
+- point
+- deposit
+- reward
+
+toycore-ops
+- toycore-standard
+- site_menu
+- banner
+- notification
+```
+
+패키지 생성:
+
+```sh
+./.tools/bin/package-distributions 2026.05.001
+```
+
+생성 위치:
+
+```text
+dist/toycore-minimal
+dist/toycore-standard
+dist/toycore-ops
+```
+
+`zip` 명령을 사용할 수 있으면 같은 이름의 zip 파일도 생성됩니다. minimal 배포본에는 선택 모듈 코드가 없으므로 설치 화면에서 선택 모듈 목록이 비어 있을 수 있습니다. 설치 후 필요한 모듈 zip을 `modules/{module_key}`에 업로드하고 `/admin/modules`에서 설치합니다.
+
 ## PHP 내장 서버
 
 로컬 확인용입니다.

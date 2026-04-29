@@ -67,6 +67,7 @@ git@github.com:whitedot/toycore-module-reward.git
 - 런타임 검증과 기본 번들 설치는 Toycore 본체의 `modules/{module_key}` 복사본을 기준으로 계속 동작한다.
 - 별도 리포지토리는 모듈별 독립 개발과 릴리스 zip 실험을 위한 원본 후보로 사용한다.
 - 별도 리포지토리에서 변경한 내용은 본체 복사본에 반영하거나, 본체가 외부 모듈을 가져오는 정책이 확정되기 전까지 두 위치의 차이를 명시적으로 관리해야 한다.
+- Toycore 본체 배포 패키지는 `minimal`, `standard`, `ops`로 나눠 생성할 수 있다.
 
 분리 우선순위가 높다:
 
@@ -230,6 +231,22 @@ Toycore에서 Git 리포지토리는 개발과 릴리스 관리를 위한 도구
 - 운영자는 zip을 내려받아 `modules/{module_key}`에 업로드한다.
 - Toycore는 `/admin/modules`와 `/admin/updates`로 설치/활성화/업데이트를 처리한다.
 - Git, Composer, SSH, CLI가 없어도 설치할 수 있어야 한다.
+
+Toycore 본체 배포 패키지:
+
+```text
+minimal = core + member + admin
+standard = minimal + seo + popup_layer + point + deposit + reward
+ops = standard + site_menu + banner + notification
+```
+
+패키지 생성 명령:
+
+```sh
+./.tools/bin/package-distributions 2026.05.001
+```
+
+소스 리포지토리에 선택 모듈 복사본이 있더라도 minimal 패키지에는 필수 실행 기반만 들어간다.
 
 ### 수동 복사
 

@@ -70,6 +70,16 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 선택: seo + popup_layer + point + deposit + reward
 ```
 
+배포 산출물은 다음처럼 나눌 수 있습니다.
+
+```text
+minimal: core + member + admin
+standard: minimal + seo + popup_layer + point + deposit + reward
+ops: standard + site_menu + banner + notification
+```
+
+선택 모듈 코드가 없는 minimal 배포본에서는 설치 화면에 선택 모듈이 표시되지 않습니다. 필요한 모듈은 별도 모듈 zip을 `modules/{module_key}`에 업로드한 뒤 `/admin/modules`에서 설치합니다.
+
 - `member`: 회원가입, 로그인/로그아웃, 계정 화면, 비밀번호 재설정, 이메일 인증, 동의 기록, 탈퇴/익명화, DB 세션, 인증 로그, 전용 관리자 설정
 - `admin`: 관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리, 권한, 감사 로그, 개인정보 요청, 보관 정리, 업데이트 실행
 - `seo`: SEO meta helper, `/robots.txt`, `/sitemap.xml`, SEO 관리자 설정, 활성 모듈 `sitemap.php` 확장
@@ -87,6 +97,14 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 ```
 
 Docker 또는 OrbStack이 꺼져 있어도 공백, SQL 파일, 모듈 기본 구조 검사는 먼저 실행됩니다. PHP 문법 검사는 Docker 또는 OrbStack 실행 상태가 필요합니다.
+
+배포 패키지는 다음 명령으로 만들 수 있습니다.
+
+```sh
+./.tools/bin/package-distributions 2026.05.001
+```
+
+결과는 `dist/toycore-minimal`, `dist/toycore-standard`, `dist/toycore-ops` 디렉터리와, `zip` 명령이 있는 경우 같은 이름의 zip 파일로 생성됩니다.
 
 ## 모듈 구조
 

@@ -50,6 +50,7 @@ fi
 find . \
     -path './.git' -prune -o \
     -path './.tools' -prune -o \
+    -path './dist' -prune -o \
     -name '*.php' -print0 \
     | xargs -0 -n1 ./.tools/bin/php -l
 

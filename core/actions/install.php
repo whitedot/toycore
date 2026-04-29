@@ -69,7 +69,14 @@ $optionalModules = [
         'description' => '사이트 내 알림과 이메일/SMS/알림톡 발송 대기열을 관리합니다.',
     ],
 ];
+foreach (array_keys($optionalModules) as $moduleKey) {
+    if (!is_file(TOY_ROOT . '/modules/' . $moduleKey . '/module.php') || !is_file(TOY_ROOT . '/modules/' . $moduleKey . '/install.sql')) {
+        unset($optionalModules[$moduleKey]);
+    }
+}
+
 $selectedOptionalModuleKeys = ['seo', 'popup_layer', 'point', 'deposit', 'reward'];
+$selectedOptionalModuleKeys = array_values(array_intersect($selectedOptionalModuleKeys, array_keys($optionalModules)));
 $values = [
     'db_host' => 'localhost',
     'db_name' => '',

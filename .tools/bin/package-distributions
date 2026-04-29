@@ -1,0 +1,92 @@
+#!/usr/bin/env sh
+set -eu
+
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
+DIST="${ROOT}/dist"
+VERSION="${1:-dev}"
+
+copy_path() {
+    source_path="$1"
+    target_root="$2"
+
+    if [ ! -e "${ROOT}/${source_path}" ]; then
+        return
+    fi
+
+    mkdir -p "${target_root}/$(dirname "${source_path}")"
+    cp -R "${ROOT}/${source_path}" "${target_root}/${source_path}"
+}
+
+copy_base() {
+    target_root="$1"
+
+    mkdir -p "${target_root}"
+    for path in \
+        README.md \
+        index.php \
+        assets \
+        core \
+        database \
+        lang \
+        storage/.gitignore \
+        docs/deployment-examples.md \
+        docs/deployment-protection.md \
+        docs/install-plan.md \
+        docs/module-guide.md \
+        docs/module-repository-strategy.md \
+        docs/security-checklist.md \
+        docs/update-plan.md \
+        modules/member \
+        modules/admin
+    do
+        copy_path "${path}" "${target_root}"
+    done
+}
+
+copy_modules() {
+    target_root="$1"
+    shift
+
+    for module_key in "$@"; do
+        copy_path "modules/${module_key}" "${target_root}"
+    done
+}
+
+make_zip() {
+    package_name="$1"
+    package_root="$2"
+
+    if command -v zip >/dev/null 2>&1; then
+        (
+            cd "${DIST}"
+            rm -f "${package_name}-${VERSION}.zip"
+            zip -qr "${package_name}-${VERSION}.zip" "${package_name}"
+        )
+    fi
+}
+
+rm -rf "${DIST}"
+mkdir -p "${DIST}"
+
+minimal_root="${DIST}/toycore-minimal"
+standard_root="${DIST}/toycore-standard"
+ops_root="${DIST}/toycore-ops"
+
+copy_base "${minimal_root}"
+
+copy_base "${standard_root}"
+copy_modules "${standard_root}" seo popup_layer point deposit reward
+
+copy_base "${ops_root}"
+copy_modules "${ops_root}" seo popup_layer point deposit reward site_menu banner notification
+
+make_zip toycore-minimal "${minimal_root}"
+make_zip toycore-standard "${standard_root}"
+make_zip toycore-ops "${ops_root}"
+
+echo "Created distribution directories under ${DIST}"
+if command -v zip >/dev/null 2>&1; then
+    echo "Created zip packages for version ${VERSION}"
+else
+    echo "zip command not found; directories were created without zip packages"
+fi

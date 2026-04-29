@@ -18,6 +18,8 @@
 - 설치 시 seo/popup_layer/point/deposit/reward/site_menu/banner/notification 설치 여부 선택
 - 선택한 기본 제공 모듈의 설치 SQL 실행
 - 스키마 버전 기록
+- 선택 모듈 코드가 없는 배포본에서는 설치 화면에서 해당 선택 모듈 제외
+- minimal/standard/ops 배포 디렉터리와 zip 생성을 위한 패키징 스크립트 추가
 
 ### 모듈 리포지토리 분리
 
@@ -27,6 +29,7 @@
 - 각 모듈 리포지토리의 `module.php`에 Toycore 호환 메타데이터 추가
 - Toycore 본체에는 현재 모듈 복사본 유지
 - 릴리스 zip 생성과 본체 모듈 제거는 아직 미적용
+- Toycore 본체 배포 패키지는 minimal/standard/ops로 분리 가능
 
 ### 코어
 

@@ -261,23 +261,27 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                 </div>
 
                 <h3>선택 모듈</h3>
-                <div class="toy-install-module-grid">
-                    <?php foreach ($optionalModules as $moduleKey => $module) { ?>
-                        <label class="toy-install-module toy-install-module-option">
-                            <span class="toy-install-module-title">
-                                <input
-                                    type="checkbox"
-                                    name="optional_modules[]"
-                                    value="<?php echo toy_e((string) $moduleKey); ?>"
-                                    <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
-                                >
-                                <strong><?php echo toy_e((string) $module['label']); ?></strong>
-                            </span>
-                            <code><?php echo toy_e((string) $moduleKey); ?></code>
-                            <p><?php echo toy_e((string) $module['description']); ?></p>
-                        </label>
-                    <?php } ?>
-                </div>
+                <?php if ($optionalModules === []) { ?>
+                    <p>현재 배포본에는 선택 모듈 코드가 포함되어 있지 않습니다. 설치 후 필요한 모듈 zip을 `modules/{module_key}`에 업로드하고 관리자 모듈 화면에서 설치하세요.</p>
+                <?php } else { ?>
+                    <div class="toy-install-module-grid">
+                        <?php foreach ($optionalModules as $moduleKey => $module) { ?>
+                            <label class="toy-install-module toy-install-module-option">
+                                <span class="toy-install-module-title">
+                                    <input
+                                        type="checkbox"
+                                        name="optional_modules[]"
+                                        value="<?php echo toy_e((string) $moduleKey); ?>"
+                                        <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
+                                    >
+                                    <strong><?php echo toy_e((string) $module['label']); ?></strong>
+                                </span>
+                                <code><?php echo toy_e((string) $moduleKey); ?></code>
+                                <p><?php echo toy_e((string) $module['description']); ?></p>
+                            </label>
+                        <?php } ?>
+                    </div>
+                <?php } ?>
             </section>
 
             <div class="toy-install-actions">
