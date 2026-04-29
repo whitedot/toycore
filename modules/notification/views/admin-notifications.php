@@ -67,7 +67,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 </section>
 
 <section>
-    <h2>최근 알림</h2>
+    <h2>알림 운영 현황</h2>
     <form method="get" action="<?php echo toy_e(toy_url('/admin/notifications')); ?>">
         <p>
             <label>대상<br>
