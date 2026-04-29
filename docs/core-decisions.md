@@ -403,7 +403,7 @@ member 모듈 -> 로그인/회원가입 화면에서 toy_render_output_slot()를
 module -> point -> slot -> subject
 ```
 
-팝업레이어도 선언된 slot을 읽어 `module -> point -> slot -> subject` 범위에서 대상을 선택합니다. slot 선언이 없으면 호환을 위해 `overlay` 기본 위치로 처리합니다. 5단계 이상이 필요하면 단계를 늘리지 않고 filters/options로 분리합니다.
+팝업레이어도 선언된 slot을 읽어 `module -> point -> slot -> subject` 범위에서 대상을 선택합니다. slot 선언이 없으면 호환을 위해 `overlay` 기본 위치로 처리하고, 선언된 slot이 있으면 `kind`가 `overlay`인 위치만 팝업 대상으로 사용합니다. 5단계 이상이 필요하면 단계를 늘리지 않고 filters/options로 분리합니다.
 
 모듈과 플러그인은 같은 설치/활성화 registry를 사용할 수 있지만, 개념은 구분합니다.
 

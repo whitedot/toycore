@@ -508,7 +508,7 @@ hash_hmac('sha256', normalized_identifier, app_key)
 
 - `module_key`: 대상 모듈
 - `point_key`: 대상 extension point
-- `slot_key`: extension point 안의 출력 위치. 선언이 없으면 기본값 `overlay` 사용
+- `slot_key`: extension point 안의 출력 위치. 선언이 없으면 기본값 `overlay`를 사용하고, 팝업레이어는 `kind=overlay` 위치를 대상으로 함
 - `subject_id`: 특정 상품, 게시판, 글 같은 세부 대상 ID
 - `match_type`: `all`, `exact`
 

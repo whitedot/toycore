@@ -215,7 +215,7 @@ return [
 - `kind`: `content`, `overlay`, `head`, `script` 같은 위치 성격
 - `subjects`: 선택 사항. 특정 상품/게시판/글 같은 세부 대상 선택 정보를 제공할 때 사용
 
-현재 `popup_layer` 구현은 관리자 UI에서 `module_key`, `point_key`, `slot_key`, 수동 `subject_id`를 사용합니다. `slots`가 비어 있으면 호환을 위해 `overlay` 기본 위치로 취급하고, 선언된 slot이 있으면 실제 slot 목록을 노출 대상으로 표시합니다. `subjects.options`와 `subjects.selector`는 커뮤니티, 커머스처럼 세부 대상 선택 UI가 필요한 모듈을 위한 표준 필드이며, 검색/선택 UI는 후속 관리자 화면에서 이 규격을 읽어 확장합니다.
+현재 `popup_layer` 구현은 관리자 UI에서 `module_key`, `point_key`, `slot_key`, 수동 `subject_id`를 사용합니다. `slots`가 비어 있으면 호환을 위해 `overlay` 기본 위치로 취급하고, 선언된 slot이 있으면 `kind`가 `overlay`인 slot만 노출 대상으로 표시합니다. `subjects.options`와 `subjects.selector`는 커뮤니티, 커머스처럼 세부 대상 선택 UI가 필요한 모듈을 위한 표준 필드이며, 검색/선택 UI는 후속 관리자 화면에서 이 규격을 읽어 확장합니다.
 
 작은 목록은 `subjects.options`로 직접 제공할 수 있습니다.
 

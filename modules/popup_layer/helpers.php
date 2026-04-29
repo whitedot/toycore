@@ -54,6 +54,7 @@ function toy_popup_layer_normalize_slots(mixed $slots): array
             [
                 'slot_key' => toy_popup_layer_default_slot_key(),
                 'slot_label' => '화면',
+                'slot_kind' => 'overlay',
             ],
         ];
     }
@@ -69,14 +70,28 @@ function toy_popup_layer_normalize_slots(mixed $slots): array
             continue;
         }
 
+        $slotKind = toy_popup_layer_clean_slot_kind((string) ($slot['kind'] ?? 'overlay'));
+        if ($slotKind !== 'overlay') {
+            continue;
+        }
+
         $slotLabel = toy_popup_layer_clean_single_line((string) ($slot['label'] ?? $slotKey), 80);
         $normalized[$slotKey] = [
             'slot_key' => $slotKey,
             'slot_label' => $slotLabel !== '' ? $slotLabel : $slotKey,
+            'slot_kind' => $slotKind,
         ];
     }
 
     return array_values($normalized);
+}
+
+function toy_popup_layer_clean_slot_kind(string $value): string
+{
+    $value = preg_replace('/[^a-z0-9_.-]/', '', strtolower(trim($value)));
+    $value = is_string($value) ? $value : '';
+
+    return substr($value, 0, 40);
 }
 
 function toy_popup_layer_module_label(string $moduleKey): string
