@@ -50,6 +50,24 @@ $optionalModules = [
         'label' => '적립금',
         'description' => '회원별 적립금 잔액과 거래 원장, 관리자 지급/차감 화면을 설치합니다.',
     ],
+    'site_menu' => [
+        'name' => 'Site Menu',
+        'version' => '2026.04.001',
+        'label' => '사이트 메뉴',
+        'description' => '헤더 등 사이트 공통 메뉴를 관리하는 관리자 화면을 설치합니다.',
+    ],
+    'banner' => [
+        'name' => 'Banner',
+        'version' => '2026.04.001',
+        'label' => '배너',
+        'description' => '공통 출력 위치에 노출할 배너와 노출 규칙을 관리합니다.',
+    ],
+    'notification' => [
+        'name' => 'Notification',
+        'version' => '2026.04.001',
+        'label' => '알림',
+        'description' => '사이트 내 알림과 이메일/SMS/알림톡 발송 대기열을 관리합니다.',
+    ],
 ];
 $selectedOptionalModuleKeys = array_keys($optionalModules);
 $values = [

@@ -28,10 +28,13 @@ if (isset($pdo) && $pdo instanceof PDO) {
     <?php echo toy_stylesheet_tag(); ?>
 </head>
 <body>
+    <?php echo toy_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'navigation']); ?>
     <main>
+        <?php echo toy_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content']); ?>
         <h1><?php echo toy_e($pageTitle); ?></h1>
         <p>Toycore MVP가 설치되었습니다.</p>
         <p><a href="<?php echo toy_e(toy_url('/admin')); ?>">관리자 화면</a></p>
+        <?php echo toy_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'after_content']); ?>
     </main>
 </body>
 </html>

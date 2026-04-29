@@ -20,6 +20,7 @@
 | `install-plan.md` | 설치 흐름 | 웹 설치, 필수/선택 모듈 설치, 실패 재시도 기준 |
 | `update-plan.md` | 업데이트 흐름 | SQL 파일 기반 스키마 업데이트와 복구 기준 |
 | `runtime-ops-plan.md` | 운영 정책 | 실행 모드, 오류 화면, 로그, 복구 marker 기준 |
+| `operations-modules-plan.md` | 운영 모듈 | 메뉴, 배너, 알림, 관리자 작업 로그의 모듈화 기준 |
 | `audit-log-plan.md` | 감사 로그 | 감사 로그 기록 대상과 보관 기준 |
 | `security-checklist.md` | 보안 점검 | 기능 추가와 리뷰 시 확인할 보안 항목 |
 

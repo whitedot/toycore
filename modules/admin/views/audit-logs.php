@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '감사 로그';
+$adminPageTitle = '관리자 작업 로그';
 include TOY_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -16,8 +16,29 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         </label>
     </p>
     <p>
+        <label>처리자 계정 ID<br>
+            <input type="number" name="actor_account_id" value="<?php echo toy_e($filters['actor_account_id']); ?>">
+        </label>
+    </p>
+    <p>
         <label>결과<br>
-            <input type="text" name="result" value="<?php echo toy_e($filters['result']); ?>" maxlength="30">
+            <select name="result">
+                <?php foreach (['' => '전체', 'success' => 'success', 'failure' => 'failure'] as $value => $label) { ?>
+                    <option value="<?php echo toy_e((string) $value); ?>"<?php echo $filters['result'] === (string) $value ? ' selected' : ''; ?>>
+                        <?php echo toy_e($label); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </label>
+    </p>
+    <p>
+        <label>시작일<br>
+            <input type="date" name="date_from" value="<?php echo toy_e($filters['date_from']); ?>">
+        </label>
+    </p>
+    <p>
+        <label>종료일<br>
+            <input type="date" name="date_to" value="<?php echo toy_e($filters['date_to']); ?>">
         </label>
     </p>
     <button type="submit">조회</button>

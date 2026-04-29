@@ -68,6 +68,38 @@ button {
     text-decoration: none;
 }
 
+.toy-site-menu {
+    width: min(1080px, calc(100% - 32px));
+    margin: 20px auto 0;
+}
+
+.toy-banner {
+    display: block;
+    margin: 0 0 20px;
+    border: 1px solid #d8dde6;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 16px;
+}
+
+.toy-banner a {
+    display: grid;
+    gap: 8px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.toy-banner img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+.toy-banner strong,
+.toy-banner span {
+    display: block;
+}
+
 button {
     cursor: pointer;
 }

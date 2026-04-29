@@ -152,6 +152,9 @@ $seo = [
             <button type="submit">로그아웃</button>
         </form>
         <p><a href="<?php echo toy_e(toy_url('/account/privacy-requests')); ?>">개인정보 요청</a></p>
+        <?php if (isset($pdo) && $pdo instanceof PDO && toy_module_enabled($pdo, 'notification')) { ?>
+            <p><a href="<?php echo toy_e(toy_url('/account/notifications')); ?>">알림</a></p>
+        <?php } ?>
         <form method="post" action="<?php echo toy_e(toy_url('/account/privacy-export')); ?>">
             <?php echo toy_csrf_field(); ?>
             <button type="submit">개인정보 JSON 내보내기</button>

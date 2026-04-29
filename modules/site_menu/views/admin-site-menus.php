@@ -1,0 +1,184 @@
+<?php
+
+$adminPageTitle = '사이트 메뉴';
+$editingItem = is_array($editItem);
+include TOY_ROOT . '/modules/admin/views/layout-header.php';
+?>
+
+<?php if ($notice !== '') { ?>
+    <p><?php echo toy_e($notice); ?></p>
+<?php } ?>
+
+<?php if ($errors !== []) { ?>
+    <ul>
+        <?php foreach ($errors as $error) { ?>
+            <li><?php echo toy_e($error); ?></li>
+        <?php } ?>
+    </ul>
+<?php } ?>
+
+<section>
+    <h2>메뉴 추가/수정</h2>
+    <form method="post" action="<?php echo toy_e(toy_url('/admin/site-menus')); ?>">
+        <?php echo toy_csrf_field(); ?>
+        <input type="hidden" name="intent" value="save_menu">
+        <p>
+            <label>메뉴 key<br>
+                <input type="text" name="menu_key" value="header" maxlength="60" required>
+            </label>
+        </p>
+        <p>
+            <label>메뉴 이름<br>
+                <input type="text" name="label" value="헤더 메뉴" maxlength="120" required>
+            </label>
+        </p>
+        <p>
+            <label>상태<br>
+                <select name="status">
+                    <?php foreach ($allowedStatuses as $status) { ?>
+                        <option value="<?php echo toy_e($status); ?>"><?php echo toy_e($status); ?></option>
+                    <?php } ?>
+                </select>
+            </label>
+        </p>
+        <button type="submit">메뉴 저장</button>
+    </form>
+</section>
+
+<section>
+    <h2><?php echo $editingItem ? '메뉴 항목 수정' : '메뉴 항목 추가'; ?></h2>
+    <?php if ($menus === []) { ?>
+        <p>먼저 메뉴를 추가하세요.</p>
+    <?php } else { ?>
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/site-menus')); ?>">
+            <?php echo toy_csrf_field(); ?>
+            <input type="hidden" name="intent" value="save_item">
+            <input type="hidden" name="item_id" value="<?php echo $editingItem ? toy_e((string) $editItem['id']) : '0'; ?>">
+            <p>
+                <label>메뉴<br>
+                    <select name="menu_id">
+                        <?php $selectedMenuId = $editingItem ? (int) $editItem['menu_id'] : (int) $menus[0]['id']; ?>
+                        <?php foreach ($menus as $menu) { ?>
+                            <option value="<?php echo toy_e((string) $menu['id']); ?>"<?php echo $selectedMenuId === (int) $menu['id'] ? ' selected' : ''; ?>>
+                                <?php echo toy_e((string) $menu['label'] . ' (' . (string) $menu['menu_key'] . ')'); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>항목 이름<br>
+                    <input type="text" name="label" value="<?php echo $editingItem ? toy_e((string) $editItem['label']) : ''; ?>" maxlength="120" required>
+                </label>
+            </p>
+            <p>
+                <label>URL<br>
+                    <input type="text" name="url" value="<?php echo $editingItem ? toy_e((string) $editItem['url']) : '/'; ?>" maxlength="255" required>
+                </label>
+            </p>
+            <p>
+                <label>target<br>
+                    <select name="target">
+                        <?php foreach ($allowedTargets as $target) { ?>
+                            <?php $currentTarget = $editingItem ? (string) $editItem['target'] : 'self'; ?>
+                            <option value="<?php echo toy_e($target); ?>"<?php echo $currentTarget === $target ? ' selected' : ''; ?>>
+                                <?php echo toy_e($target); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>상태<br>
+                    <select name="status">
+                        <?php foreach ($allowedStatuses as $status) { ?>
+                            <?php $currentStatus = $editingItem ? (string) $editItem['status'] : 'enabled'; ?>
+                            <option value="<?php echo toy_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
+                                <?php echo toy_e($status); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>정렬<br>
+                    <input type="number" name="sort_order" value="<?php echo $editingItem ? toy_e((string) $editItem['sort_order']) : '100'; ?>">
+                </label>
+            </p>
+            <button type="submit">항목 저장</button>
+            <?php if ($editingItem) { ?>
+                <a href="<?php echo toy_e(toy_url('/admin/site-menus')); ?>">새 항목 추가</a>
+            <?php } ?>
+        </form>
+    <?php } ?>
+</section>
+
+<section>
+    <h2>메뉴 목록</h2>
+    <?php if ($menus === []) { ?>
+        <p>등록된 메뉴가 없습니다.</p>
+    <?php } else { ?>
+        <table>
+            <thead>
+                <tr>
+                    <th>key</th>
+                    <th>이름</th>
+                    <th>상태</th>
+                    <th>수정일</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($menus as $menu) { ?>
+                    <tr>
+                        <td><?php echo toy_e((string) $menu['menu_key']); ?></td>
+                        <td><?php echo toy_e((string) $menu['label']); ?></td>
+                        <td><?php echo toy_e((string) $menu['status']); ?></td>
+                        <td><?php echo toy_e((string) $menu['updated_at']); ?></td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    <?php } ?>
+</section>
+
+<section>
+    <h2>항목 목록</h2>
+    <?php if ($items === []) { ?>
+        <p>등록된 메뉴 항목이 없습니다.</p>
+    <?php } else { ?>
+        <table>
+            <thead>
+                <tr>
+                    <th>메뉴</th>
+                    <th>항목</th>
+                    <th>URL</th>
+                    <th>상태</th>
+                    <th>정렬</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($items as $item) { ?>
+                    <tr>
+                        <td><?php echo toy_e((string) $item['menu_key']); ?></td>
+                        <td><?php echo toy_e((string) $item['label']); ?></td>
+                        <td><?php echo toy_e((string) $item['url']); ?></td>
+                        <td><?php echo toy_e((string) $item['status']); ?></td>
+                        <td><?php echo toy_e((string) $item['sort_order']); ?></td>
+                        <td>
+                            <a href="<?php echo toy_e(toy_url('/admin/site-menus?edit_item_id=' . (string) $item['id'])); ?>">수정</a>
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/site-menus')); ?>" style="display:inline">
+                                <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="delete_item">
+                                <input type="hidden" name="item_id" value="<?php echo toy_e((string) $item['id']); ?>">
+                                <button type="submit">삭제</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    <?php } ?>
+</section>
+
+<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
