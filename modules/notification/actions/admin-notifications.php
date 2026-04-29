@@ -92,17 +92,12 @@ if (toy_request_method() === 'POST') {
     } elseif ($intent === 'delivery_status') {
         $deliveryId = (int) toy_post_string('delivery_id', 20);
         $status = toy_post_string('status', 30);
-        $providerMessageId = toy_notification_clean_single_line(toy_post_string('provider_message_id', 120), 120);
-        $errorMessage = toy_notification_clean_single_line(toy_post_string('error_message', 255), 255);
 
         if ($deliveryId <= 0) {
             $errors[] = '발송 항목을 찾을 수 없습니다.';
         }
         if (!in_array($status, $allowedDeliveryStatuses, true)) {
             $errors[] = '발송 상태 값이 올바르지 않습니다.';
-        }
-        if ($status === 'failed' && $errorMessage === '') {
-            $errors[] = '실패 상태에는 오류 메시지를 입력하세요.';
         }
 
         if ($errors === []) {
@@ -117,8 +112,6 @@ if (toy_request_method() === 'POST') {
             $stmt = $pdo->prepare(
                 'UPDATE toy_notification_deliveries
                  SET status = :status,
-                     provider_message_id = :provider_message_id,
-                     error_message = :error_message,
                      attempted_at = :attempted_at,
                      updated_at = :updated_at
                  WHERE id = :id'
@@ -126,8 +119,6 @@ if (toy_request_method() === 'POST') {
             $now = toy_now();
             $stmt->execute([
                 'status' => $status,
-                'provider_message_id' => $providerMessageId,
-                'error_message' => $errorMessage,
                 'attempted_at' => in_array($status, ['sent', 'failed'], true) ? $now : null,
                 'updated_at' => $now,
                 'id' => $deliveryId,
@@ -244,7 +235,7 @@ foreach ($stmt->fetchAll() as $row) {
 }
 
 $deliveries = [];
-$deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.status, d.provider_message_id, d.error_message, d.updated_at
+$deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.status, d.updated_at
                 FROM toy_notification_deliveries d';
 $deliveryParams = [];
 $deliveryWhere = [];

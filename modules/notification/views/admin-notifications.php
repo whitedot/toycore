@@ -156,7 +156,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>알림</th>
                     <th>채널</th>
                     <th>상태</th>
-                    <th>오류</th>
                     <th>수정일</th>
                     <th>관리</th>
                 </tr>
@@ -168,7 +167,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $delivery['notification_id']); ?></td>
                         <td><?php echo toy_e((string) $delivery['channel']); ?></td>
                         <td><?php echo toy_e((string) $delivery['status']); ?></td>
-                        <td><?php echo toy_e((string) $delivery['error_message']); ?></td>
                         <td><?php echo toy_e((string) $delivery['updated_at']); ?></td>
                         <td>
                             <form method="post" action="<?php echo toy_e(toy_url('/admin/notifications')); ?>">
@@ -184,16 +182,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                                 </option>
                                             <?php } ?>
                                         </select>
-                                    </label>
-                                </p>
-                                <p>
-                                    <label>provider ID<br>
-                                        <input type="text" name="provider_message_id" value="<?php echo toy_e((string) $delivery['provider_message_id']); ?>" maxlength="120">
-                                    </label>
-                                </p>
-                                <p>
-                                    <label>오류 메시지<br>
-                                        <input type="text" name="error_message" value="<?php echo toy_e((string) $delivery['error_message']); ?>" maxlength="255">
                                     </label>
                                 </p>
                                 <button type="submit">저장</button>
