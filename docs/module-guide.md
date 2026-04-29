@@ -12,11 +12,14 @@ modules/{module_key}/
 - paths.php
 - admin-menu.php (optional)
 - output-slots.php (optional)
+- extension-points.php (optional)
+- privacy-export.php (optional)
+- sitemap.php (optional)
 - actions/
 - views/
 - lang/
 - install.sql
-- sitemap.php (optional)
+- updates/ (optional)
 ```
 
 ## 모듈과 플러그인
@@ -32,7 +35,7 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 
 - 자기 테이블, 관리자 화면, route, 정책을 소유하면 모듈입니다.
 - 다른 모듈의 확장 지점에 붙어 기능을 보강하면 플러그인입니다.
-- `member`, `admin`, `seo`, `popup_layer`, `point`, `deposit`, `reward`처럼 독립 기능을 소유하는 기본 확장은 모듈입니다.
+- `member`, `admin`, `seo`, `popup_layer`, `point`, `deposit`, `reward`, `site_menu`, `banner`, `notification`처럼 독립 기능을 소유하는 기본 확장은 모듈입니다.
 - 소셜 로그인 제공자, 특정 에디터 연동, 결제 수단 어댑터처럼 다른 모듈의 계약에 붙는 확장은 플러그인입니다.
 
 현재 DB registry는 `toy_modules`를 유지합니다. 모듈/플러그인 구분은 `module.php`의 `type` 값으로 표시합니다.
@@ -88,6 +91,14 @@ return [
 - 계약 파일은 실행 흐름을 만들지 않고 배열 또는 callable만 반환합니다.
 - 소비 모듈은 `toy_enabled_module_contract_files()`로 활성 모듈의 계약 파일 목록을 얻은 뒤 직접 검증하고 읽습니다.
 - 계약 파일을 제공하는 모듈은 자기 도메인의 공개 가능한 정보만 선언합니다.
+
+대표 계약 파일:
+
+- `admin-menu.php`: 관리자 메뉴 항목
+- `output-slots.php`: 화면 출력 renderer
+- `extension-points.php`: 확장 가능한 화면/기능 위치
+- `privacy-export.php`: 회원 개인정보 내보내기 확장
+- `sitemap.php`: SEO sitemap URL 확장
 
 ## Output Slots
 
@@ -468,7 +479,24 @@ view는 표시 담당입니다. 보안상 중요한 판단과 상태 변경은 a
 
 `install.sql`은 모듈이 소유한 테이블과 초기 데이터 구조를 만드는 SQL 파일입니다. 코어는 모듈 내부 테이블 구조를 직접 만들지 않고, 설치 과정에서 해당 모듈의 `install.sql`을 명시적으로 실행합니다.
 
-설치 SQL은 가능한 한 일반적인 MySQL/MariaDB 문법을 사용하고, 저가형 웹호스팅에서 실행 가능한 크기로 유지합니다.
+설치 SQL은 가능한 한 일반적인 MySQL/MariaDB 문법을 사용하고, 저가형 웹호스팅에서 실행 가능한 크기로 유지합니다. 초기 데이터는 재시도해도 같은 상태가 되도록 `INSERT ... ON DUPLICATE KEY UPDATE` 또는 동등한 idempotent 패턴을 사용합니다.
+
+### `updates/`
+
+`updates/` 디렉터리는 이미 설치된 모듈의 구조나 기본 데이터를 버전별로 보정하는 SQL 파일을 둡니다.
+
+```text
+modules/{module_key}/updates/2026.04.002.sql
+```
+
+업데이트 SQL 규칙:
+
+- 파일명은 모듈 버전과 맞추기 쉬운 `YYYY.MM.NNN.sql` 형식을 사용합니다.
+- 한 파일은 한 버전의 변경만 담고, 가능한 작고 재시도하기 쉽게 유지합니다.
+- unique key를 추가하기 전에는 중복 데이터를 먼저 정리하거나 운영자가 처리해야 할 복구 절차를 문서화합니다.
+- 기본 seed 보정은 `ON DUPLICATE KEY UPDATE` 같은 재실행 안전 패턴을 사용합니다.
+- 업데이트 파일을 추가하면 `module.php`의 `version`도 함께 올립니다.
+- 기본 설치 화면에 포함된 선택 모듈이면 `core/actions/install.php`의 기본 설치 버전도 맞춥니다.
 
 ## 모듈 키
 
@@ -514,7 +542,7 @@ $loginIdentifier = toy_module_setting($pdo, 'member', 'login_identifier', 'email
 
 이 helper는 요청 단위로 값을 메모리에 보관하지만, 파일 캐시나 외부 캐시 서버를 필수로 요구하지 않습니다.
 
-설치 SQL은 가능한 한 일반적인 MySQL/MariaDB 문법을 사용합니다.
+설치 SQL은 가능한 한 일반적인 MySQL/MariaDB 문법을 사용합니다. 기본 메뉴, 기본 배너 위치, 기본 알림 템플릿처럼 초기 데이터를 함께 넣는 모듈은 재설치나 중간 실패 후 재시도에서도 중복이 생기지 않게 unique key와 idempotent insert를 같이 설계합니다.
 
 ```sql
 CREATE TABLE IF NOT EXISTS toy_member_accounts (
@@ -556,6 +584,8 @@ return function (PDO $pdo, int $accountId): array {
 ```
 
 회원 모듈은 활성 모듈의 `privacy-export.php`만 명시적으로 include하고, 반환값을 `module_exports.{module_key}` 아래에 넣습니다. 확장 모듈은 회원 테이블에 도메인 컬럼을 추가하지 않고 `account_id`로 자기 테이블의 데이터를 조회합니다.
+
+공용 알림처럼 하나의 원본 레코드를 여러 회원이 공유하는 모듈은 내보내기에서 다른 회원의 수신자, 읽음 상태, 전달 로그가 섞이지 않도록 계정별 delivery/read 데이터만 포함합니다. 전역 공지 원문처럼 특정 회원에게 귀속되지 않는 값은 개인정보가 아닌 범위에서만 포함합니다.
 
 ## Sitemap 확장
 
