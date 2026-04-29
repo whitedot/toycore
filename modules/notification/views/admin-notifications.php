@@ -80,6 +80,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>상태</th>
                     <th>생성자</th>
                     <th>생성일</th>
+                    <th>관리</th>
                 </tr>
             </thead>
             <tbody>
@@ -91,6 +92,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $notification['status']); ?></td>
                         <td><?php echo toy_e((string) ($notification['created_by_account_id'] ?? '')); ?></td>
                         <td><?php echo toy_e((string) $notification['created_at']); ?></td>
+                        <td>
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/notifications')); ?>" style="display:inline">
+                                <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="delete_notification">
+                                <input type="hidden" name="notification_id" value="<?php echo toy_e((string) $notification['id']); ?>">
+                                <button type="submit">삭제</button>
+                            </form>
+                        </td>
                     </tr>
                 <?php } ?>
             </tbody>

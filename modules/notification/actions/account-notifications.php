@@ -10,9 +10,39 @@ $notice = '';
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
+    $intent = toy_post_string('intent', 40);
     $notificationId = (int) toy_post_string('notification_id', 20);
 
-    if ($notificationId > 0) {
+    if ($intent === 'mark_all_read') {
+        $now = toy_now();
+
+        $stmt = $pdo->prepare(
+            "UPDATE toy_notifications
+             SET read_at = :read_at, status = :status, updated_at = :updated_at
+             WHERE account_id = :account_id AND read_at IS NULL"
+        );
+        $stmt->execute([
+            'read_at' => $now,
+            'status' => 'read',
+            'updated_at' => $now,
+            'account_id' => (int) $account['id'],
+        ]);
+
+        $stmt = $pdo->prepare(
+            "INSERT INTO toy_notification_reads (notification_id, account_id, read_at)
+             SELECT n.id, :account_id, :read_at
+             FROM toy_notifications n
+             LEFT JOIN toy_notification_reads r ON r.notification_id = n.id AND r.account_id = :read_account_id
+             WHERE n.audience = 'all' AND r.id IS NULL"
+        );
+        $stmt->execute([
+            'account_id' => (int) $account['id'],
+            'read_at' => $now,
+            'read_account_id' => (int) $account['id'],
+        ]);
+
+        $notice = '모든 알림을 읽음 처리했습니다.';
+    } elseif ($notificationId > 0) {
         $now = toy_now();
         $stmt = $pdo->prepare(
             "SELECT id, audience

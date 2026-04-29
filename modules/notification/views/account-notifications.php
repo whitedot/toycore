@@ -27,6 +27,11 @@ $seo = [
         <?php if ($notifications === []) { ?>
             <p>알림이 없습니다.</p>
         <?php } else { ?>
+            <form method="post" action="<?php echo toy_e(toy_url('/account/notifications')); ?>">
+                <?php echo toy_csrf_field(); ?>
+                <input type="hidden" name="intent" value="mark_all_read">
+                <button type="submit">모두 읽음</button>
+            </form>
             <table>
                 <thead>
                     <tr>
@@ -54,6 +59,7 @@ $seo = [
                                 <?php if ($notification['read_at'] === null) { ?>
                                     <form method="post" action="<?php echo toy_e(toy_url('/account/notifications')); ?>">
                                         <?php echo toy_csrf_field(); ?>
+                                        <input type="hidden" name="intent" value="mark_read">
                                         <input type="hidden" name="notification_id" value="<?php echo toy_e((string) $notification['id']); ?>">
                                         <button type="submit">읽음</button>
                                     </form>

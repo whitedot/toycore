@@ -34,8 +34,9 @@
 - `toy_notification_reads`에 전체 공지형 알림의 회원별 읽음 상태를 저장한다.
 - `toy_notification_deliveries`에 `site`, `email`, `sms`, `alimtalk` 채널별 발송 상태를 저장한다.
 - 관리자 화면 `/admin/notifications`에서 알림을 등록하고 대기열을 확인한다.
+- 관리자 화면에서 알림 삭제 시 발송 대기열과 읽음 기록을 같은 트랜잭션에서 삭제한다.
 - 실제 provider 연동 전에도 발송 대기열 상태를 수동으로 `sent`, `failed`, `canceled` 등으로 기록할 수 있다.
-- 회원 화면 `/account/notifications`에서 사이트 내 알림을 확인하고 읽음 처리한다.
+- 회원 화면 `/account/notifications`에서 사이트 내 알림을 확인하고 개별/전체 읽음 처리한다.
 - 회원 개인정보 JSON 내보내기에서 알림, 읽음 상태, 발송 대기열 데이터를 함께 제공한다.
 - 관리자 보관 정리 화면에서 오래된 알림, 발송 대기열, 읽음 기록을 정리한다.
 

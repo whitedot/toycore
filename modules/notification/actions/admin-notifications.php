@@ -20,7 +20,62 @@ if (toy_request_method() === 'POST') {
 
     $intent = toy_post_string('intent', 40);
 
-    if ($intent === 'delivery_status') {
+    if ($intent === 'delete_notification') {
+        $notificationId = (int) toy_post_string('notification_id', 20);
+
+        if ($notificationId <= 0) {
+            $errors[] = '삭제할 알림을 찾을 수 없습니다.';
+        }
+
+        if ($errors === []) {
+            $stmt = $pdo->prepare('SELECT id FROM toy_notifications WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $notificationId]);
+            if (!is_array($stmt->fetch())) {
+                $errors[] = '삭제할 알림을 찾을 수 없습니다.';
+            }
+        }
+
+        if ($errors === []) {
+            try {
+                $pdo->beginTransaction();
+
+                $stmt = $pdo->prepare('DELETE FROM toy_notification_deliveries WHERE notification_id = :notification_id');
+                $stmt->execute(['notification_id' => $notificationId]);
+                $deletedDeliveries = $stmt->rowCount();
+
+                $stmt = $pdo->prepare('DELETE FROM toy_notification_reads WHERE notification_id = :notification_id');
+                $stmt->execute(['notification_id' => $notificationId]);
+                $deletedReads = $stmt->rowCount();
+
+                $stmt = $pdo->prepare('DELETE FROM toy_notifications WHERE id = :id');
+                $stmt->execute(['id' => $notificationId]);
+
+                $pdo->commit();
+
+                toy_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'notification.deleted',
+                    'target_type' => 'notification',
+                    'target_id' => (string) $notificationId,
+                    'result' => 'success',
+                    'message' => 'Notification deleted.',
+                    'metadata' => [
+                        'deleted_deliveries' => $deletedDeliveries,
+                        'deleted_reads' => $deletedReads,
+                    ],
+                ]);
+
+                $notice = '알림을 삭제했습니다.';
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+                $errors[] = '알림 삭제 중 오류가 발생했습니다.';
+            }
+        }
+    } elseif ($intent === 'delivery_status') {
         $deliveryId = (int) toy_post_string('delivery_id', 20);
         $status = toy_post_string('status', 30);
         $providerMessageId = toy_notification_clean_single_line(toy_post_string('provider_message_id', 120), 120);
