@@ -11,6 +11,7 @@
 | `implemented-features.md` | 기능 목록 | 사용자 관점에서 확인 가능한 구현 기능 |
 | `module-guide.md` | 작성 규칙 | 모듈/플러그인 작성 방식과 파일 역할 |
 | `module-repository-strategy.md` | 배포 전략 | 모듈을 별도 리포지토리에서 관리할 때의 구조와 전환 기준 |
+| `module-update-and-source-plan.md` | 모듈 운영 | 모듈 설치 소스, zip 업로드, repository 가져오기, 업데이트 보완 계획 |
 | `database-access-policy.md` | DB 접근 규약 | PDO 사용, prepared statement, raw SQL 허용 범위 |
 
 ## 설계 문서

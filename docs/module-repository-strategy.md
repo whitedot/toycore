@@ -68,6 +68,7 @@ git@github.com:whitedot/toycore-module-reward.git
 - 선택 모듈의 원본은 별도 리포지토리의 `module/` 디렉터리다.
 - Toycore 본체 배포 패키지는 `minimal`, `standard`, `ops`로 나눠 생성한다.
 - `standard`와 `ops` 패키지는 외부 모듈 리포지토리의 `module/` 디렉터리를 `modules/{module_key}`로 복사해 조립한다.
+- 설치 소스와 업데이트 보완 계획은 [모듈 설치 소스와 업데이트 보완 계획](module-update-and-source-plan.md)을 따른다.
 
 분리 우선순위가 높다:
 
