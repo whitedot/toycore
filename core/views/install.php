@@ -62,13 +62,24 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
             </section>
         <?php } ?>
 
+        <?php if ($installWarnings !== []) { ?>
+            <section class="toy-install-alert toy-install-alert-warning">
+                <h2>주의 안내</h2>
+                <ul>
+                    <?php foreach ($installWarnings as $warning) { ?>
+                        <li><?php echo toy_e($warning); ?></li>
+                    <?php } ?>
+                </ul>
+            </section>
+        <?php } ?>
+
         <section class="toy-install-panel">
             <div class="toy-install-panel-head">
                 <div>
                     <p class="toy-install-kicker">환경 확인</p>
                     <h2>설치 전 상태</h2>
                 </div>
-                <p>운영 설치에서는 HTTPS와 내부 파일 직접 접근 차단이 필요합니다.</p>
+                <p>테스트 설치는 HTTP로 진행할 수 있지만, 운영 전에는 HTTPS와 내부 파일 직접 접근 차단을 확인하세요.</p>
             </div>
             <div class="toy-install-check-grid">
                 <?php foreach ($installChecks as $check) { ?>
@@ -139,7 +150,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     <p>
                         <label for="base_url">기본 URL</label>
                         <input id="base_url" type="url" name="base_url" value="<?php echo toy_e($values['base_url']); ?>" placeholder="https://example.com">
-                        <span class="toy-install-help">운영 사이트는 HTTPS URL이어야 합니다.</span>
+                        <span class="toy-install-help">테스트 설치는 HTTP도 가능하지만, 운영 사이트는 HTTPS URL을 권장합니다.</span>
                     </p>
                     <p>
                         <label for="timezone">timezone</label>

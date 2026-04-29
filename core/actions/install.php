@@ -215,12 +215,8 @@ if (toy_request_method() === 'POST') {
         $errors[] = '기본 locale은 ko 또는 en-US 같은 형식으로 입력하세요.';
     }
 
-    if ($values['base_url'] !== '') {
-        if (!toy_is_http_url($values['base_url'])) {
-            $errors[] = 'Base URL은 http 또는 https URL이어야 합니다.';
-        } elseif (!toy_is_local_host($values['base_url']) && parse_url($values['base_url'], PHP_URL_SCHEME) !== 'https') {
-            $errors[] = '운영 Base URL은 HTTPS URL이어야 합니다.';
-        }
+    if ($values['base_url'] !== '' && !toy_is_http_url($values['base_url'])) {
+        $errors[] = 'Base URL은 http 또는 https URL이어야 합니다.';
     }
 
     if (strlen($adminPassword) < 8) {
@@ -234,16 +230,12 @@ if (toy_request_method() === 'POST') {
     if ($errors === []) {
         $checkBaseUrl = toy_current_base_url();
         if ($checkBaseUrl !== '' && !toy_is_local_host($checkBaseUrl)) {
-            if (parse_url($checkBaseUrl, PHP_URL_SCHEME) !== 'https') {
-                $errors[] = '운영 설치는 HTTPS URL에서 진행하세요.';
-            } elseif (!toy_is_public_http_url($checkBaseUrl)) {
-                $errors[] = '운영 설치 점검 URL은 공개 라우팅 가능한 host여야 합니다.';
-            }
-
-            $publicFindings = $errors === [] ? toy_public_internal_access_findings($checkBaseUrl) : [];
-            if ($publicFindings !== []) {
-                foreach ($publicFindings as $finding) {
-                    $errors[] = '내부 파일이 웹에서 직접 열립니다: ' . (string) $finding['url'];
+            if (toy_is_public_http_url($checkBaseUrl)) {
+                $publicFindings = toy_public_internal_access_findings($checkBaseUrl);
+                if ($publicFindings !== []) {
+                    foreach ($publicFindings as $finding) {
+                        $errors[] = '내부 파일이 웹에서 직접 열립니다: ' . (string) $finding['url'];
+                    }
                 }
             }
         }
@@ -422,5 +414,32 @@ if (toy_request_method() === 'POST') {
         }
     }
 }
+
+$installWarnings = [];
+if (
+    $currentBaseUrl !== ''
+    && !toy_is_local_host($currentBaseUrl)
+    && parse_url($currentBaseUrl, PHP_URL_SCHEME) !== 'https'
+) {
+    $installWarnings['current_http'] = '현재 설치 URL이 HTTP입니다. 테스트 설치는 진행할 수 있지만, 실제 운영 전에는 HTTPS로 전환하세요.';
+}
+
+if (
+    $values['base_url'] !== ''
+    && toy_is_http_url($values['base_url'])
+    && !toy_is_local_host($values['base_url'])
+    && parse_url($values['base_url'], PHP_URL_SCHEME) !== 'https'
+) {
+    $installWarnings['base_url_http'] = '기본 URL이 HTTP입니다. 임시 테스트에는 사용할 수 있지만, 로그인과 관리자 기능을 운영하려면 HTTPS URL을 권장합니다.';
+}
+
+if (
+    $currentBaseUrl !== ''
+    && !toy_is_local_host($currentBaseUrl)
+    && !toy_is_public_http_url($currentBaseUrl)
+) {
+    $installWarnings['internal_check_skipped'] = '현재 설치 URL이 공개 라우팅 가능한 host가 아니어서 내부 파일 직접 접근 자동 점검을 생략합니다.';
+}
+$installWarnings = array_values($installWarnings);
 
 include TOY_ROOT . '/core/views/install.php';
