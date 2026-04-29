@@ -10,11 +10,12 @@ Toycore의 모듈은 프레임워크 패키지가 아닙니다.
 modules/{module_key}/
 - module.php
 - paths.php
+- admin-menu.php (optional)
 - actions/
 - views/
 - lang/
 - install.sql
-- sitemap.php
+- sitemap.php (optional)
 ```
 
 ## 모듈과 플러그인
@@ -58,6 +59,31 @@ return [
 - 계약 파일은 실행 흐름을 만들지 않고 배열 또는 callable만 반환합니다.
 - 소비 모듈은 `toy_enabled_module_contract_files()`로 활성 모듈의 계약 파일 목록을 얻은 뒤 직접 검증하고 읽습니다.
 - 계약 파일을 제공하는 모듈은 자기 도메인의 공개 가능한 정보만 선언합니다.
+
+## Admin Menu
+
+관리자 공통 레이아웃은 활성 모듈의 `admin-menu.php`를 읽어 모듈별 관리자 메뉴를 표시할 수 있습니다.
+
+`admin-menu.php`는 화면을 등록하거나 실행하지 않습니다. 메뉴에 표시할 label/path/order만 반환하고, 실제 요청 처리는 같은 모듈의 `paths.php`, `actions/`, `views/`가 소유합니다.
+
+```php
+<?php
+
+return [
+    [
+        'label' => '포인트',
+        'path' => '/admin/points',
+        'order' => 40,
+    ],
+];
+```
+
+규칙:
+
+- `path`는 `/admin/...` 아래 경로만 사용합니다.
+- `path`는 같은 모듈의 `paths.php`에 선언된 관리자 경로와 일치해야 합니다.
+- 메뉴 노출은 admin 모듈이 조정하지만, 권한 검사와 상태 변경 처리는 소유 모듈 action에서 수행합니다.
+- admin 모듈은 도메인 모듈의 메뉴 label/path를 하드코딩하지 않습니다.
 
 ## Extension Points
 
@@ -582,6 +608,18 @@ action 파일은 다음 원칙을 지킵니다.
 - 상태 변경 요청은 처리 전에 CSRF 검증
 - view include 전에 출력에 필요한 변수 준비
 - 오류 메시지는 민감 정보를 포함하지 않도록 제한
+
+## DB 접근
+
+모듈 action/helper는 코어가 전달한 `PDO` 인스턴스를 사용합니다.
+
+규칙:
+
+- 동적 값은 `PDO::prepare()`와 named placeholder로 바인딩
+- `PDO::query()`는 외부 값이 섞이지 않는 고정 SQL에만 사용
+- `PDO::exec()`는 설치/업데이트 SQL 파일 같은 정적 SQL 실행에만 사용
+- 테이블명, 컬럼명, 정렬 방향은 사용자 입력을 그대로 쓰지 않고 허용 목록에서 선택
+- 자세한 기준은 [DB 접근 정책](database-access-policy.md)을 따름
 
 ## View 작성
 

@@ -196,6 +196,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 회원별 잔액 테이블 제공
 - 회원별 거래 원장 테이블 제공
 - 관리자 수동 지급/차감 화면 제공
+- 각 모듈의 `admin-menu.php` 기반 관리자 메뉴 제공
 - 거래 후 잔액 기록
 - 잔액 음수 방지
 - 거래 사유와 참조 유형/ID 기록
@@ -278,8 +279,6 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `POST /admin/settings`
 - `GET /admin/modules`
 - `POST /admin/modules`
-- `GET /admin/member-settings`
-- `POST /admin/member-settings`
 - `GET /admin/updates`
 - `POST /admin/updates`
 - `GET /admin/members`
@@ -292,6 +291,14 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `POST /admin/privacy-requests/export`
 - `GET /admin/retention`
 - `POST /admin/retention`
+
+### 회원 관리자 경로
+
+- `GET /admin/member-settings`
+- `POST /admin/member-settings`
+
+### 포인트, 예치금, 적립금 관리자 경로
+
 - `GET /admin/points`
 - `POST /admin/points`
 - `GET /admin/deposits`

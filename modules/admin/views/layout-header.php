@@ -5,13 +5,7 @@ $seo = [
     'title' => $adminPageTitle,
     'robots' => 'noindex, nofollow',
 ];
-$adminEnabledModules = isset($pdo) && $pdo instanceof PDO ? toy_enabled_module_keys($pdo) : [];
-$adminMemberEnabled = in_array('member', $adminEnabledModules, true);
-$adminSeoEnabled = in_array('seo', $adminEnabledModules, true);
-$adminPopupLayerEnabled = in_array('popup_layer', $adminEnabledModules, true);
-$adminPointEnabled = in_array('point', $adminEnabledModules, true);
-$adminDepositEnabled = in_array('deposit', $adminEnabledModules, true);
-$adminRewardEnabled = in_array('reward', $adminEnabledModules, true);
+$adminModuleMenuItems = isset($pdo) && $pdo instanceof PDO ? toy_admin_module_menu_items($pdo) : [];
 ?>
 <!doctype html>
 <html lang="<?php echo toy_e(toy_locale()); ?>">
@@ -28,26 +22,11 @@ $adminRewardEnabled = in_array('reward', $adminEnabledModules, true);
             <a href="/admin">대시보드</a>
             <a href="/admin/settings">설정</a>
             <a href="/admin/modules">모듈</a>
-            <?php if ($adminSeoEnabled) { ?>
-                <a href="/admin/seo">SEO</a>
-            <?php } ?>
-            <?php if ($adminPopupLayerEnabled) { ?>
-                <a href="/admin/popup-layers">팝업레이어</a>
-            <?php } ?>
-            <?php if ($adminPointEnabled) { ?>
-                <a href="/admin/points">포인트</a>
-            <?php } ?>
-            <?php if ($adminDepositEnabled) { ?>
-                <a href="/admin/deposits">예치금</a>
-            <?php } ?>
-            <?php if ($adminRewardEnabled) { ?>
-                <a href="/admin/rewards">적립금</a>
+            <?php foreach ($adminModuleMenuItems as $adminModuleMenuItem) { ?>
+                <a href="<?php echo toy_e($adminModuleMenuItem['path']); ?>"><?php echo toy_e($adminModuleMenuItem['label']); ?></a>
             <?php } ?>
             <a href="/admin/updates">업데이트</a>
             <a href="/admin/members">회원</a>
-            <?php if ($adminMemberEnabled) { ?>
-                <a href="/admin/member-settings">회원 설정</a>
-            <?php } ?>
             <a href="/admin/roles">권한</a>
             <a href="/admin/audit-logs">감사 로그</a>
             <a href="/admin/privacy-requests">개인정보 요청</a>

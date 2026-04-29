@@ -158,6 +158,7 @@ module -> point -> slot -> subject
 
 - [문서 분류](docs/documentation-index.md)
 - [기본환경 테이블 ERD](docs/erd-basic-environment.md)
+- [DB 접근 정책](docs/database-access-policy.md)
 - [구현된 기능 리스트](docs/implemented-features.md)
 - [구현 방향 및 보안 계획](docs/implementation-security-plan.md)
 - [핵심 설계 결정](docs/core-decisions.md)

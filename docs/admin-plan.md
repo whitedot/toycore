@@ -130,6 +130,8 @@ return [
 
 각 모듈이 제공하는 전용 관리자 화면은 소유 모듈의 `paths.php`에 둡니다. 예를 들어 회원 설정은 `member` 모듈의 `/admin/member-settings`, 팝업레이어 관리는 `popup_layer` 모듈의 `/admin/popup-layers`가 담당합니다.
 
+관리자 공통 레이아웃은 활성 모듈의 `admin-menu.php`를 읽어 모듈별 관리자 메뉴를 노출합니다. `admin` 모듈은 메뉴 표시를 조정할 뿐, 포인트/예치금/적립금 같은 도메인 화면의 action/view나 정책을 직접 소유하지 않습니다.
+
 ## 관리자 접근 흐름
 
 ```text
