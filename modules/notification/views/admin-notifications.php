@@ -116,7 +116,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>ID</th>
                     <th>대상</th>
                     <th>상태</th>
-                    <th>생성자</th>
                     <th>생성일</th>
                     <th>관리</th>
                 </tr>
@@ -127,7 +126,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $notification['id']); ?></td>
                         <td><?php echo toy_e((string) $notification['audience']); ?></td>
                         <td><?php echo toy_e((string) $notification['status']); ?></td>
-                        <td><?php echo toy_e((string) ($notification['created_by_account_id'] ?? '')); ?></td>
                         <td><?php echo toy_e((string) $notification['created_at']); ?></td>
                         <td>
                             <form method="post" action="<?php echo toy_e(toy_url('/admin/notifications')); ?>" style="display:inline">
