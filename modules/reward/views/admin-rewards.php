@@ -18,7 +18,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>회원 조회</h2>
-    <form method="get" action="/admin/rewards">
+    <form method="get" action="<?php echo toy_e(toy_url('/admin/rewards')); ?>">
         <label>회원 ID<br>
             <input type="number" name="account_id" value="<?php echo $accountIdFilter > 0 ? toy_e((string) $accountIdFilter) : ''; ?>" min="1">
         </label>
@@ -38,7 +38,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>적립금 조정</h2>
-    <form method="post" action="/admin/rewards<?php echo $accountIdFilter > 0 ? '?account_id=' . toy_e((string) $accountIdFilter) : ''; ?>">
+    <form method="post" action="<?php echo toy_e(toy_url('/admin/rewards' . ($accountIdFilter > 0 ? '?account_id=' . (string) $accountIdFilter : ''))); ?>">
         <?php echo toy_csrf_field(); ?>
         <p>
             <label>회원 ID<br>
@@ -96,7 +96,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php foreach ($balances as $balance) { ?>
                     <tr>
-                        <td><a href="/admin/rewards?account_id=<?php echo toy_e((string) $balance['account_id']); ?>"><?php echo toy_e((string) $balance['account_id']); ?></a></td>
+                        <td><a href="<?php echo toy_e(toy_url('/admin/rewards?account_id=' . (string) $balance['account_id'])); ?>"><?php echo toy_e((string) $balance['account_id']); ?></a></td>
                         <td><?php echo toy_e((string) $balance['display_name']); ?><br><?php echo toy_e((string) $balance['email']); ?></td>
                         <td><?php echo toy_e((string) $balance['status']); ?></td>
                         <td><?php echo toy_e(number_format((int) $balance['balance'])); ?> 원</td>

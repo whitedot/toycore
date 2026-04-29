@@ -16,7 +16,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<form method="post" action="/admin/retention">
+<form method="post" action="<?php echo toy_e(toy_url('/admin/retention')); ?>">
     <?php echo toy_csrf_field(); ?>
     <p>
         <label>인증 로그 보관일<br>

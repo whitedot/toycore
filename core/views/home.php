@@ -31,7 +31,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
     <main>
         <h1><?php echo toy_e($pageTitle); ?></h1>
         <p>Toycore MVP가 설치되었습니다.</p>
-        <p><a href="/admin">관리자 화면</a></p>
+        <p><a href="<?php echo toy_e(toy_url('/admin')); ?>">관리자 화면</a></p>
     </main>
 </body>
 </html>

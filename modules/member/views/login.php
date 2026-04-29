@@ -35,7 +35,7 @@ $identifierLabel = ((string) ($memberSettings['login_identifier'] ?? 'email') ==
             </ul>
         <?php } ?>
 
-        <form method="post" action="/login">
+        <form method="post" action="<?php echo toy_e(toy_url('/login')); ?>">
             <?php echo toy_csrf_field(); ?>
             <input type="hidden" name="next" value="<?php echo toy_e($next); ?>">
             <p>
@@ -51,8 +51,8 @@ $identifierLabel = ((string) ($memberSettings['login_identifier'] ?? 'email') ==
             <button type="submit">로그인</button>
         </form>
 
-        <p><a href="/register">회원가입</a></p>
-        <p><a href="/password/reset">비밀번호 재설정</a></p>
+        <p><a href="<?php echo toy_e(toy_url('/register')); ?>">회원가입</a></p>
+        <p><a href="<?php echo toy_e(toy_url('/password/reset')); ?>">비밀번호 재설정</a></p>
     </main>
 </body>
 </html>

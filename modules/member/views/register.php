@@ -35,7 +35,7 @@ if ($popupLayerEnabled) {
         <?php } ?>
 
         <?php if ($registrationAllowed) { ?>
-            <form method="post" action="/register">
+            <form method="post" action="<?php echo toy_e(toy_url('/register')); ?>">
                 <?php echo toy_csrf_field(); ?>
                 <p>
                     <label>이메일<br>
@@ -75,7 +75,7 @@ if ($popupLayerEnabled) {
             <p>현재 회원가입을 사용할 수 없습니다.</p>
         <?php } ?>
 
-        <p><a href="/login">로그인</a></p>
+        <p><a href="<?php echo toy_e(toy_url('/login')); ?>">로그인</a></p>
     </main>
 </body>
 </html>

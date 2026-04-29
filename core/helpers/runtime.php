@@ -5,6 +5,8 @@ declare(strict_types=1);
 function toy_start_session(): void
 {
     if (session_status() === PHP_SESSION_NONE) {
+        $cookiePath = toy_base_path();
+        $cookiePath = $cookiePath === '' ? '/' : $cookiePath;
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
         ini_set('session.cookie_httponly', '1');
@@ -12,7 +14,7 @@ function toy_start_session(): void
         session_name('toy_session');
         session_set_cookie_params([
             'lifetime' => 0,
-            'path' => '/',
+            'path' => $cookiePath,
             'httponly' => true,
             'secure' => !empty($_SERVER['HTTPS']),
             'samesite' => 'Lax',
@@ -55,7 +57,7 @@ function toy_current_base_url(): string
         return '';
     }
 
-    return (toy_is_https_request() ? 'https://' : 'http://') . $host;
+    return (toy_is_https_request() ? 'https://' : 'http://') . $host . toy_base_path();
 }
 
 function toy_is_local_host(string $baseUrl): bool
@@ -138,7 +140,25 @@ function toy_request_path(): string
     }
 
     $path = '/' . trim($path, '/');
+    $basePath = toy_base_path();
+    if ($basePath !== '' && ($path === $basePath || str_starts_with($path, $basePath . '/'))) {
+        $path = substr($path, strlen($basePath));
+        $path = is_string($path) && $path !== '' ? $path : '/';
+    }
+
     return $path === '/' ? '/' : $path;
+}
+
+function toy_base_path(): string
+{
+    $scriptName = (string) ($_SERVER['SCRIPT_NAME'] ?? '');
+    if ($scriptName === '' || preg_match('/[\x00-\x1F\x7F]/', $scriptName) === 1) {
+        return '';
+    }
+
+    $basePath = str_replace('\\', '/', dirname($scriptName));
+    $basePath = '/' . trim($basePath, '/');
+    return $basePath === '/' ? '' : $basePath;
 }
 
 function toy_is_installed(): bool

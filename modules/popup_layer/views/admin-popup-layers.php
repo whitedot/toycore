@@ -27,7 +27,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <?php if ($availableTargets === []) { ?>
         <p>팝업을 노출할 수 있는 모듈 계약 파일이 없습니다.</p>
     <?php } else { ?>
-        <form method="post" action="/admin/popup-layers">
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/popup-layers')); ?>">
             <?php echo toy_csrf_field(); ?>
             <input type="hidden" name="intent" value="save">
             <input type="hidden" name="popup_id" value="<?php echo $editing ? toy_e((string) $editPopup['id']) : '0'; ?>">
@@ -100,7 +100,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </p>
             <button type="submit">저장</button>
             <?php if ($editing) { ?>
-                <a href="/admin/popup-layers">새 팝업 추가</a>
+                <a href="<?php echo toy_e(toy_url('/admin/popup-layers')); ?>">새 팝업 추가</a>
             <?php } ?>
         </form>
     <?php } ?>
@@ -139,8 +139,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $popup['dismiss_cookie_days']); ?></td>
                         <td><?php echo toy_e((string) $popup['updated_at']); ?></td>
                         <td>
-                            <a href="/admin/popup-layers?edit_id=<?php echo toy_e((string) $popup['id']); ?>">수정</a>
-                            <form method="post" action="/admin/popup-layers" style="display:inline">
+        <a href="<?php echo toy_e(toy_url('/admin/popup-layers?edit_id=' . (string) $popup['id'])); ?>">수정</a>
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/popup-layers')); ?>" style="display:inline">
                                 <?php echo toy_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="delete">
                                 <input type="hidden" name="popup_id" value="<?php echo toy_e((string) $popup['id']); ?>">

@@ -83,7 +83,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
             </div>
         </section>
 
-        <form method="post" action="/" class="toy-install-form">
+        <form method="post" action="<?php echo toy_e(toy_url('/')); ?>" class="toy-install-form">
             <?php echo toy_csrf_field(); ?>
 
             <section class="toy-install-panel">
@@ -153,8 +153,13 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     </p>
                     <p>
                         <label for="default_locale">기본 locale</label>
-                        <input id="default_locale" type="text" name="default_locale" value="<?php echo toy_e($values['default_locale']); ?>" required>
-                        <span class="toy-install-help">예: ko, en-US</span>
+                        <select id="default_locale" name="default_locale" required>
+                            <?php foreach ($localeOptions as $localeOption) { ?>
+                                <option value="<?php echo toy_e($localeOption); ?>"<?php echo $values['default_locale'] === $localeOption ? ' selected' : ''; ?>>
+                                    <?php echo toy_e($localeOption); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
                     </p>
                 </div>
             </section>
@@ -169,20 +174,6 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                 </div>
 
                 <div class="toy-install-field-grid">
-                    <div class="toy-install-field-wide">
-                        <span class="toy-install-label">로그인 방식</span>
-                        <div class="toy-install-choice-row">
-                            <label>
-                                <input type="radio" name="admin_identifier_type" value="email"<?php echo $values['admin_identifier_type'] === 'email' ? ' checked' : ''; ?>>
-                                이메일로 로그인
-                            </label>
-                            <label>
-                                <input type="radio" name="admin_identifier_type" value="login_id"<?php echo $values['admin_identifier_type'] === 'login_id' ? ' checked' : ''; ?>>
-                                아이디로 로그인
-                            </label>
-                        </div>
-                        <span class="toy-install-help">아이디를 선택해도 이메일은 비밀번호 재설정과 계정 안내를 위해 필요합니다.</span>
-                    </div>
                     <p>
                         <label for="admin_email">이메일</label>
                         <input id="admin_email" type="email" name="admin_email" value="<?php echo toy_e($values['admin_email']); ?>" autocomplete="email" required>
@@ -190,11 +181,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     <p>
                         <label for="admin_login_id">로그인 아이디</label>
                         <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo toy_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
-                        <span class="toy-install-help">아이디 로그인 선택 시 사용합니다. 예: admin, site_admin</span>
-                    </p>
-                    <p>
-                        <label for="admin_display_name">표시 이름</label>
-                        <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo toy_e($values['admin_display_name']); ?>" required>
+                        <span class="toy-install-help">비우면 이메일로 로그인하고, 입력하면 이 아이디로 로그인합니다. 예: admin, site_admin</span>
                     </p>
                     <p>
                         <label for="admin_password">비밀번호</label>
@@ -204,6 +191,10 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     <p>
                         <label for="admin_password_confirm">비밀번호 확인</label>
                         <input id="admin_password_confirm" type="password" name="admin_password_confirm" autocomplete="new-password" minlength="8" required>
+                    </p>
+                    <p>
+                        <label for="admin_display_name">표시 이름</label>
+                        <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo toy_e($values['admin_display_name']); ?>" required>
                     </p>
                 </div>
             </section>

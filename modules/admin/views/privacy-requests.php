@@ -16,7 +16,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<form method="get" action="/admin/privacy-requests">
+<form method="get" action="<?php echo toy_e(toy_url('/admin/privacy-requests')); ?>">
     <label>상태<br>
         <select name="status">
             <option value="">전체</option>
@@ -59,12 +59,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) ($request['request_message'] ?? '')); ?></td>
                 <td><?php echo toy_e((string) ($request['handled_at'] ?? '')); ?></td>
                 <td>
-                    <form method="post" action="/admin/privacy-requests/export">
+                    <form method="post" action="<?php echo toy_e(toy_url('/admin/privacy-requests/export')); ?>">
                         <?php echo toy_csrf_field(); ?>
                         <input type="hidden" name="id" value="<?php echo toy_e((string) $request['id']); ?>">
                         <button type="submit">JSON</button>
                     </form>
-                    <form method="post" action="/admin/privacy-requests">
+                    <form method="post" action="<?php echo toy_e(toy_url('/admin/privacy-requests')); ?>">
                         <?php echo toy_csrf_field(); ?>
                         <input type="hidden" name="request_id" value="<?php echo toy_e((string) $request['id']); ?>">
                         <select name="status">

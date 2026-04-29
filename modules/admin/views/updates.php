@@ -42,7 +42,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
 
-        <form method="post" action="/admin/updates">
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/updates')); ?>">
             <?php echo toy_csrf_field(); ?>
             <p>
                 <label>

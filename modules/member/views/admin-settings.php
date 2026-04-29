@@ -16,7 +16,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<form method="post" action="/admin/member-settings">
+<form method="post" action="<?php echo toy_e(toy_url('/admin/member-settings')); ?>">
     <?php echo toy_csrf_field(); ?>
 
     <section>

@@ -16,7 +16,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<form method="post" action="/admin/seo">
+<form method="post" action="<?php echo toy_e(toy_url('/admin/seo')); ?>">
     <?php echo toy_csrf_field(); ?>
 
     <section>
@@ -47,7 +47,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <?php if ($sitemapUrl !== '') { ?>
-            <p><a href="/sitemap.xml">sitemap.xml 확인</a></p>
+            <p><a href="<?php echo toy_e(toy_url('/sitemap.xml')); ?>">sitemap.xml 확인</a></p>
         <?php } ?>
     </section>
 
@@ -59,7 +59,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <pre><?php echo toy_e($robotsPreview); ?></pre>
-        <p><a href="/robots.txt">robots.txt 확인</a></p>
+        <p><a href="<?php echo toy_e(toy_url('/robots.txt')); ?>">robots.txt 확인</a></p>
     </section>
 
     <button type="submit">저장</button>

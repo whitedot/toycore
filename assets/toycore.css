@@ -326,37 +326,9 @@ dd {
     font-weight: 700;
 }
 
-.toy-install-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 700;
-}
-
-.toy-install-field-wide {
-    grid-column: 1 / -1;
-}
-
-.toy-install-choice-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 18px;
-}
-
-.toy-install-choice-row label {
-    display: inline-flex;
-    gap: 6px;
-    align-items: center;
-    margin: 0;
-    font-weight: 400;
-}
-
 .toy-install-field-grid input,
 .toy-install-field-grid select {
     width: 100%;
-}
-
-.toy-install-choice-row input {
-    width: auto;
 }
 
 .toy-install-help {

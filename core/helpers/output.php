@@ -118,7 +118,21 @@ function toy_e(?string $value): string
 
 function toy_stylesheet_tag(): string
 {
-    return '<link rel="stylesheet" href="/assets/toycore.css">';
+    return '<link rel="stylesheet" href="' . toy_e(toy_url('/assets/toycore.css')) . '">';
+}
+
+function toy_url(string $path): string
+{
+    if (!toy_is_safe_relative_url($path)) {
+        return toy_base_path() === '' ? '/' : toy_base_path() . '/';
+    }
+
+    $basePath = toy_base_path();
+    if ($basePath === '' || $path === $basePath || str_starts_with($path, $basePath . '/')) {
+        return $path;
+    }
+
+    return $basePath . $path;
 }
 
 function toy_canonical_url(?array $site, ?string $path = null): string
@@ -198,6 +212,10 @@ function toy_redirect(string $url): void
         exit;
     }
 
+    if (toy_is_safe_relative_url($url)) {
+        $url = toy_url($url);
+    }
+
     header('Location: ' . $url, true, 302);
     exit;
 }
@@ -270,7 +288,7 @@ function toy_absolute_url(?array $site, string $path): string
 {
     $baseUrl = is_array($site) ? rtrim((string) ($site['base_url'] ?? ''), '/') : '';
     if ($baseUrl === '' || !toy_is_http_url($baseUrl)) {
-        return $path;
+        return toy_url($path);
     }
 
     return $baseUrl . '/' . ltrim($path, '/');

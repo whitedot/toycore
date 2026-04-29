@@ -4,7 +4,7 @@ $adminPageTitle = '감사 로그';
 include TOY_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<form method="get" action="/admin/audit-logs">
+<form method="get" action="<?php echo toy_e(toy_url('/admin/audit-logs')); ?>">
     <p>
         <label>이벤트 유형<br>
             <input type="text" name="event_type" value="<?php echo toy_e($filters['event_type']); ?>" maxlength="80">

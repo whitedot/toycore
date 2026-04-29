@@ -36,7 +36,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) $adminAccount['status']); ?></td>
                 <td><?php echo toy_e(implode(', ', $adminAccount['roles'])); ?></td>
                 <td>
-                    <form method="post" action="/admin/roles">
+                    <form method="post" action="<?php echo toy_e(toy_url('/admin/roles')); ?>">
                         <?php echo toy_csrf_field(); ?>
                         <input type="hidden" name="account_id" value="<?php echo toy_e((string) $adminAccount['id']); ?>">
                         <select name="role_key">

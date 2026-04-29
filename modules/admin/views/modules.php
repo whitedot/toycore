@@ -45,7 +45,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) ($module['installed_at'] ?? '')); ?></td>
                 <td><?php echo toy_e((string) ($module['description'] !== '' ? $module['description'] : '-')); ?></td>
                 <td>
-                    <form method="post" action="/admin/modules">
+                    <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
                         <?php echo toy_csrf_field(); ?>
                         <input type="hidden" name="intent" value="status">
                         <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
@@ -89,7 +89,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) ($module['version'] !== '' ? $module['version'] : '-')); ?></td>
                         <td><?php echo toy_e((string) ($module['description'] !== '' ? $module['description'] : '-')); ?></td>
                         <td>
-                            <form method="post" action="/admin/modules">
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
                                 <?php echo toy_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="install">
                                 <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
@@ -112,7 +112,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>모듈 설정 항목</h2>
-    <form method="post" action="/admin/modules">
+    <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
         <?php echo toy_csrf_field(); ?>
         <input type="hidden" name="intent" value="module_setting">
         <p>
@@ -173,7 +173,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <td><?php echo toy_e((string) $setting['value_type']); ?></td>
                     <td><?php echo toy_e((string) $setting['updated_at']); ?></td>
                     <td>
-                        <form method="post" action="/admin/modules">
+                        <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
                             <?php echo toy_csrf_field(); ?>
                             <input type="hidden" name="intent" value="delete_module_setting">
                             <input type="hidden" name="module_key" value="<?php echo toy_e((string) $setting['module_key']); ?>">

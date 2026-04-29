@@ -30,7 +30,7 @@ $seo = [
             </ul>
         <?php } ?>
 
-        <form method="post" action="/account/privacy-requests">
+        <form method="post" action="<?php echo toy_e(toy_url('/account/privacy-requests')); ?>">
             <?php echo toy_csrf_field(); ?>
             <p>
                 <label>요청 유형<br>
@@ -78,7 +78,7 @@ $seo = [
                 <?php } ?>
             </tbody>
         </table>
-        <p><a href="/account">내 계정</a></p>
+        <p><a href="<?php echo toy_e(toy_url('/account')); ?>">내 계정</a></p>
     </main>
 </body>
 </html>

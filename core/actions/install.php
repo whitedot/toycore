@@ -62,7 +62,6 @@ $values = [
     'base_url' => '',
     'timezone' => 'Asia/Seoul',
     'default_locale' => 'ko',
-    'admin_identifier_type' => 'email',
     'admin_login_id' => '',
     'admin_email' => '',
     'admin_display_name' => '관리자',
@@ -123,6 +122,23 @@ $installChecks = [
     ],
 ];
 $timezoneOptions = timezone_identifiers_list();
+$localeOptions = [];
+$langDir = TOY_ROOT . '/lang';
+if (is_dir($langDir)) {
+    foreach (scandir($langDir) ?: [] as $localeDirectory) {
+        if (!is_string($localeDirectory) || preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $localeDirectory) !== 1) {
+            continue;
+        }
+
+        if (is_file($langDir . '/' . $localeDirectory . '/core.php')) {
+            $localeOptions[] = $localeDirectory;
+        }
+    }
+}
+sort($localeOptions);
+if ($localeOptions === []) {
+    $localeOptions = ['ko'];
+}
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
@@ -186,12 +202,8 @@ if (toy_request_method() === 'POST') {
         $errors[] = '관리자 표시 이름을 입력하세요.';
     }
 
-    if (!in_array($values['admin_identifier_type'], ['email', 'login_id'], true)) {
-        $errors[] = '최초 관리자 로그인 방식이 올바르지 않습니다.';
-    }
-
     $values['admin_login_id'] = toy_member_normalize_login_id($values['admin_login_id']);
-    if ($values['admin_identifier_type'] === 'login_id' && !toy_member_is_valid_login_id($values['admin_login_id'])) {
+    if ($values['admin_login_id'] !== '' && !toy_member_is_valid_login_id($values['admin_login_id'])) {
         $errors[] = '관리자 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해 4~40자로 입력하세요.';
     }
 
@@ -357,7 +369,7 @@ if (toy_request_method() === 'POST') {
             $installStage = 'create_owner_account';
             $accountId = toy_member_create_account($pdo, $config, [
                 'email' => $values['admin_email'],
-                'login_id' => $values['admin_identifier_type'] === 'login_id' ? $values['admin_login_id'] : '',
+                'login_id' => $values['admin_login_id'],
                 'password' => $adminPassword,
                 'display_name' => $values['admin_display_name'],
                 'locale' => $values['default_locale'],

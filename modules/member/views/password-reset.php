@@ -20,7 +20,7 @@ $seo = [
 
         <?php if ($notice !== '') { ?>
             <p><?php echo toy_e($notice); ?></p>
-            <p><a href="/login">로그인</a></p>
+            <p><a href="<?php echo toy_e(toy_url('/login')); ?>">로그인</a></p>
         <?php } else { ?>
             <?php if ($errors !== []) { ?>
                 <ul>
@@ -30,7 +30,7 @@ $seo = [
                 </ul>
             <?php } ?>
 
-            <form method="post" action="/password/reset/confirm">
+            <form method="post" action="<?php echo toy_e(toy_url('/password/reset/confirm')); ?>">
                 <?php echo toy_csrf_field(); ?>
                 <input type="hidden" name="token" value="<?php echo toy_e($token); ?>">
                 <p>

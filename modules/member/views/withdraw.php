@@ -26,7 +26,7 @@ $seo = [
             </ul>
         <?php } ?>
 
-        <form method="post" action="/account/withdraw">
+        <form method="post" action="<?php echo toy_e(toy_url('/account/withdraw')); ?>">
             <?php echo toy_csrf_field(); ?>
             <p>
                 <label>비밀번호<br>
@@ -40,7 +40,7 @@ $seo = [
             </p>
             <button type="submit">탈퇴</button>
         </form>
-        <p><a href="/account">내 계정</a></p>
+        <p><a href="<?php echo toy_e(toy_url('/account')); ?>">내 계정</a></p>
     </main>
 </body>
 </html>

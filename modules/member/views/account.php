@@ -42,7 +42,7 @@ $seo = [
 
         <section>
             <h2>계정 정보</h2>
-            <form method="post" action="/account">
+            <form method="post" action="<?php echo toy_e(toy_url('/account')); ?>">
                 <?php echo toy_csrf_field(); ?>
                 <input type="hidden" name="intent" value="basics">
                 <p>
@@ -63,7 +63,7 @@ $seo = [
             <section>
                 <h2>이메일 인증</h2>
                 <?php if ($account['email_verified_at'] === null) { ?>
-                    <form method="post" action="/account/email-verification">
+                    <form method="post" action="<?php echo toy_e(toy_url('/account/email-verification')); ?>">
                         <?php echo toy_csrf_field(); ?>
                         <button type="submit">인증 메일 다시 보내기</button>
                     </form>
@@ -78,7 +78,7 @@ $seo = [
 
         <section>
             <h2>비밀번호 변경</h2>
-            <form method="post" action="/account">
+            <form method="post" action="<?php echo toy_e(toy_url('/account')); ?>">
                 <?php echo toy_csrf_field(); ?>
                 <input type="hidden" name="intent" value="password">
                 <p>
@@ -102,7 +102,7 @@ $seo = [
 
         <section>
             <h2>선택 프로필</h2>
-            <form method="post" action="/account">
+            <form method="post" action="<?php echo toy_e(toy_url('/account')); ?>">
                 <?php echo toy_csrf_field(); ?>
                 <input type="hidden" name="intent" value="profile">
                 <p>
@@ -147,16 +147,16 @@ $seo = [
             <?php } ?>
         </section>
 
-        <form method="post" action="/logout">
+        <form method="post" action="<?php echo toy_e(toy_url('/logout')); ?>">
             <?php echo toy_csrf_field(); ?>
             <button type="submit">로그아웃</button>
         </form>
-        <p><a href="/account/privacy-requests">개인정보 요청</a></p>
-        <form method="post" action="/account/privacy-export">
+        <p><a href="<?php echo toy_e(toy_url('/account/privacy-requests')); ?>">개인정보 요청</a></p>
+        <form method="post" action="<?php echo toy_e(toy_url('/account/privacy-export')); ?>">
             <?php echo toy_csrf_field(); ?>
             <button type="submit">개인정보 JSON 내보내기</button>
         </form>
-        <p><a href="/account/withdraw">회원 탈퇴</a></p>
+        <p><a href="<?php echo toy_e(toy_url('/account/withdraw')); ?>">회원 탈퇴</a></p>
     </main>
 </body>
 </html>

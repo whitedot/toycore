@@ -16,7 +16,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<form method="post" action="/admin/settings">
+<form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
     <?php echo toy_csrf_field(); ?>
     <input type="hidden" name="intent" value="site">
     <p>
@@ -52,7 +52,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>추가 사이트 설정 항목</h2>
-    <form method="post" action="/admin/settings">
+    <form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
         <?php echo toy_csrf_field(); ?>
         <input type="hidden" name="intent" value="site_setting">
         <p>
@@ -100,7 +100,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <td><?php echo toy_e((string) $setting['value_type']); ?></td>
                     <td><?php echo toy_e((string) $setting['updated_at']); ?></td>
                     <td>
-                        <form method="post" action="/admin/settings">
+                        <form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
                             <?php echo toy_csrf_field(); ?>
                             <input type="hidden" name="intent" value="delete_site_setting">
                             <input type="hidden" name="setting_key" value="<?php echo toy_e((string) $setting['setting_key']); ?>">

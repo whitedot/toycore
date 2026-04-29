@@ -34,7 +34,7 @@ $seo = [
             </ul>
         <?php } ?>
 
-        <form method="post" action="/password/reset">
+        <form method="post" action="<?php echo toy_e(toy_url('/password/reset')); ?>">
             <?php echo toy_csrf_field(); ?>
             <p>
                 <label>이메일<br>
@@ -43,7 +43,7 @@ $seo = [
             </p>
             <button type="submit">재설정 요청</button>
         </form>
-        <p><a href="/login">로그인</a></p>
+        <p><a href="<?php echo toy_e(toy_url('/login')); ?>">로그인</a></p>
     </main>
 </body>
 </html>

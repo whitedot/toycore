@@ -16,7 +16,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<form method="get" action="/admin/members">
+<form method="get" action="<?php echo toy_e(toy_url('/admin/members')); ?>">
     <label>상태<br>
         <select name="status">
             <option value="">전체</option>
@@ -62,7 +62,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) $member['active_session_count']); ?></td>
                 <td><?php echo toy_e((string) $member['created_at']); ?></td>
                 <td>
-                    <form method="post" action="/admin/members">
+                    <form method="post" action="<?php echo toy_e(toy_url('/admin/members')); ?>">
                         <?php echo toy_csrf_field(); ?>
                         <input type="hidden" name="intent" value="status">
                         <input type="hidden" name="account_id" value="<?php echo toy_e((string) $member['id']); ?>">
@@ -77,7 +77,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     </form>
                 </td>
                 <td>
-                    <form method="post" action="/admin/members">
+                    <form method="post" action="<?php echo toy_e(toy_url('/admin/members')); ?>">
                         <?php echo toy_csrf_field(); ?>
                         <input type="hidden" name="intent" value="revoke_sessions">
                         <input type="hidden" name="account_id" value="<?php echo toy_e((string) $member['id']); ?>">
