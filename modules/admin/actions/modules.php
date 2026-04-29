@@ -136,7 +136,7 @@ if (toy_request_method() === 'POST') {
 
             toy_execute_sql_file($pdo, $installSql);
 
-            toy_record_schema_version($pdo, 'module', $moduleKey, $moduleVersion);
+            toy_admin_record_installed_module_schema_versions($pdo, $moduleKey, $moduleVersion);
 
             $completedAt = toy_now();
             $stmt = $pdo->prepare(

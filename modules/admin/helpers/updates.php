@@ -56,6 +56,31 @@ function toy_admin_update_statement_count(string $path): int
     return count(toy_split_sql_statements($sql));
 }
 
+function toy_admin_record_installed_module_schema_versions(PDO $pdo, string $moduleKey, string $currentVersion): void
+{
+    if (!toy_is_safe_module_key($moduleKey)) {
+        throw new InvalidArgumentException('Module key is invalid.');
+    }
+
+    if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $currentVersion) !== 1) {
+        toy_record_schema_version($pdo, 'module', $moduleKey, $currentVersion);
+        return;
+    }
+
+    $versions = [$currentVersion => true];
+    foreach (toy_admin_update_files(TOY_ROOT . '/modules/' . $moduleKey . '/updates') as $update) {
+        $version = (string) ($update['version'] ?? '');
+        if ($version !== '' && strcmp($version, $currentVersion) <= 0) {
+            $versions[$version] = true;
+        }
+    }
+
+    ksort($versions, SORT_STRING);
+    foreach (array_keys($versions) as $version) {
+        toy_record_schema_version($pdo, 'module', $moduleKey, (string) $version);
+    }
+}
+
 function toy_admin_update_path_is_allowed(array $update): bool
 {
     $scope = (string) ($update['scope'] ?? '');
