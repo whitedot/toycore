@@ -37,72 +37,20 @@ function toy_reward_create_transaction(PDO $pdo, array $data): int
         throw new InvalidArgumentException('Reward transaction amount sign is invalid for type.');
     }
 
-    $now = toy_now();
-    $pdo->beginTransaction();
-
-    try {
-        $stmt = $pdo->prepare(
-            'INSERT IGNORE INTO toy_reward_balances (account_id, balance, created_at, updated_at)
-             VALUES (:account_id, 0, :created_at, :updated_at)'
-        );
-        $stmt->execute([
-            'account_id' => $accountId,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-
-        $stmt = $pdo->prepare('SELECT balance FROM toy_reward_balances WHERE account_id = :account_id LIMIT 1 FOR UPDATE');
-        $stmt->execute(['account_id' => $accountId]);
-        $balanceRow = $stmt->fetch();
-        if (!is_array($balanceRow)) {
-            throw new RuntimeException('Reward balance row was not created.');
-        }
-
-        $balanceAfter = (int) $balanceRow['balance'] + $amount;
-        if ($balanceAfter < 0) {
-            throw new RuntimeException('Reward balance cannot be negative.');
-        }
-
-        $stmt = $pdo->prepare(
-            'UPDATE toy_reward_balances
-             SET balance = :balance, updated_at = :updated_at
-             WHERE account_id = :account_id'
-        );
-        $stmt->execute([
-            'balance' => $balanceAfter,
-            'updated_at' => $now,
-            'account_id' => $accountId,
-        ]);
-
-        $stmt = $pdo->prepare(
-            'INSERT INTO toy_reward_transactions
-                (account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, created_at)
-             VALUES
-                (:account_id, :amount, :balance_after, :transaction_type, :reason, :reference_type, :reference_id, :created_by_account_id, :created_at)'
-        );
-        $stmt->execute([
-            'account_id' => $accountId,
-            'amount' => $amount,
-            'balance_after' => $balanceAfter,
-            'transaction_type' => $transactionType,
-            'reason' => $reason,
-            'reference_type' => $referenceType,
-            'reference_id' => $referenceId,
-            'created_by_account_id' => $createdByAccountId,
-            'created_at' => $now,
-        ]);
-
-        $transactionId = (int) $pdo->lastInsertId();
-        $pdo->commit();
-
-        return $transactionId;
-    } catch (Throwable $exception) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-
-        throw $exception;
-    }
+    return toy_ledger_create_transaction($pdo, [
+        'balance_table' => 'toy_reward_balances',
+        'transaction_table' => 'toy_reward_transactions',
+        'balance_row_error' => 'Reward balance row was not created.',
+        'negative_balance_error' => 'Reward balance cannot be negative.',
+    ], [
+        'account_id' => $accountId,
+        'amount' => $amount,
+        'transaction_type' => $transactionType,
+        'reason' => $reason,
+        'reference_type' => $referenceType,
+        'reference_id' => $referenceId,
+        'created_by_account_id' => $createdByAccountId,
+    ]);
 }
 
 function toy_reward_transaction_type_allows_amount(string $transactionType, int $amount): bool

@@ -39,6 +39,7 @@
 - 모듈 type 조회 helper
 - 활성 모듈 계약 파일 조회 helper
 - 활성 모듈 `output-slots.php` 기반 출력 슬롯 helper
+- 잔액 row 잠금, 거래 기록, 음수 잔액 방지를 처리하는 공통 원장 helper
 - 기본 home/error view
 - 공통 CSS 파일
 - 팝업레이어 닫기 동작을 위한 CSP 호환 정적 JavaScript 파일
