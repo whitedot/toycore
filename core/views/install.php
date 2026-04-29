@@ -89,6 +89,12 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         </span>
                         <strong><?php echo toy_e((string) $check['label']); ?></strong>
                         <p><?php echo toy_e((string) $check['message']); ?></p>
+                        <?php if ((string) ($check['guide'] ?? '') !== '') { ?>
+                            <p class="toy-install-check-guide">
+                                <span>조치</span>
+                                <?php echo toy_e((string) $check['guide']); ?>
+                            </p>
+                        <?php } ?>
                     </div>
                 <?php } ?>
             </div>

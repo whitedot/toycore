@@ -99,26 +99,31 @@ $installChecks = [
         'label' => 'PHP',
         'status' => 'ok',
         'message' => PHP_VERSION,
+        'guide' => '현재 PHP 버전으로 설치를 진행할 수 있습니다.',
     ],
     [
         'label' => 'PDO MySQL',
         'status' => extension_loaded('pdo_mysql') ? 'ok' : 'error',
         'message' => extension_loaded('pdo_mysql') ? '사용 가능' : 'pdo_mysql 확장이 필요합니다.',
+        'guide' => extension_loaded('pdo_mysql') ? 'MySQL 연결에 필요한 PHP 확장이 활성화되어 있습니다.' : '호스팅 관리자에서 pdo_mysql 확장을 켜거나, PHP MySQL 확장을 지원하는 환경으로 변경하세요.',
     ],
     [
         'label' => '설정 파일',
         'status' => $configWritable ? 'ok' : 'error',
-        'message' => $configWritable ? 'config/config.php 생성 가능' : 'config 디렉터리 쓰기 권한이 필요합니다.',
+        'message' => $configWritable ? 'config/config.php 생성 가능' : 'config/config.php를 만들 수 없습니다.',
+        'guide' => $configWritable ? '설치 시 DB 접속 정보와 앱 비밀값을 config/config.php에 저장합니다.' : 'FTP 또는 호스팅 파일 관리자에서 config 디렉터리를 만들고, 웹서버가 config/config.php를 생성할 수 있도록 쓰기 권한을 부여하세요.',
     ],
     [
         'label' => '저장소',
         'status' => $storageWritable ? 'ok' : 'error',
-        'message' => $storageWritable ? 'storage 디렉터리 쓰기 가능' : 'storage 디렉터리 쓰기 권한이 필요합니다.',
+        'message' => $storageWritable ? 'storage 디렉터리 쓰기 가능' : 'storage 디렉터리에 파일을 쓸 수 없습니다.',
+        'guide' => $storageWritable ? '설치 잠금 파일과 운영 로그를 storage 디렉터리에 저장할 수 있습니다.' : 'FTP 또는 호스팅 파일 관리자에서 storage 디렉터리를 만들고, 설치 잠금 파일과 로그를 저장할 수 있도록 쓰기 권한을 부여하세요.',
     ],
     [
         'label' => '현재 URL',
         'status' => $currentBaseUrl === '' ? 'warning' : (toy_is_local_host($currentBaseUrl) || parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? 'ok' : 'warning'),
         'message' => $currentBaseUrl === '' ? '요청 host를 확인할 수 없습니다.' : $currentBaseUrl,
+        'guide' => $currentBaseUrl === '' ? 'Base URL을 직접 입력하고, 운영 전 실제 접속 URL이 맞는지 확인하세요.' : (toy_is_local_host($currentBaseUrl) ? '로컬 테스트 설치로 인식했습니다.' : (parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? '운영에 적합한 HTTPS URL입니다.' : 'HTTP 테스트 설치는 가능하지만, 운영 전에는 HTTPS로 전환하세요.')),
     ],
 ];
 $timezoneOptions = timezone_identifiers_list();

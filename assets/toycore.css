@@ -293,6 +293,19 @@ dd {
     font-size: 14px;
 }
 
+.toy-install-check-guide {
+    border-top: 1px solid #e8edf3;
+    padding-top: 10px;
+}
+
+.toy-install-check-guide span {
+    display: block;
+    margin-bottom: 4px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
 .toy-install-status {
     display: inline-block;
     border: 1px solid transparent;
