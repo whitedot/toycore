@@ -318,6 +318,12 @@ foreach ($stmt->fetchAll() as $row) {
     $row['code_version'] = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
     $row['code_type'] = toy_module_type((string) $row['module_key']);
     $row['description'] = is_string($metadata['description'] ?? null) ? (string) $metadata['description'] : '';
+    $toycoreMetadata = is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
+    $toycoreTestedWith = $toycoreMetadata['tested_with'] ?? [];
+    $row['toycore_min_version'] = is_string($toycoreMetadata['min_version'] ?? null) ? (string) $toycoreMetadata['min_version'] : '';
+    $row['toycore_tested_with'] = is_array($toycoreTestedWith)
+        ? implode(', ', array_map('strval', $toycoreTestedWith))
+        : (is_string($toycoreTestedWith) ? $toycoreTestedWith : '');
     $modules[] = $row;
 }
 
@@ -335,6 +341,8 @@ if (is_array($moduleDirectories)) {
         if ($metadata === [] || !is_file($moduleDirectory . '/install.sql')) {
             continue;
         }
+        $toycoreMetadata = is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
+        $toycoreTestedWith = $toycoreMetadata['tested_with'] ?? [];
 
         $installableModules[] = [
             'module_key' => $moduleKey,
@@ -342,6 +350,10 @@ if (is_array($moduleDirectories)) {
             'version' => is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '',
             'type' => toy_module_type($moduleKey),
             'description' => is_string($metadata['description'] ?? null) ? (string) $metadata['description'] : '',
+            'toycore_min_version' => is_string($toycoreMetadata['min_version'] ?? null) ? (string) $toycoreMetadata['min_version'] : '',
+            'toycore_tested_with' => is_array($toycoreTestedWith)
+                ? implode(', ', array_map('strval', $toycoreTestedWith))
+                : (is_string($toycoreTestedWith) ? $toycoreTestedWith : ''),
         ];
     }
 }

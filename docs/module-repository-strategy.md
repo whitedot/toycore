@@ -208,6 +208,9 @@ Toycore 모듈은 날짜 기반 버전을 권장한다.
 규칙:
 
 - `module.php`의 `version`은 코드 기준 현재 버전이다.
+- 모듈 버전 표기는 `YYYY.MM.NNN` 형식을 사용한다.
+- 릴리스 zip 이름은 `{module_key}-{module.php version}.zip`을 기준으로 한다.
+- 각 모듈 리포지토리의 `./.tools/bin/package-module`은 인자가 없으면 `module/module.php`의 `version`을 읽어 패키지 버전으로 쓴다.
 - SQL 변경이 있으면 `updates/{version}.sql`을 추가한다.
 - `install.sql`은 항상 최신 신규 설치 구조를 담는다.
 - 이미 배포한 update SQL은 가능하면 수정하지 않는다.
@@ -285,6 +288,18 @@ banner-2026.05.001.zip
    - paths.php
    - actions/
    - views/
+```
+
+모듈 리포지토리에서 설치용 zip 생성:
+
+```sh
+./.tools/bin/package-module
+```
+
+특정 버전을 명시해 다시 만들 때:
+
+```sh
+./.tools/bin/package-module 2026.05.001
 ```
 
 업로드 후 Toycore 설치본에서는 다음 구조가 되어야 한다.

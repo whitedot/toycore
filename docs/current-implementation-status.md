@@ -28,6 +28,7 @@
 - 각 모듈 리포지토리에 `README.md`와 `CHANGELOG.md` 추가
 - 각 모듈 리포지토리의 `module.php`에 Toycore 호환 메타데이터 추가
 - 각 모듈 리포지토리에 설치용 zip 생성 스크립트 추가
+- 모듈 설치/관리 화면에 설치 버전, 코드 버전, Toycore 호환 버전 표기
 - Toycore 본체에서 선택 모듈 복사본 제거
 - Toycore 본체 배포 패키지는 minimal/standard/ops로 분리 가능
 - standard/ops 배포 패키지는 같은 상위 디렉터리의 외부 모듈 리포지토리에서 선택 모듈을 조립

@@ -210,6 +210,8 @@ return [
 - `version`: 코드 기준 현재 버전
 - `type`: `module` 또는 `plugin`
 - `description`: 운영자가 이해할 수 있는 설명
+- `toycore.min_version`: 이 모듈을 설치할 수 있는 Toycore 최소 버전
+- `toycore.tested_with`: 모듈 릴리스 시 검증한 Toycore 버전 목록
 - `requires.modules`: 활성화 전에 필요한 모듈
 - `requires.contracts`: 활성화 전에 필요한 계약 파일
 - `contracts.provides`: 이 모듈이 제공하는 계약 파일
@@ -925,13 +927,15 @@ Toycore는 저가형 웹호스팅을 고려한다.
 
 ## 24. 배포와 버전
 
-모듈 버전은 `module.php`의 `version`과 `updates/` 파일명을 같이 관리한다.
+모듈 버전은 `module.php`의 `version`과 `updates/` 파일명을 같이 관리한다. 표기 형식은 정렬 가능한 날짜 기반 `YYYY.MM.NNN`을 사용한다.
 
 권장:
 
 - 기능 추가: version 증가, 필요하면 update SQL 추가
 - SQL 구조 변경: install.sql 최신화 + updates 파일 추가
 - 문서만 변경: module.php version은 보통 유지
+- 릴리스 zip 이름: `{module_key}-{module.php version}.zip`
+- 모듈 repo 패키징: `./.tools/bin/package-module`은 인자가 없으면 `module/module.php`의 `version`을 읽어 zip 이름에 사용
 - 배포된 update SQL 수정 대신 새 update SQL 추가
 - 릴리스 노트에 설치/업데이트/호환 버전을 적는다.
 
