@@ -106,11 +106,12 @@ UI 다국어: 코어 공통 기능 + 모듈별 lang 파일
 ## 저장 구조
 
 - `toy_site_settings`의 `site.default_locale`: 사이트 기본 locale
+- `toy_site_settings`의 `site.supported_locales`: 쉼표로 구분한 지원 locale 목록
 - `toy_member_accounts.locale`: 회원 선호 locale
 
 회원은 내 계정 화면에서 선호 locale을 수정할 수 있습니다.
 
-초기 구현에서는 `toy_site_locales` 테이블을 만들지 않습니다. 여러 지원 locale을 관리자에서 관리해야 하는 요구가 생기면 후속 스키마로 추가합니다.
+현재 구현은 별도 `toy_site_locales` 테이블 없이 `site.supported_locales` 설정값으로 지원 locale 목록을 관리합니다. locale별 표시명, 공개 여부, 정렬 순서 같은 메타데이터가 필요해지면 후속 스키마에서 `toy_site_locales` 같은 전용 테이블을 검토합니다.
 
 ## 번역 파일
 

@@ -11,6 +11,23 @@ toy_admin_require_role($pdo, (int) $account['id'], ['owner']);
 $errors = [];
 $notice = '';
 $appliedUpdates = [];
+$previousUpdateFailure = null;
+$previousUpdateFailurePath = TOY_ROOT . '/storage/update-failed.json';
+if (is_file($previousUpdateFailurePath) && is_readable($previousUpdateFailurePath)) {
+    $previousUpdateFailureJson = file_get_contents($previousUpdateFailurePath);
+    $decodedPreviousUpdateFailure = is_string($previousUpdateFailureJson) ? json_decode($previousUpdateFailureJson, true) : null;
+    if (is_array($decodedPreviousUpdateFailure)) {
+        $previousUpdateFailure = [
+            'recorded_at' => (string) ($decodedPreviousUpdateFailure['recorded_at'] ?? ''),
+            'stage' => (string) ($decodedPreviousUpdateFailure['stage'] ?? ''),
+            'scope' => (string) ($decodedPreviousUpdateFailure['scope'] ?? ''),
+            'module_key' => (string) ($decodedPreviousUpdateFailure['module_key'] ?? ''),
+            'version' => (string) ($decodedPreviousUpdateFailure['version'] ?? ''),
+            'checksum' => (string) ($decodedPreviousUpdateFailure['checksum'] ?? ''),
+            'message' => (string) ($decodedPreviousUpdateFailure['message'] ?? ''),
+        ];
+    }
+}
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();

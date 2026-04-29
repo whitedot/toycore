@@ -34,4 +34,4 @@ find . -path './.git' -prune -o -path './.tools' -prune -o -name '*.php' -print0
 ./.tools/bin/check
 ```
 
-이 명령은 `git diff --check`, 전체 PHP 문법 검사, SQL 파일 비어 있음 여부를 함께 확인한다.
+이 명령은 `git diff --check`, 전체 PHP 문법 검사, SQL 파일 비어 있음 여부, 모듈 기본 계약 파일 구성을 함께 확인한다. PHP 문법 검사는 Docker 또는 OrbStack 실행 상태가 필요하다.

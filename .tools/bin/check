@@ -6,13 +6,33 @@ cd "${ROOT}"
 
 git diff --check
 
+if ! command -v docker >/dev/null 2>&1; then
+    echo "Docker is required for PHP lint. Install Docker or OrbStack, then rerun ./.tools/bin/check." >&2
+    exit 1
+fi
+
+if ! docker info >/dev/null 2>&1; then
+    echo "Docker is not running. Start Docker or OrbStack, then rerun ./.tools/bin/check." >&2
+    exit 1
+fi
+
 find . \
     -path './.git' -prune -o \
     -path './.tools' -prune -o \
     -name '*.php' -print0 \
     | xargs -0 -n1 ./.tools/bin/php -l
 
-find database modules -name '*.sql' -print0 \
+find database modules examples -name '*.sql' -print0 \
     | xargs -0 -n1 sh -c 'test -s "$1"' sh
+
+find modules examples/sample_module -mindepth 1 -maxdepth 1 -type d -print0 \
+    | xargs -0 -n1 sh -c '
+        module_dir="$1"
+        test -f "${module_dir}/module.php" || exit 0
+        test -f "${module_dir}/install.sql"
+        if test -f "${module_dir}/admin-menu.php"; then
+            test -f "${module_dir}/paths.php"
+        fi
+    ' sh
 
 echo "toycore checks completed."

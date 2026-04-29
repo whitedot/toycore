@@ -16,6 +16,29 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
+<?php if ($previousUpdateFailure !== null) { ?>
+    <section>
+        <h2>이전 업데이트 실패 기록</h2>
+        <dl>
+            <dt>단계</dt>
+            <dd><?php echo toy_e((string) $previousUpdateFailure['stage']); ?></dd>
+            <dt>범위</dt>
+            <dd><?php echo toy_e((string) ($previousUpdateFailure['scope'] !== '' ? $previousUpdateFailure['scope'] : '-')); ?></dd>
+            <dt>모듈</dt>
+            <dd><?php echo toy_e((string) ($previousUpdateFailure['module_key'] !== '' ? $previousUpdateFailure['module_key'] : 'core')); ?></dd>
+            <dt>버전</dt>
+            <dd><?php echo toy_e((string) ($previousUpdateFailure['version'] !== '' ? $previousUpdateFailure['version'] : '-')); ?></dd>
+            <dt>Checksum</dt>
+            <dd><code><?php echo toy_e(substr((string) $previousUpdateFailure['checksum'], 0, 16)); ?></code></dd>
+            <dt>기록 시각</dt>
+            <dd><?php echo toy_e((string) ($previousUpdateFailure['recorded_at'] !== '' ? $previousUpdateFailure['recorded_at'] : '-')); ?></dd>
+            <dt>오류 요약</dt>
+            <dd><?php echo toy_e((string) ($previousUpdateFailure['message'] !== '' ? $previousUpdateFailure['message'] : '-')); ?></dd>
+        </dl>
+        <p>실패 원인과 백업 상태를 확인한 뒤 다시 업데이트를 실행하세요. 성공하면 이 기록은 자동으로 삭제됩니다.</p>
+    </section>
+<?php } ?>
+
 <section>
     <h2>대기 중인 업데이트</h2>
     <?php if ($pendingUpdates === []) { ?>

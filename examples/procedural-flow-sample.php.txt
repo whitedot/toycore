@@ -29,7 +29,8 @@ session_start();
 |--------------------------------------------------------------------------
 |
 | 실제 프로젝트에서는 이 값들이 toy_site_settings, toy_modules 같은 테이블과
-| 모듈의 paths.php 파일에서 옵니다. 지원 locale 목록은 후속 확장으로 둡니다.
+| 모듈의 paths.php 파일에서 옵니다. 지원 locale 목록은 site.supported_locales
+| 설정값에서 가져옵니다.
 |
 */
 
