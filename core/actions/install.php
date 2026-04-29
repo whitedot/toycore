@@ -111,13 +111,13 @@ $installChecks = [
         'label' => '설정 파일',
         'status' => $configWritable ? 'ok' : 'error',
         'message' => $configWritable ? 'config/config.php 생성 가능' : 'config/config.php를 만들 수 없습니다.',
-        'guide' => $configWritable ? '설치 시 DB 접속 정보와 앱 비밀값을 config/config.php에 저장합니다.' : 'FTP 또는 호스팅 파일 관리자에서 config 디렉터리를 만들고, 웹서버가 config/config.php를 생성할 수 있도록 쓰기 권한을 부여하세요.',
+        'guide' => $configWritable ? '설치 시 DB 접속 정보와 앱 비밀값을 config/config.php에 저장합니다. 설치 후에는 이 파일이 웹에서 직접 열리지 않도록 차단하세요.' : 'FTP 또는 호스팅 파일 관리자에서 config 디렉터리를 만든 뒤 쓰기 권한을 주세요. 보통 755로 충분하며, 공유호스팅에서 계속 실패하면 설치 중에만 775 또는 777을 임시로 적용하고 설치 후 755로 되돌리세요.',
     ],
     [
         'label' => '저장소',
         'status' => $storageWritable ? 'ok' : 'error',
         'message' => $storageWritable ? 'storage 디렉터리 쓰기 가능' : 'storage 디렉터리에 파일을 쓸 수 없습니다.',
-        'guide' => $storageWritable ? '설치 잠금 파일과 운영 로그를 storage 디렉터리에 저장할 수 있습니다.' : 'FTP 또는 호스팅 파일 관리자에서 storage 디렉터리를 만들고, 설치 잠금 파일과 로그를 저장할 수 있도록 쓰기 권한을 부여하세요.',
+        'guide' => $storageWritable ? '설치 잠금 파일, 실패 기록, 운영 로그를 storage 디렉터리에 저장할 수 있습니다. storage도 웹에서 직접 열리지 않도록 차단하세요.' : 'FTP 또는 호스팅 파일 관리자에서 storage 디렉터리를 만든 뒤 쓰기 권한을 주세요. 보통 755로 충분하며, 실패하면 설치 중에만 775 또는 777을 임시로 적용하고 설치 후 755로 되돌리세요.',
     ],
     [
         'label' => '현재 URL',

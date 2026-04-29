@@ -253,7 +253,7 @@ dd {
 }
 
 .toy-install-check-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .toy-install-field-grid {
@@ -331,6 +331,24 @@ dd {
     border-color: #d7a3a3;
     background: #fff0f0;
     color: #8a2a2a;
+}
+
+.toy-install-permission-guide {
+    border-top: 1px solid #e8edf3;
+    margin-top: 18px;
+    padding-top: 16px;
+}
+
+.toy-install-permission-guide h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+    line-height: 1.35;
+}
+
+.toy-install-permission-guide p {
+    max-width: 860px;
+    margin: 0 0 8px;
+    color: #47505c;
 }
 
 .toy-install-field-grid label {

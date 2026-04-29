@@ -98,6 +98,21 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     </div>
                 <?php } ?>
             </div>
+            <div class="toy-install-permission-guide">
+                <h3>쓰기 권한 설정 방법</h3>
+                <p>
+                    설치 전에 <code>config</code>와 <code>storage</code> 디렉터리가 있어야 하며, PHP가 이 두 디렉터리에 파일을 만들 수 있어야 합니다.
+                    보통 호스팅 파일 관리자나 FTP에서 권한을 <code>755</code>로 설정하면 됩니다.
+                </p>
+                <p>
+                    계속 실패하면 설치하는 동안만 <code>775</code> 또는 <code>777</code>을 임시로 적용한 뒤,
+                    설치가 끝나면 다시 <code>755</code>로 되돌리세요. 설치 후 생성되는 <code>config/config.php</code>는 <code>644</code> 권한을 권장합니다.
+                </p>
+                <p>
+                    <code>config</code>에는 DB 비밀번호가 저장되고 <code>storage</code>에는 로그와 설치 잠금 파일이 저장됩니다.
+                    두 디렉터리는 웹 주소로 직접 열리지 않도록 호스팅 패널이나 서버 설정에서 접근을 차단하세요.
+                </p>
+            </div>
         </section>
 
         <form method="post" action="<?php echo toy_e(toy_url('/')); ?>" class="toy-install-form">
