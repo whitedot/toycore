@@ -171,6 +171,21 @@ function toy_banner_target_from_row(array $row, string $label = '저장된 출�
     ];
 }
 
+function toy_banner_link_attributes(string $url): string
+{
+    $url = toy_banner_clean_url($url);
+    if ($url === '') {
+        return '';
+    }
+
+    $attributes = ' href="' . toy_e($url) . '"';
+    if (toy_is_http_url($url)) {
+        $attributes .= ' target="_blank" rel="noopener noreferrer"';
+    }
+
+    return $attributes;
+}
+
 function toy_banner_render_slot(PDO $pdo, array $context): string
 {
     $moduleKey = (string) ($context['module_key'] ?? '');
@@ -213,8 +228,9 @@ function toy_banner_render_slot(PDO $pdo, array $context): string
             $content .= '<span>' . nl2br(toy_e((string) $banner['body_text'])) . '</span>';
         }
 
-        if ((string) $banner['link_url'] !== '') {
-            $content = '<a href="' . toy_e((string) $banner['link_url']) . '">' . $content . '</a>';
+        $linkAttributes = toy_banner_link_attributes((string) $banner['link_url']);
+        if ($linkAttributes !== '') {
+            $content = '<a' . $linkAttributes . '>' . $content . '</a>';
         }
 
         $html .= '<aside class="toy-banner" data-banner-id="' . toy_e((string) $banner['id']) . '">' . $content . '</aside>';
