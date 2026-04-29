@@ -132,7 +132,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         <p class="toy-install-kicker">데이터베이스</p>
                         <h2>DB 연결 정보</h2>
                     </div>
-                    <p>빈 DB 또는 Toycore 전용 DB를 사용하세요. 테이블 prefix는 <code>toy_</code>입니다.</p>
+                    <p>빈 DB 또는 Toycore 전용 DB를 사용하세요. 테이블 prefix는 기본값 <code>toy_</code>를 권장합니다.</p>
                 </div>
 
                 <div class="toy-install-field-grid">
