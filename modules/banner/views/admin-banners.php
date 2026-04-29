@@ -124,6 +124,19 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </label>
         </p>
+        <p>
+            <label>출력 위치<br>
+                <select name="target">
+                    <option value=""<?php echo $filters['target'] === '' ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($availableTargets as $target) { ?>
+                        <?php $optionValue = toy_banner_target_option_value($target); ?>
+                        <option value="<?php echo toy_e($optionValue); ?>"<?php echo $filters['target'] === $optionValue ? ' selected' : ''; ?>>
+                            <?php echo toy_e((string) $target['label']); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </label>
+        </p>
         <button type="submit">조회</button>
     </form>
     <?php if ($banners === []) { ?>

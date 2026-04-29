@@ -16,9 +16,14 @@ $notice = '';
 $availableTargets = toy_banner_available_targets($pdo);
 $filters = [
     'status' => toy_get_string('status', 30),
+    'target' => toy_get_string('target', 300),
 ];
 if ($filters['status'] !== '' && !in_array($filters['status'], $allowedStatuses, true)) {
     $filters['status'] = '';
+}
+$filterTarget = $filters['target'] !== '' ? toy_banner_target_from_option($filters['target']) : null;
+if ($filters['target'] !== '' && $filterTarget === null) {
+    $filters['target'] = '';
 }
 
 if (toy_request_method() === 'POST') {
@@ -260,9 +265,19 @@ $bannerSql = 'SELECT b.id, b.title, b.link_url, b.status, b.starts_at, b.ends_at
               FROM toy_banners b
               LEFT JOIN toy_banner_targets t ON t.banner_id = b.id';
 $bannerParams = [];
+$bannerWhere = [];
 if ($filters['status'] !== '') {
-    $bannerSql .= ' WHERE b.status = :status';
+    $bannerWhere[] = 'b.status = :status';
     $bannerParams['status'] = $filters['status'];
+}
+if ($filterTarget !== null) {
+    $bannerWhere[] = 't.module_key = :filter_module_key AND t.point_key = :filter_point_key AND t.slot_key = :filter_slot_key';
+    $bannerParams['filter_module_key'] = (string) $filterTarget['module_key'];
+    $bannerParams['filter_point_key'] = (string) $filterTarget['point_key'];
+    $bannerParams['filter_slot_key'] = (string) $filterTarget['slot_key'];
+}
+if ($bannerWhere !== []) {
+    $bannerSql .= ' WHERE ' . implode(' AND ', $bannerWhere);
 }
 $bannerSql .= ' ORDER BY b.sort_order ASC, b.id DESC';
 $stmt = $pdo->prepare($bannerSql);

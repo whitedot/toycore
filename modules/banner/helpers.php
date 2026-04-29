@@ -137,6 +137,20 @@ function toy_banner_find_target(array $targets, string $option): ?array
     return null;
 }
 
+function toy_banner_target_from_option(string $option): ?array
+{
+    $parts = explode('|', $option);
+    if (count($parts) !== 3) {
+        return null;
+    }
+
+    return toy_banner_target_from_row([
+        'module_key' => $parts[0],
+        'point_key' => $parts[1],
+        'slot_key' => $parts[2],
+    ]);
+}
+
 function toy_banner_target_labels(array $targets): array
 {
     $labels = [];
