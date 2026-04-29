@@ -27,3 +27,11 @@ Docker 래퍼로 실행하는 PHP는 컨테이너 안에서 동작한다. 호스
 ```sh
 find . -path './.git' -prune -o -path './.tools' -prune -o -name '*.php' -print0 | xargs -0 -n1 ./.tools/bin/php -l
 ```
+
+## 전체 기본 점검
+
+```sh
+./.tools/bin/check
+```
+
+이 명령은 `git diff --check`, 전체 PHP 문법 검사, SQL 파일 비어 있음 여부를 함께 확인한다.

@@ -42,6 +42,20 @@ function toy_admin_update_checksum(string $path): string
     return is_string($checksum) ? $checksum : '';
 }
 
+function toy_admin_update_statement_count(string $path): int
+{
+    if (!is_file($path)) {
+        return 0;
+    }
+
+    $sql = file_get_contents($path);
+    if (!is_string($sql)) {
+        return 0;
+    }
+
+    return count(toy_split_sql_statements($sql));
+}
+
 function toy_admin_update_path_is_allowed(array $update): bool
 {
     $scope = (string) ($update['scope'] ?? '');
@@ -136,6 +150,7 @@ function toy_admin_pending_updates(PDO $pdo): array
                 'version' => $update['version'],
                 'path' => $update['path'],
                 'checksum' => $update['checksum'],
+                'statements' => toy_admin_update_statement_count((string) $update['path']),
             ];
         }
     }
@@ -157,6 +172,7 @@ function toy_admin_pending_updates(PDO $pdo): array
                     'version' => $update['version'],
                     'path' => $update['path'],
                     'checksum' => $update['checksum'],
+                    'statements' => toy_admin_update_statement_count((string) $update['path']),
                 ];
             }
         }

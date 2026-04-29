@@ -38,6 +38,17 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <input type="number" name="sessions_days" value="<?php echo toy_e((string) $values['sessions_days']); ?>" min="1" max="3650" required>
         </label>
     </p>
+    <p>
+        <label>
+            <input type="checkbox" name="cleanup_confirmed" value="1" required>
+            아래 삭제 후보 수를 확인했습니다.
+        </label>
+    </p>
+    <p>
+        <label>확인 문구<br>
+            <input type="text" name="cleanup_phrase" maxlength="20" placeholder="DELETE" required>
+        </label>
+    </p>
     <button type="submit">정리 실행</button>
 </form>
 

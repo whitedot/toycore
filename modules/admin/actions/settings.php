@@ -7,6 +7,7 @@ require_once TOY_ROOT . '/modules/admin/helpers.php';
 
 $account = toy_member_require_login($pdo);
 toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+$canManageAdvancedSettings = toy_admin_has_role($pdo, (int) $account['id'], ['owner']);
 
 $errors = [];
 $notice = '';
@@ -16,6 +17,7 @@ $reservedSiteSettingKeys = [
     'site.base_url' => true,
     'site.timezone' => true,
     'site.default_locale' => true,
+    'site.supported_locales' => true,
     'site.status' => true,
 ];
 $values = [
@@ -23,6 +25,7 @@ $values = [
     'base_url' => (string) ($site['base_url'] ?? ''),
     'timezone' => (string) ($site['timezone'] ?? 'Asia/Seoul'),
     'default_locale' => (string) ($site['default_locale'] ?? 'ko'),
+    'supported_locales' => (string) ($site['supported_locales'] ?? (string) ($site['default_locale'] ?? 'ko')),
     'status' => (string) ($site['status'] ?? 'active'),
 ];
 
@@ -31,6 +34,10 @@ if (toy_request_method() === 'POST') {
     $intent = toy_post_string('intent', 40);
 
     if ($intent === 'site_setting') {
+        if (!$canManageAdvancedSettings) {
+            $errors[] = '고급 사이트 설정은 owner 권한이 필요합니다.';
+        }
+
         $settingKey = toy_post_string('setting_key', 120);
         $settingValue = toy_post_string('setting_value', 5000);
         $valueType = toy_post_string('value_type', 20);
@@ -70,6 +77,10 @@ if (toy_request_method() === 'POST') {
             $notice = '사이트 설정 항목을 저장했습니다.';
         }
     } elseif ($intent === 'delete_site_setting') {
+        if (!$canManageAdvancedSettings) {
+            $errors[] = '고급 사이트 설정은 owner 권한이 필요합니다.';
+        }
+
         $settingKey = toy_post_string('setting_key', 120);
         if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
             $errors[] = '설정 key 형식이 올바르지 않습니다.';
@@ -102,6 +113,7 @@ if (toy_request_method() === 'POST') {
             'base_url' => toy_post_string('base_url', 255),
             'timezone' => toy_post_string('timezone', 80),
             'default_locale' => toy_post_string('default_locale', 20),
+            'supported_locales' => toy_post_string('supported_locales', 255),
             'status' => toy_post_string('status', 30),
         ];
 
@@ -121,6 +133,28 @@ if (toy_request_method() === 'POST') {
             $errors[] = '기본 locale 값이 올바르지 않습니다.';
         }
 
+        $supportedLocales = [];
+        foreach (preg_split('/[\s,]+/', $values['supported_locales']) ?: [] as $locale) {
+            if ($locale === '') {
+                continue;
+            }
+
+            if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $locale) !== 1) {
+                $errors[] = '지원 locale 목록 값이 올바르지 않습니다.';
+                break;
+            }
+
+            $supportedLocales[$locale] = $locale;
+        }
+
+        if ($errors === [] && !isset($supportedLocales[$values['default_locale']])) {
+            $supportedLocales[$values['default_locale']] = $values['default_locale'];
+        }
+
+        if ($errors === []) {
+            $values['supported_locales'] = implode(',', array_values($supportedLocales));
+        }
+
         if (!in_array($values['status'], ['active', 'maintenance'], true)) {
             $errors[] = '운영 상태 값이 올바르지 않습니다.';
         }
@@ -131,6 +165,7 @@ if (toy_request_method() === 'POST') {
                 'base_url' => (string) ($site['base_url'] ?? ''),
                 'timezone' => (string) ($site['timezone'] ?? ''),
                 'default_locale' => (string) ($site['default_locale'] ?? ''),
+                'supported_locales' => (string) ($site['supported_locales'] ?? ''),
                 'status' => (string) ($site['status'] ?? ''),
             ];
 
@@ -139,6 +174,7 @@ if (toy_request_method() === 'POST') {
                 'site.base_url' => ['value' => $values['base_url'], 'type' => 'string'],
                 'site.timezone' => ['value' => $values['timezone'], 'type' => 'string'],
                 'site.default_locale' => ['value' => $values['default_locale'], 'type' => 'string'],
+                'site.supported_locales' => ['value' => $values['supported_locales'], 'type' => 'string'],
                 'site.status' => ['value' => $values['status'], 'type' => 'string'],
             ]);
 
@@ -163,6 +199,7 @@ if (toy_request_method() === 'POST') {
                     'base_url' => (string) ($site['base_url'] ?? ''),
                     'timezone' => (string) ($site['timezone'] ?? 'Asia/Seoul'),
                     'default_locale' => (string) ($site['default_locale'] ?? 'ko'),
+                    'supported_locales' => (string) ($site['supported_locales'] ?? (string) ($site['default_locale'] ?? 'ko')),
                     'status' => (string) ($site['status'] ?? 'active'),
                 ];
             }
@@ -176,7 +213,7 @@ $siteSettings = [];
 $stmt = $pdo->query(
     "SELECT setting_key, setting_value, value_type, updated_at
      FROM toy_site_settings
-     WHERE setting_key NOT IN ('site.name', 'site.base_url', 'site.timezone', 'site.default_locale', 'site.status')
+     WHERE setting_key NOT IN ('site.name', 'site.base_url', 'site.timezone', 'site.default_locale', 'site.supported_locales', 'site.status')
      ORDER BY setting_key ASC"
 );
 foreach ($stmt->fetchAll() as $row) {

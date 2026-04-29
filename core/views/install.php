@@ -48,6 +48,14 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     설치 잠금:
                     <?php echo $previousInstallFailure['installed_lock_written'] ? '예' : '아니오'; ?>
                 </p>
+                <?php if ((string) ($previousInstallFailure['message'] ?? '') !== '') { ?>
+                    <p>오류 요약: <?php echo toy_e((string) $previousInstallFailure['message']); ?></p>
+                <?php } ?>
+                <ul>
+                    <li><code>storage/install-failed.json</code>의 stage와 message를 확인하세요.</li>
+                    <li>DB 접속 정보, 쓰기 권한, 이미 생성된 테이블 상태를 확인한 뒤 다시 설치하세요.</li>
+                    <li><code>storage/installed.lock</code>이 없으면 아직 설치 완료 상태가 아닙니다.</li>
+                </ul>
             </section>
         <?php } ?>
 

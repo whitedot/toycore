@@ -18,6 +18,9 @@ if (toy_request_method() === 'POST') {
     $requestId = (int) toy_post_string('request_id', 20);
     $status = toy_post_string('status', 30);
     $adminNote = toy_post_string('admin_note', 2000);
+    $identityConfirmed = ($_POST['identity_confirmed'] ?? '') === '1';
+    $exportConfirmed = ($_POST['export_confirmed'] ?? '') === '1';
+    $actionConfirmed = ($_POST['action_confirmed'] ?? '') === '1';
 
     if ($requestId <= 0) {
         $errors[] = '요청을 선택하세요.';
@@ -25,6 +28,14 @@ if (toy_request_method() === 'POST') {
 
     if (!in_array($status, $allowedStatuses, true)) {
         $errors[] = '처리 상태 값이 올바르지 않습니다.';
+    }
+
+    if ($status === 'completed' && (!$identityConfirmed || !$exportConfirmed || !$actionConfirmed)) {
+        $errors[] = '완료 처리 전 요청자 확인, 내보내기/처리 확인, 처리 내용 확인이 필요합니다.';
+    }
+
+    if (in_array($status, ['completed', 'rejected', 'cancelled'], true) && $adminNote === '') {
+        $errors[] = '종결 상태로 변경할 때는 관리자 메모를 남기세요.';
     }
 
     if ($errors === []) {
@@ -68,6 +79,11 @@ if (toy_request_method() === 'POST') {
             'metadata' => [
                 'before_status' => (string) $privacyRequest['status'],
                 'after_status' => $status,
+                'checklist' => [
+                    'identity_confirmed' => $identityConfirmed,
+                    'export_confirmed' => $exportConfirmed,
+                    'action_confirmed' => $actionConfirmed,
+                ],
             ],
         ]);
 

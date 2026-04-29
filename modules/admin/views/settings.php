@@ -40,6 +40,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         </label>
     </p>
     <p>
+        <label>지원 locale 목록<br>
+            <input type="text" name="supported_locales" value="<?php echo toy_e($values['supported_locales']); ?>" maxlength="255" required>
+        </label>
+        <span class="toy-install-help">쉼표 또는 공백으로 구분합니다. 예: ko,en,ja</span>
+    </p>
+    <p>
         <label>운영 상태<br>
             <select name="status">
                 <option value="active"<?php echo $values['status'] === 'active' ? ' selected' : ''; ?>>운영</option>
@@ -52,30 +58,33 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>추가 사이트 설정 항목</h2>
-    <form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
-        <?php echo toy_csrf_field(); ?>
-        <input type="hidden" name="intent" value="site_setting">
-        <p>
-            <label>Key<br>
-                <input type="text" name="setting_key" maxlength="120" required>
-            </label>
-        </p>
-        <p>
-            <label>Value<br>
-                <textarea name="setting_value" maxlength="5000"></textarea>
-            </label>
-        </p>
-        <p>
-            <label>Type<br>
-                <select name="value_type">
-                    <?php foreach ($allowedSettingTypes as $type) { ?>
-                        <option value="<?php echo toy_e($type); ?>"><?php echo toy_e($type); ?></option>
-                    <?php } ?>
-                </select>
-            </label>
-        </p>
-        <button type="submit">항목 저장</button>
-    </form>
+    <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 owner만 실행할 수 있습니다.</p>
+    <?php if ($canManageAdvancedSettings) { ?>
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
+            <?php echo toy_csrf_field(); ?>
+            <input type="hidden" name="intent" value="site_setting">
+            <p>
+                <label>Key<br>
+                    <input type="text" name="setting_key" maxlength="120" required>
+                </label>
+            </p>
+            <p>
+                <label>Value<br>
+                    <textarea name="setting_value" maxlength="5000"></textarea>
+                </label>
+            </p>
+            <p>
+                <label>Type<br>
+                    <select name="value_type">
+                        <?php foreach ($allowedSettingTypes as $type) { ?>
+                            <option value="<?php echo toy_e($type); ?>"><?php echo toy_e($type); ?></option>
+                        <?php } ?>
+                    </select>
+                </label>
+            </p>
+            <button type="submit">항목 저장</button>
+        </form>
+    <?php } ?>
 
     <table>
         <thead>
@@ -100,12 +109,16 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <td><?php echo toy_e((string) $setting['value_type']); ?></td>
                     <td><?php echo toy_e((string) $setting['updated_at']); ?></td>
                     <td>
-                        <form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
-                            <?php echo toy_csrf_field(); ?>
-                            <input type="hidden" name="intent" value="delete_site_setting">
-                            <input type="hidden" name="setting_key" value="<?php echo toy_e((string) $setting['setting_key']); ?>">
-                            <button type="submit">삭제</button>
-                        </form>
+                        <?php if ($canManageAdvancedSettings) { ?>
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
+                                <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="delete_site_setting">
+                                <input type="hidden" name="setting_key" value="<?php echo toy_e((string) $setting['setting_key']); ?>">
+                                <button type="submit">삭제</button>
+                            </form>
+                        <?php } else { ?>
+                            owner 전용
+                        <?php } ?>
                     </td>
                 </tr>
             <?php } ?>

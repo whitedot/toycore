@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -eu
+
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
+cd "${ROOT}"
+
+git diff --check
+
+find . \
+    -path './.git' -prune -o \
+    -path './.tools' -prune -o \
+    -name '*.php' -print0 \
+    | xargs -0 -n1 ./.tools/bin/php -l
+
+find database modules -name '*.sql' -print0 \
+    | xargs -0 -n1 sh -c 'test -s "$1"' sh
+
+echo "toycore checks completed."

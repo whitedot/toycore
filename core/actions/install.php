@@ -81,6 +81,7 @@ if (is_file($previousInstallFailurePath) && is_readable($previousInstallFailureP
         $previousInstallFailure = [
             'recorded_at' => (string) ($decodedPreviousInstallFailure['recorded_at'] ?? ''),
             'stage' => (string) ($decodedPreviousInstallFailure['stage'] ?? ''),
+            'message' => (string) ($decodedPreviousInstallFailure['message'] ?? ''),
             'config_written' => !empty($decodedPreviousInstallFailure['config_written']),
             'installed_lock_written' => !empty($decodedPreviousInstallFailure['installed_lock_written']),
         ];
@@ -296,6 +297,7 @@ if (toy_request_method() === 'POST') {
                 'site.base_url' => ['value' => $values['base_url'], 'type' => 'string'],
                 'site.timezone' => ['value' => $values['timezone'], 'type' => 'string'],
                 'site.default_locale' => ['value' => $values['default_locale'], 'type' => 'string'],
+                'site.supported_locales' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.status' => ['value' => 'active', 'type' => 'string'],
             ]);
 

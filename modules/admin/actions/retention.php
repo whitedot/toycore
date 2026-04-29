@@ -34,6 +34,8 @@ function toy_admin_retention_count(PDO $pdo, string $sql, array $params): int
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
+    $cleanupConfirmed = ($_POST['cleanup_confirmed'] ?? '') === '1';
+    $cleanupPhrase = toy_post_string('cleanup_phrase', 20);
 
     $values = [
         'auth_logs_days' => (int) toy_post_string('auth_logs_days', 5),
@@ -47,6 +49,10 @@ if (toy_request_method() === 'POST') {
             $errors[] = '보관 기간은 1일부터 3650일 사이로 입력하세요.';
             break;
         }
+    }
+
+    if (!$cleanupConfirmed || $cleanupPhrase !== 'DELETE') {
+        $errors[] = '정리 실행 전 확인 체크와 DELETE 입력이 필요합니다.';
     }
 
     if ($errors === []) {

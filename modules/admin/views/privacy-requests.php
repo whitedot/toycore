@@ -75,6 +75,18 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </select>
                         <textarea name="admin_note" rows="3" cols="30"><?php echo toy_e((string) ($request['admin_note'] ?? '')); ?></textarea>
+                        <label>
+                            <input type="checkbox" name="identity_confirmed" value="1">
+                            요청자 확인
+                        </label>
+                        <label>
+                            <input type="checkbox" name="export_confirmed" value="1">
+                            내보내기 또는 처리 결과 확인
+                        </label>
+                        <label>
+                            <input type="checkbox" name="action_confirmed" value="1">
+                            관리자 메모에 처리 내용 기록
+                        </label>
                         <button type="submit">저장</button>
                     </form>
                 </td>

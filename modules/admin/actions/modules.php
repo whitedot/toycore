@@ -7,6 +7,7 @@ require_once TOY_ROOT . '/modules/admin/helpers.php';
 
 $account = toy_member_require_login($pdo);
 toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+$canManageAdvancedModuleSettings = toy_admin_has_role($pdo, (int) $account['id'], ['owner']);
 
 $requiredModules = ['member', 'admin'];
 $allowedStatuses = ['enabled', 'disabled'];
@@ -183,6 +184,10 @@ if (toy_request_method() === 'POST') {
             $errors[] = '모듈 설치 중 오류가 발생했습니다.';
         }
     } elseif ($errors === [] && $intent === 'module_setting') {
+        if (!$canManageAdvancedModuleSettings) {
+            $errors[] = '고급 모듈 설정은 owner 권한이 필요합니다.';
+        }
+
         $settingKey = toy_post_string('setting_key', 120);
         $settingValue = toy_post_string('setting_value', 5000);
         $valueType = toy_post_string('value_type', 20);
@@ -238,6 +243,10 @@ if (toy_request_method() === 'POST') {
             $notice = '모듈 설정 항목을 저장했습니다.';
         }
     } elseif ($errors === [] && $intent === 'delete_module_setting') {
+        if (!$canManageAdvancedModuleSettings) {
+            $errors[] = '고급 모듈 설정은 owner 권한이 필요합니다.';
+        }
+
         $settingKey = toy_post_string('setting_key', 120);
         if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
             $errors[] = '설정 key 형식이 올바르지 않습니다.';

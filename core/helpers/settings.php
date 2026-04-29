@@ -11,6 +11,7 @@ function toy_load_site(PDO $pdo): ?array
         'base_url' => (string) ($settings['site.base_url'] ?? ''),
         'timezone' => (string) ($settings['site.timezone'] ?? 'Asia/Seoul'),
         'default_locale' => (string) ($settings['site.default_locale'] ?? 'ko'),
+        'supported_locales' => (string) ($settings['site.supported_locales'] ?? (string) ($settings['site.default_locale'] ?? 'ko')),
         'status' => (string) ($settings['site.status'] ?? 'active'),
     ];
 }

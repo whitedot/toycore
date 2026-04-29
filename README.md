@@ -80,6 +80,12 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 
 자세한 구현 범위는 [현재 구현 상태](docs/current-implementation-status.md)를 기준으로 확인합니다.
 
+기본 점검은 다음 명령으로 실행합니다.
+
+```sh
+./.tools/bin/check
+```
+
 ## 모듈 구조
 
 Toycore의 모듈은 프레임워크 패키지가 아니라, 정해진 디렉터리에 놓인 절차형 PHP 파일과 DB에 저장된 설치/활성 상태로 동작합니다.
@@ -115,6 +121,8 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 ```
 
 현재 DB registry 이름은 `toy_modules`를 유지하고, 확장의 성격은 `module.php`의 `type` 값으로 표시합니다. 자세한 작성 규칙은 [모듈 작성 가이드](docs/module-guide.md)를 따릅니다.
+
+최소 모듈 구조 예시는 [sample_module](examples/sample_module/README.md)에서 확인할 수 있습니다.
 
 ## Extension Points
 

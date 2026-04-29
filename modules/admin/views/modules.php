@@ -128,41 +128,44 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>모듈 설정 항목</h2>
-    <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
-        <?php echo toy_csrf_field(); ?>
-        <input type="hidden" name="intent" value="module_setting">
-        <p>
-            <label>Module<br>
-                <select name="module_key">
-                    <?php foreach ($modules as $module) { ?>
-                        <option value="<?php echo toy_e((string) $module['module_key']); ?>">
-                            <?php echo toy_e((string) $module['module_key']); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </label>
-        </p>
-        <p>
-            <label>Key<br>
-                <input type="text" name="setting_key" maxlength="120" required>
-            </label>
-        </p>
-        <p>
-            <label>Value<br>
-                <textarea name="setting_value" maxlength="5000"></textarea>
-            </label>
-        </p>
-        <p>
-            <label>Type<br>
-                <select name="value_type">
-                    <?php foreach ($allowedSettingTypes as $type) { ?>
-                        <option value="<?php echo toy_e($type); ?>"><?php echo toy_e($type); ?></option>
-                    <?php } ?>
-                </select>
-            </label>
-        </p>
-        <button type="submit">항목 저장</button>
-    </form>
+    <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 owner만 실행할 수 있습니다.</p>
+    <?php if ($canManageAdvancedModuleSettings) { ?>
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
+            <?php echo toy_csrf_field(); ?>
+            <input type="hidden" name="intent" value="module_setting">
+            <p>
+                <label>Module<br>
+                    <select name="module_key">
+                        <?php foreach ($modules as $module) { ?>
+                            <option value="<?php echo toy_e((string) $module['module_key']); ?>">
+                                <?php echo toy_e((string) $module['module_key']); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>Key<br>
+                    <input type="text" name="setting_key" maxlength="120" required>
+                </label>
+            </p>
+            <p>
+                <label>Value<br>
+                    <textarea name="setting_value" maxlength="5000"></textarea>
+                </label>
+            </p>
+            <p>
+                <label>Type<br>
+                    <select name="value_type">
+                        <?php foreach ($allowedSettingTypes as $type) { ?>
+                            <option value="<?php echo toy_e($type); ?>"><?php echo toy_e($type); ?></option>
+                        <?php } ?>
+                    </select>
+                </label>
+            </p>
+            <button type="submit">항목 저장</button>
+        </form>
+    <?php } ?>
 
     <table>
         <thead>
@@ -189,13 +192,17 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <td><?php echo toy_e((string) $setting['value_type']); ?></td>
                     <td><?php echo toy_e((string) $setting['updated_at']); ?></td>
                     <td>
-                        <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
-                            <?php echo toy_csrf_field(); ?>
-                            <input type="hidden" name="intent" value="delete_module_setting">
-                            <input type="hidden" name="module_key" value="<?php echo toy_e((string) $setting['module_key']); ?>">
-                            <input type="hidden" name="setting_key" value="<?php echo toy_e((string) $setting['setting_key']); ?>">
-                            <button type="submit">삭제</button>
-                        </form>
+                        <?php if ($canManageAdvancedModuleSettings) { ?>
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
+                                <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="delete_module_setting">
+                                <input type="hidden" name="module_key" value="<?php echo toy_e((string) $setting['module_key']); ?>">
+                                <input type="hidden" name="setting_key" value="<?php echo toy_e((string) $setting['setting_key']); ?>">
+                                <button type="submit">삭제</button>
+                            </form>
+                        <?php } else { ?>
+                            owner 전용
+                        <?php } ?>
                     </td>
                 </tr>
             <?php } ?>

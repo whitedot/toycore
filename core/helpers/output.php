@@ -19,13 +19,18 @@ function toy_locale(): string
 
 function toy_resolve_locale(PDO $pdo, ?array $site): string
 {
+    $supportedLocales = toy_supported_locales($site);
     $accountId = $_SESSION['toy_account_id'] ?? null;
     if (is_int($accountId) || ctype_digit((string) $accountId)) {
         try {
             $stmt = $pdo->prepare('SELECT locale FROM toy_member_accounts WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => (int) $accountId]);
             $account = $stmt->fetch();
-            if (is_array($account) && is_string($account['locale'] ?? null) && $account['locale'] !== '') {
+            if (
+                is_array($account)
+                && is_string($account['locale'] ?? null)
+                && in_array((string) $account['locale'], $supportedLocales, true)
+            ) {
                 return (string) $account['locale'];
             }
         } catch (Throwable $exception) {
@@ -34,6 +39,25 @@ function toy_resolve_locale(PDO $pdo, ?array $site): string
     }
 
     return is_array($site) ? (string) ($site['default_locale'] ?? 'ko') : 'ko';
+}
+
+function toy_supported_locales(?array $site): array
+{
+    $defaultLocale = is_array($site) ? (string) ($site['default_locale'] ?? 'ko') : 'ko';
+    $rawLocales = is_array($site) ? (string) ($site['supported_locales'] ?? '') : '';
+    $locales = [];
+
+    foreach (preg_split('/[\s,]+/', $rawLocales) ?: [] as $locale) {
+        if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $locale) === 1) {
+            $locales[$locale] = $locale;
+        }
+    }
+
+    if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $defaultLocale) === 1) {
+        $locales[$defaultLocale] = $defaultLocale;
+    }
+
+    return array_values($locales !== [] ? $locales : ['ko']);
 }
 
 function toy_t(string $key, array $params = [], ?string $locale = null): string

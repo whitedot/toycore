@@ -26,6 +26,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <th scope="col">범위</th>
                     <th scope="col">버전</th>
+                    <th scope="col">SQL 문</th>
                     <th scope="col">파일</th>
                     <th scope="col">Checksum</th>
                 </tr>
@@ -35,6 +36,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td><?php echo toy_e((string) $update['label']); ?></td>
                         <td><?php echo toy_e((string) $update['version']); ?></td>
+                        <td><?php echo toy_e((string) ($update['statements'] ?? 0)); ?></td>
                         <td><?php echo toy_e(str_replace(TOY_ROOT . '/', '', (string) $update['path'])); ?></td>
                         <td><code><?php echo toy_e(substr((string) ($update['checksum'] ?? ''), 0, 16)); ?></code></td>
                     </tr>

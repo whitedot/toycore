@@ -9,6 +9,7 @@
 - 설치 상태 분기
 - 웹 설치 화면
 - 설치 실패 시 `storage/install-failed.json` 복구 marker 기록
+- 이전 설치 실패 단계와 오류 요약 표시
 - 운영 설치 시 현재 접속 host 기준 내부 파일 직접 접근 노출 점검
 - 운영 설치 시 HTTPS URL 확인
 - `config/config.php` 생성
@@ -24,6 +25,7 @@
 - 설치 전/설치 후 분기
 - core helper 진입점과 큰 책임 단위 helper 파일 분리
 - 현재 locale 결정
+- 지원 locale 목록 설정
 - 기본 번역 helper
 - 기본 locale 번역 fallback
 - 사이트/모듈 설정 조회 helper
@@ -159,8 +161,10 @@
 - 개인정보 요청 JSON 내보내기
 - 관리자 개인정보 요청 JSON 내보내기 POST/CSRF 보호
 - 보관 기간 수동 정리
+- 보관 기간 정리 실행 전 확인 문구 검증
 - owner 전용 업데이트 확인/실행
 - 업데이트 전 백업 확인
+- 업데이트 적용 전 SQL statement 수 표시
 - 적용된 스키마 버전 목록 표시
 - 업데이트 파일 checksum 표시와 감사 로그 기록
 - 활성 모듈의 `admin-menu.php` 기반 관리자 메뉴 조정
