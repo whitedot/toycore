@@ -16,6 +16,7 @@
 - `toy_site_menus`에 메뉴 단위를 저장한다.
 - `toy_site_menu_items`에 메뉴 항목, URL, target, 상태, 정렬 순서를 저장한다.
 - 관리자 화면 `/admin/site-menus`에서 메뉴와 항목을 관리한다.
+- 메뉴 삭제 시 하위 메뉴 항목을 같은 트랜잭션에서 삭제한다.
 - 기본 홈 화면의 `core/site.home/navigation` 출력 위치에 `header` 메뉴를 출력한다.
 
 ### 배너
@@ -31,6 +32,7 @@
 - `toy_notification_reads`에 전체 공지형 알림의 회원별 읽음 상태를 저장한다.
 - `toy_notification_deliveries`에 `site`, `email`, `sms`, `alimtalk` 채널별 발송 상태를 저장한다.
 - 관리자 화면 `/admin/notifications`에서 알림을 등록하고 대기열을 확인한다.
+- 실제 provider 연동 전에도 발송 대기열 상태를 수동으로 `sent`, `failed`, `canceled` 등으로 기록할 수 있다.
 - 회원 화면 `/account/notifications`에서 사이트 내 알림을 확인하고 읽음 처리한다.
 
 ### 관리자 작업 로그

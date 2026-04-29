@@ -8,6 +8,16 @@ return [
         'output' => true,
         'slots' => [
             [
+                'slot_key' => 'before_form',
+                'label' => '폼 위',
+                'kind' => 'content',
+            ],
+            [
+                'slot_key' => 'after_form',
+                'label' => '폼 아래',
+                'kind' => 'content',
+            ],
+            [
                 'slot_key' => 'overlay',
                 'label' => '화면',
                 'kind' => 'overlay',
@@ -20,6 +30,16 @@ return [
         'surface' => 'public',
         'output' => true,
         'slots' => [
+            [
+                'slot_key' => 'before_form',
+                'label' => '폼 위',
+                'kind' => 'content',
+            ],
+            [
+                'slot_key' => 'after_form',
+                'label' => '폼 아래',
+                'kind' => 'content',
+            ],
             [
                 'slot_key' => 'overlay',
                 'label' => '화면',

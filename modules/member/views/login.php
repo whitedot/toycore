@@ -20,6 +20,7 @@ $identifierLabel = ((string) ($memberSettings['login_identifier'] ?? 'email') ==
         <h1><?php echo toy_e($pageTitle); ?></h1>
 
         <?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login']); ?>
+        <?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'before_form']); ?>
 
         <?php if ($errors !== []) { ?>
             <ul>
@@ -44,6 +45,7 @@ $identifierLabel = ((string) ($memberSettings['login_identifier'] ?? 'email') ==
             </p>
             <button type="submit">로그인</button>
         </form>
+        <?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'after_form']); ?>
 
         <p><a href="<?php echo toy_e(toy_url('/register')); ?>">회원가입</a></p>
         <p><a href="<?php echo toy_e(toy_url('/password/reset')); ?>">비밀번호 재설정</a></p>

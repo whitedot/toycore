@@ -20,6 +20,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <h2>알림 등록</h2>
     <form method="post" action="<?php echo toy_e(toy_url('/admin/notifications')); ?>">
         <?php echo toy_csrf_field(); ?>
+        <input type="hidden" name="intent" value="create">
         <p>
             <label>대상<br>
                 <select name="audience">
@@ -112,6 +113,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>상태</th>
                     <th>오류</th>
                     <th>수정일</th>
+                    <th>관리</th>
                 </tr>
             </thead>
             <tbody>
@@ -124,6 +126,35 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $delivery['status']); ?></td>
                         <td><?php echo toy_e((string) $delivery['error_message']); ?></td>
                         <td><?php echo toy_e((string) $delivery['updated_at']); ?></td>
+                        <td>
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/notifications')); ?>">
+                                <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="delivery_status">
+                                <input type="hidden" name="delivery_id" value="<?php echo toy_e((string) $delivery['id']); ?>">
+                                <p>
+                                    <label>상태<br>
+                                        <select name="status">
+                                            <?php foreach ($allowedDeliveryStatuses as $status) { ?>
+                                                <option value="<?php echo toy_e($status); ?>"<?php echo (string) $delivery['status'] === $status ? ' selected' : ''; ?>>
+                                                    <?php echo toy_e($status); ?>
+                                                </option>
+                                            <?php } ?>
+                                        </select>
+                                    </label>
+                                </p>
+                                <p>
+                                    <label>provider ID<br>
+                                        <input type="text" name="provider_message_id" value="<?php echo toy_e((string) $delivery['provider_message_id']); ?>" maxlength="120">
+                                    </label>
+                                </p>
+                                <p>
+                                    <label>오류 메시지<br>
+                                        <input type="text" name="error_message" value="<?php echo toy_e((string) $delivery['error_message']); ?>" maxlength="255">
+                                    </label>
+                                </p>
+                                <button type="submit">저장</button>
+                            </form>
+                        </td>
                     </tr>
                 <?php } ?>
             </tbody>

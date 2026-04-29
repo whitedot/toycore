@@ -19,6 +19,7 @@ $seo = [
         <h1><?php echo toy_e($pageTitle); ?></h1>
 
         <?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.register']); ?>
+        <?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.register', 'slot_key' => 'before_form']); ?>
 
         <?php if ($errors !== []) { ?>
             <ul>
@@ -68,6 +69,7 @@ $seo = [
         <?php } else { ?>
             <p>현재 회원가입을 사용할 수 없습니다.</p>
         <?php } ?>
+        <?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.register', 'slot_key' => 'after_form']); ?>
 
         <p><a href="<?php echo toy_e(toy_url('/login')); ?>">로그인</a></p>
     </main>

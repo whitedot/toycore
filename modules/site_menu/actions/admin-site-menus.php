@@ -166,6 +166,51 @@ if (toy_request_method() === 'POST') {
 
             $notice = '메뉴 항목을 삭제했습니다.';
         }
+    } elseif ($intent === 'delete_menu') {
+        if ($menuId <= 0) {
+            $errors[] = '삭제할 메뉴를 찾을 수 없습니다.';
+        }
+
+        if ($errors === []) {
+            $stmt = $pdo->prepare('SELECT menu_key FROM toy_site_menus WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $menuId]);
+            $menu = $stmt->fetch();
+            if (!is_array($menu)) {
+                $errors[] = '삭제할 메뉴를 찾을 수 없습니다.';
+            }
+        }
+
+        if ($errors === [] && is_array($menu)) {
+            try {
+                $pdo->beginTransaction();
+
+                $stmt = $pdo->prepare('DELETE FROM toy_site_menu_items WHERE menu_id = :menu_id');
+                $stmt->execute(['menu_id' => $menuId]);
+
+                $stmt = $pdo->prepare('DELETE FROM toy_site_menus WHERE id = :id');
+                $stmt->execute(['id' => $menuId]);
+
+                $pdo->commit();
+
+                toy_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'site_menu.deleted',
+                    'target_type' => 'site_menu',
+                    'target_id' => (string) $menu['menu_key'],
+                    'result' => 'success',
+                    'message' => 'Site menu deleted.',
+                ]);
+
+                $notice = '메뉴를 삭제했습니다.';
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+                $errors[] = '메뉴 삭제 중 오류가 발생했습니다.';
+            }
+        }
     } else {
         $errors[] = '요청한 작업을 처리할 수 없습니다.';
     }

@@ -125,6 +125,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>이름</th>
                     <th>상태</th>
                     <th>수정일</th>
+                    <th>관리</th>
                 </tr>
             </thead>
             <tbody>
@@ -134,6 +135,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $menu['label']); ?></td>
                         <td><?php echo toy_e((string) $menu['status']); ?></td>
                         <td><?php echo toy_e((string) $menu['updated_at']); ?></td>
+                        <td>
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/site-menus')); ?>" style="display:inline">
+                                <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="delete_menu">
+                                <input type="hidden" name="menu_id" value="<?php echo toy_e((string) $menu['id']); ?>">
+                                <button type="submit">삭제</button>
+                            </form>
+                        </td>
                     </tr>
                 <?php } ?>
             </tbody>
