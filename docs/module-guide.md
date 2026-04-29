@@ -133,6 +133,7 @@ return [
 
 - `path`는 `/admin/...` 아래 경로만 사용합니다.
 - `path`는 같은 모듈의 `paths.php`에 선언된 관리자 경로와 일치해야 합니다.
+- 기본 점검 스크립트는 `admin-menu.php`의 `path`가 같은 모듈 `paths.php`의 `GET` route에 있는지 확인합니다.
 - 메뉴 노출은 admin 모듈이 조정하지만, 권한 검사와 상태 변경 처리는 소유 모듈 action에서 수행합니다.
 - admin 모듈은 도메인 모듈의 메뉴 label/path를 하드코딩하지 않습니다.
 
