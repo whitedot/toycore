@@ -6,7 +6,7 @@ $seo = [
     'canonical' => toy_canonical_url($site, '/'),
 ];
 
-if (isset($pdo) && $pdo instanceof PDO) {
+if (isset($pdo) && $pdo instanceof PDO && toy_module_enabled($pdo, 'seo')) {
     $seoSettings = toy_module_settings($pdo, 'seo');
     if (!empty($seoSettings['title_suffix']) && is_string($seoSettings['title_suffix'])) {
         $seo['title'] .= ' - ' . $seoSettings['title_suffix'];
@@ -19,11 +19,6 @@ if (isset($pdo) && $pdo instanceof PDO) {
     }
 }
 
-$homeNavigation = '';
-if (isset($pdo) && $pdo instanceof PDO && toy_module_enabled($pdo, 'site_menu')) {
-    require_once TOY_ROOT . '/modules/site_menu/helpers.php';
-    $homeNavigation = toy_site_menu_render($pdo, 'header');
-}
 ?>
 <!doctype html>
 <html lang="<?php echo toy_e(toy_locale()); ?>">
@@ -34,7 +29,7 @@ if (isset($pdo) && $pdo instanceof PDO && toy_module_enabled($pdo, 'site_menu'))
     <?php echo toy_stylesheet_tag(); ?>
 </head>
 <body>
-    <?php echo $homeNavigation; ?>
+    <?php echo toy_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.header', 'slot_key' => 'navigation']); ?>
     <main>
         <?php echo toy_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content']); ?>
         <h1><?php echo toy_e($pageTitle); ?></h1>
