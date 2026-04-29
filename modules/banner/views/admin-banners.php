@@ -37,7 +37,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <p>
-            <label>링크 URL<br>
+            <label>링크 URL (외부 http/https 링크는 새 창으로 열림)<br>
                 <input type="text" name="link_url" value="<?php echo $editing ? toy_e((string) $editBanner['link_url']) : ''; ?>" maxlength="255">
             </label>
         </p>
@@ -134,6 +134,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <th>제목</th>
                     <th>상태</th>
+                    <th>링크</th>
                     <th>출력 위치</th>
                     <th>기간</th>
                     <th>정렬</th>
@@ -149,6 +150,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td><?php echo toy_e((string) $banner['title']); ?></td>
                         <td><?php echo toy_e((string) $banner['status']); ?></td>
+                        <td>
+                            <?php echo toy_e(toy_banner_link_type_label((string) ($banner['link_url'] ?? ''))); ?><br>
+                            <?php echo toy_e((string) ($banner['link_url'] ?? '')); ?>
+                        </td>
                         <td><?php echo toy_e($bannerTargetLabel); ?></td>
                         <td>
                             <?php echo toy_e((string) ($banner['starts_at'] ?? '-')); ?><br>

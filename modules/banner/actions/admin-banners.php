@@ -62,7 +62,8 @@ if (toy_request_method() === 'POST') {
     } elseif ($intent === 'save') {
         $title = toy_banner_clean_single_line(toy_post_string('title', 120), 120);
         $bodyText = toy_banner_clean_text(toy_post_string('body_text', 3000), 3000);
-        $linkUrl = toy_banner_clean_url(toy_post_string('link_url', 255));
+        $rawLinkUrl = toy_post_string('link_url', 255);
+        $linkUrl = toy_banner_clean_url($rawLinkUrl);
         $rawImageUrl = toy_post_string('image_url', 255);
         $imageUrl = toy_banner_clean_image_url($rawImageUrl);
         $status = toy_post_string('status', 30);
@@ -78,6 +79,9 @@ if (toy_request_method() === 'POST') {
 
         if ($title === '') {
             $errors[] = '제목을 입력하세요.';
+        }
+        if ($rawLinkUrl !== '' && $linkUrl === '') {
+            $errors[] = '링크 URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다.';
         }
         if ($rawImageUrl !== '' && $imageUrl === '') {
             $errors[] = '이미지 URL은 /로 시작하는 내부 경로여야 합니다.';
@@ -251,7 +255,7 @@ if ($editId > 0) {
 $targetLabels = toy_banner_target_labels($availableTargets);
 
 $banners = [];
-$bannerSql = 'SELECT b.id, b.title, b.status, b.starts_at, b.ends_at, b.sort_order, b.updated_at,
+$bannerSql = 'SELECT b.id, b.title, b.link_url, b.status, b.starts_at, b.ends_at, b.sort_order, b.updated_at,
                      t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
               FROM toy_banners b
               LEFT JOIN toy_banner_targets t ON t.banner_id = b.id';

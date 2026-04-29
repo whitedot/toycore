@@ -186,6 +186,16 @@ function toy_banner_link_attributes(string $url): string
     return $attributes;
 }
 
+function toy_banner_link_type_label(string $url): string
+{
+    $url = toy_banner_clean_url($url);
+    if ($url === '') {
+        return '-';
+    }
+
+    return toy_is_http_url($url) ? '외부 링크' : '내부 링크';
+}
+
 function toy_banner_render_slot(PDO $pdo, array $context): string
 {
     $moduleKey = (string) ($context['module_key'] ?? '');
