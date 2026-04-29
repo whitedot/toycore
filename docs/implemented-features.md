@@ -1,8 +1,8 @@
 # 구현된 기능 리스트
 
-이 문서는 현재 코드 기준으로 Toycore에 구현된 기능을 사용자 관점에서 정리한다.
+이 문서는 toycore.git 본체와 standard/ops 배포 패키지로 조립할 수 있는 기능을 사용자 관점에서 정리한다.
 
-Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 목표로 한다. 따라서 아래 기능은 코어와 기본 제공 모듈이 제공하는 현재 운영 기능으로 본다.
+Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 목표로 한다. toycore.git 본체는 core/member/admin 중심으로 유지하고, 선택 기능은 별도 모듈 리포지토리에서 관리한다.
 
 ## 설치와 실행
 
@@ -13,14 +13,14 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `config/config.php` 설정 파일 생성
 - `storage/installed.lock` 설치 완료 파일 생성
 - core, member, admin 설치 SQL 실행
-- 설치 시 seo, popup_layer, point, deposit, reward, site_menu, banner, notification 설치 여부 선택
-- 선택한 기본 제공 모듈의 설치 SQL 실행
+- 배포본에 포함된 경우 seo, popup_layer, point, deposit, reward, site_menu, banner, notification 설치 여부 선택
+- 선택한 선택 모듈의 설치 SQL 실행
 - 스키마 버전 기록
 - 설치 시 운영 URL의 HTTPS 여부 확인
 - 설치 시 내부 파일 직접 접근 노출 점검
 - 기본 홈 화면과 오류 화면 제공
 - 공통 CSS 파일 제공
-- 팝업레이어 닫기 동작용 정적 JavaScript 파일 제공
+- standard/ops 패키지 조립 시 선택 모듈 정적 자산 포함
 
 ## 개발 및 검증 도구
 
@@ -55,18 +55,26 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - CSRF token 생성과 검증
 - 안전한 redirect helper
 - canonical URL helper
-- SEO meta tag 출력 helper
 - title, description, canonical, robots, Open Graph 출력 슬롯
-- `/robots.txt` 출력
-- `/sitemap.xml` 출력
-- SEO 관리자 설정 화면
-- 활성 모듈 `sitemap.php` 기반 sitemap URL 확장
 - 활성 모듈 `extension-points.php` 기반 확장 지점 조회
 - 다운로드 응답 헤더 helper
 - 기본 mail helper
 - HMAC hash helper
 - 감사 로그 기록 helper
 - 예외 요약 파일 로그 기록
+
+## 선택 모듈 배포 후보
+
+standard/ops 패키지에는 외부 모듈 리포지토리의 `module/` 디렉터리를 조립해 다음 기능을 포함할 수 있다.
+
+- `seo`: SEO meta helper, `/robots.txt`, `/sitemap.xml`, SEO 관리자 설정, 활성 모듈 `sitemap.php` 기반 sitemap URL 확장
+- `popup_layer`: 관리자 팝업 등록/수정/삭제, 출력 대상 규칙, 화면별 팝업 출력
+- `point`: 회원별 포인트 잔액/거래 원장, 관리자 수동 지급/차감
+- `deposit`: 회원별 예치금 잔액/거래 원장, 관리자 수동 입금/사용/환불/출금 기록
+- `reward`: 회원별 적립금 잔액/거래 원장, 관리자 수동 지급/차감
+- `site_menu`: 사이트 공통 메뉴와 출력 슬롯 연동
+- `banner`: 출력 슬롯 대상 배너와 노출 규칙
+- `notification`: 사이트 내 알림과 외부 발송 대기열
 
 ## 보안 응답과 요청 보호
 
@@ -365,7 +373,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `GET /admin/member-settings`
 - `POST /admin/member-settings`
 
-### 포인트, 예치금, 적립금 관리자 경로
+### 선택 모듈 관리자 경로
 
 - `GET /admin/points`
 - `POST /admin/points`
@@ -373,14 +381,8 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `POST /admin/deposits`
 - `GET /admin/rewards`
 - `POST /admin/rewards`
-
-### 팝업레이어 관리자 경로
-
 - `GET /admin/popup-layers`
 - `POST /admin/popup-layers`
-
-### SEO 경로
-
 - `GET /admin/seo`
 - `POST /admin/seo`
 - `GET /robots.txt`
@@ -391,7 +393,6 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 게시판, 게시글, 댓글
 - 페이지 빌더
 - 상품, 주문, 결제
-- 메뉴 관리
 - 쿠폰, 마케팅 자동화
 - 파일 업로드 관리
 - 고급 CMS workflow

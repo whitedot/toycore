@@ -61,9 +61,9 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 
 ## 현재 구현 범위
 
-현재 코드는 웹 설치, 기본 관리자 진입, 회원 인증, SEO 출력, 업데이트 실행, 개인정보/감사 로그 기반, 팝업레이어 모듈, 포인트 모듈, 예치금 모듈, 적립금 모듈의 1차 구조를 포함합니다.
+현재 toycore.git 본체는 웹 설치, 기본 관리자 진입, 회원 인증, 업데이트 실행, 개인정보/감사 로그 기반을 포함합니다. SEO, 팝업레이어, 포인트, 예치금, 적립금, 사이트 메뉴, 배너, 알림은 별도 모듈 리포지토리에서 관리하며 배포 패키지 조립 시 포함할 수 있습니다.
 
-기본 설치 흐름은 필수 모듈을 항상 설치/활성화하고, 나머지 기본 제공 모듈은 설치 화면에서 설치 여부를 선택합니다.
+기본 설치 흐름은 필수 모듈을 항상 설치/활성화하고, 배포본에 포함된 선택 모듈은 설치 화면에서 설치 여부를 선택합니다.
 
 ```text
 필수: core + member + admin
@@ -106,6 +106,8 @@ Docker 또는 OrbStack이 꺼져 있어도 공백, SQL 파일, 모듈 기본 구
 
 결과는 `dist/toycore-minimal`, `dist/toycore-standard`, `dist/toycore-ops` 디렉터리와, `zip` 명령이 있는 경우 같은 이름의 zip 파일로 생성됩니다.
 
+`standard`와 `ops` 패키지를 만들 때 선택 모듈이 본체 `modules/{module_key}`에 없으면, 패키징 스크립트는 기본적으로 toycore.git과 같은 상위 디렉터리에 있는 `toycore-module-{module-key}/module`을 사용합니다. 다른 위치를 쓰려면 `TOYCORE_MODULE_REPO_ROOT` 환경변수로 모듈 리포지토리 상위 디렉터리를 지정합니다.
+
 ## 모듈 구조
 
 Toycore의 모듈은 프레임워크 패키지가 아니라, 정해진 디렉터리에 놓인 절차형 PHP 파일과 DB에 저장된 설치/활성 상태로 동작합니다.
@@ -145,7 +147,7 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 
 최소 모듈 구조 예시는 [sample_module](examples/sample_module/README.md)에서 확인할 수 있습니다.
 
-`banner`, `popup_layer`, `site_menu`, `notification`, `seo`, `point`, `deposit`, `reward`는 1차로 별도 모듈 리포지토리에도 분리되어 있습니다. 현재 Toycore 본체의 모듈 복사본은 기본 번들 검증과 설치 호환성을 위해 유지합니다. 자세한 기준과 리포지토리 목록은 [모듈 별도 리포지토리 관리 방안](docs/module-repository-strategy.md)을 따릅니다.
+`banner`, `popup_layer`, `site_menu`, `notification`, `seo`, `point`, `deposit`, `reward`는 별도 모듈 리포지토리에서 관리합니다. toycore.git 본체에는 선택 모듈 복사본을 두지 않고, `standard`와 `ops` 배포 패키지를 만들 때 외부 모듈 리포지토리에서 조립합니다. 자세한 기준과 리포지토리 목록은 [모듈 별도 리포지토리 관리 방안](docs/module-repository-strategy.md)을 따릅니다.
 
 ## Extension Points
 

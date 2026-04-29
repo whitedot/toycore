@@ -58,16 +58,16 @@ git@github.com:whitedot/toycore-module-reward.git
 - 각 리포지토리는 `module/` 아래에 Toycore 런타임 파일을 둔다.
 - 각 리포지토리에 `README.md`와 `CHANGELOG.md`를 추가했다.
 - 각 모듈의 `module.php`에 `toycore.min_version`과 `toycore.tested_with` 메타데이터를 추가했다.
-- Toycore 본체의 `modules/{module_key}` 복사본은 아직 유지한다.
-- 아직 GitHub Releases용 zip 산출물은 만들지 않았다.
-- 아직 Toycore 본체에서 선택 모듈 디렉터리를 제거하지 않았다.
+- Toycore 본체의 선택 모듈 `modules/{module_key}` 복사본은 제거했다.
+- 각 모듈 리포지토리에 설치용 zip 산출물 생성 스크립트를 추가했다.
+- GitHub Releases 업로드 자동화는 아직 만들지 않았다.
 
 현재 상태에서의 원본 기준:
 
-- 런타임 검증과 기본 번들 설치는 Toycore 본체의 `modules/{module_key}` 복사본을 기준으로 계속 동작한다.
-- 별도 리포지토리는 모듈별 독립 개발과 릴리스 zip 실험을 위한 원본 후보로 사용한다.
-- 별도 리포지토리에서 변경한 내용은 본체 복사본에 반영하거나, 본체가 외부 모듈을 가져오는 정책이 확정되기 전까지 두 위치의 차이를 명시적으로 관리해야 한다.
-- Toycore 본체 배포 패키지는 `minimal`, `standard`, `ops`로 나눠 생성할 수 있다.
+- Toycore 본체 런타임 기준은 core/member/admin이다.
+- 선택 모듈의 원본은 별도 리포지토리의 `module/` 디렉터리다.
+- Toycore 본체 배포 패키지는 `minimal`, `standard`, `ops`로 나눠 생성한다.
+- `standard`와 `ops` 패키지는 외부 모듈 리포지토리의 `module/` 디렉터리를 `modules/{module_key}`로 복사해 조립한다.
 
 분리 우선순위가 높다:
 
@@ -246,7 +246,22 @@ ops = standard + site_menu + banner + notification
 ./.tools/bin/package-distributions 2026.05.001
 ```
 
-소스 리포지토리에 선택 모듈 복사본이 있더라도 minimal 패키지에는 필수 실행 기반만 들어간다.
+선택 모듈 리포지토리는 기본적으로 toycore.git과 같은 상위 디렉터리에 있어야 한다.
+
+```text
+ai/
+- toycore/
+- toycore-module-seo/
+- toycore-module-popup-layer/
+```
+
+다른 위치를 쓰는 릴리스 환경에서는 `TOYCORE_MODULE_REPO_ROOT`로 모듈 리포지토리 상위 디렉터리를 지정한다.
+
+```sh
+TOYCORE_MODULE_REPO_ROOT=/release/modules ./.tools/bin/package-distributions 2026.05.001
+```
+
+minimal 패키지에는 필수 실행 기반만 들어간다. standard/ops 패키지를 만들 때 필요한 외부 모듈 리포지토리를 찾지 못하면 패키징은 실패해야 한다.
 
 ### 수동 복사
 
@@ -501,7 +516,7 @@ site_menu
 notification
 ```
 
-이 단계에서는 코어 리포지토리에 복사본을 유지하되, 원본 리포지토리 구조와 배포 zip 구조를 실험한다.
+이 단계에서는 원본 리포지토리 구조와 배포 zip 구조를 검증하고, 코어 리포지토리에서는 선택 모듈 복사본을 제거한다.
 
 ### 3단계: 공식 번들 개념 도입
 

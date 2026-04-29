@@ -4,6 +4,7 @@ set -eu
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
 DIST="${ROOT}/dist"
 VERSION="${1:-dev}"
+MODULE_REPO_ROOT="${TOYCORE_MODULE_REPO_ROOT:-$(dirname "${ROOT}")}"
 
 copy_path() {
     source_path="$1"
@@ -44,12 +45,32 @@ copy_base() {
     done
 }
 
+copy_module() {
+    target_root="$1"
+    module_key="$2"
+
+    if [ -d "${ROOT}/modules/${module_key}" ]; then
+        copy_path "modules/${module_key}" "${target_root}"
+        return
+    fi
+
+    module_repo_key="$(printf '%s' "${module_key}" | tr '_' '-')"
+    module_repo_dir="${MODULE_REPO_ROOT}/toycore-module-${module_repo_key}/module"
+    if [ ! -d "${module_repo_dir}" ]; then
+        echo "module source not found: ${module_key}" >&2
+        echo "Expected ${ROOT}/modules/${module_key} or ${module_repo_dir}" >&2
+        exit 1
+    fi
+
+    mkdir -p "${target_root}/modules/${module_key}"
+    cp -R "${module_repo_dir}/." "${target_root}/modules/${module_key}/"
+}
+
 copy_modules() {
     target_root="$1"
     shift
-
     for module_key in "$@"; do
-        copy_path "modules/${module_key}" "${target_root}"
+        copy_module "${target_root}" "${module_key}"
     done
 }
 

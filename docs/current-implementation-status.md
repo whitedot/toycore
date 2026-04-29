@@ -15,8 +15,8 @@
 - `config/config.php` 생성
 - `storage/installed.lock` 생성
 - core/member/admin 설치 SQL 실행
-- 설치 시 seo/popup_layer/point/deposit/reward/site_menu/banner/notification 설치 여부 선택
-- 선택한 기본 제공 모듈의 설치 SQL 실행
+- 배포본에 포함된 경우 seo/popup_layer/point/deposit/reward/site_menu/banner/notification 설치 여부 선택
+- 선택한 선택 모듈의 설치 SQL 실행
 - 스키마 버전 기록
 - 선택 모듈 코드가 없는 배포본에서는 설치 화면에서 해당 선택 모듈 제외
 - minimal/standard/ops 배포 디렉터리와 zip 생성을 위한 패키징 스크립트 추가
@@ -27,9 +27,10 @@
 - 각 모듈 리포지토리에 `module/` 하위 런타임 구조 적용
 - 각 모듈 리포지토리에 `README.md`와 `CHANGELOG.md` 추가
 - 각 모듈 리포지토리의 `module.php`에 Toycore 호환 메타데이터 추가
-- Toycore 본체에는 현재 모듈 복사본 유지
-- 릴리스 zip 생성과 본체 모듈 제거는 아직 미적용
+- 각 모듈 리포지토리에 설치용 zip 생성 스크립트 추가
+- Toycore 본체에서 선택 모듈 복사본 제거
 - Toycore 본체 배포 패키지는 minimal/standard/ops로 분리 가능
+- standard/ops 배포 패키지는 같은 상위 디렉터리의 외부 모듈 리포지토리에서 선택 모듈을 조립
 
 ### 코어
 
@@ -54,19 +55,13 @@
 - 잔액 row 잠금, 거래 기록, 음수 잔액 방지를 처리하는 공통 원장 helper
 - 기본 home/error view
 - 공통 CSS 파일
-- 팝업레이어 닫기 동작을 위한 CSP 호환 정적 JavaScript 파일
 - CSRF helper
 - HTML escape helper
 - redirect helper
 - 리다이렉트/URL 제어 문자 차단
 - 사이트 Base URL http/https scheme 검증
 - canonical URL helper
-- SEO meta tag 출력 helper
 - title, description, canonical, robots, Open Graph 출력 슬롯
-- `seo` 모듈의 `/robots.txt` 출력
-- `seo` 모듈의 `/sitemap.xml` 출력
-- `seo` 모듈 관리자 설정 화면
-- 활성 모듈 `sitemap.php` 기반 sitemap URL 확장
 - 활성 모듈 `extension-points.php` 기반 확장 지점 조회
 - 다운로드 응답 헤더 helper
 - 기본 mail helper

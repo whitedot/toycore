@@ -27,7 +27,7 @@ storage/installed.lock
 
 ## 배포 패키지 종류
 
-Toycore는 소스 리포지토리에 선택 모듈 복사본을 유지할 수 있지만, 배포 산출물은 작게 나눌 수 있습니다.
+Toycore 본체 소스는 core/member/admin 중심으로 유지하고, 배포 산출물은 필요에 따라 선택 모듈을 조립해 나눕니다.
 
 ```text
 toycore-minimal
@@ -65,6 +65,8 @@ dist/toycore-ops
 ```
 
 `zip` 명령을 사용할 수 있으면 같은 이름의 zip 파일도 생성됩니다. minimal 배포본에는 선택 모듈 코드가 없으므로 설치 화면에서 선택 모듈 목록이 비어 있을 수 있습니다. 설치 후 필요한 모듈 zip을 `modules/{module_key}`에 업로드하고 `/admin/modules`에서 설치합니다.
+
+standard/ops 패키지를 만들 때는 toycore.git과 같은 상위 디렉터리에 `toycore-module-seo`, `toycore-module-popup-layer` 같은 외부 모듈 리포지토리가 있어야 합니다. 다른 위치에 있다면 `TOYCORE_MODULE_REPO_ROOT` 환경변수로 상위 디렉터리를 지정합니다.
 
 ## PHP 내장 서버
 
