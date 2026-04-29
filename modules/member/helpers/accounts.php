@@ -244,6 +244,37 @@ function toy_member_update_status(PDO $pdo, int $accountId, string $status): voi
     ]);
 }
 
+function toy_member_anonymize_account(PDO $pdo, array $config, int $accountId): void
+{
+    $anonymizedIdentifier = 'anonymized:' . $accountId;
+    $anonymizedEmail = 'anonymized-' . $accountId . '@invalid.toycore.local';
+    $passwordHash = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
+
+    $stmt = $pdo->prepare(
+        'UPDATE toy_member_accounts
+         SET account_identifier_hash = :account_identifier_hash,
+             login_id_hash = NULL,
+             email = :email,
+             email_hash = :email_hash,
+             password_hash = :password_hash,
+             display_name = :display_name,
+             status = :status,
+             email_verified_at = NULL,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'account_identifier_hash' => toy_hmac_hash($anonymizedIdentifier, $config),
+        'email' => $anonymizedEmail,
+        'email_hash' => toy_hmac_hash($anonymizedEmail, $config),
+        'password_hash' => $passwordHash,
+        'display_name' => '탈퇴 회원',
+        'status' => 'anonymized',
+        'updated_at' => toy_now(),
+        'id' => $accountId,
+    ]);
+}
+
 function toy_member_update_account_basics(PDO $pdo, int $accountId, string $displayName, string $locale): void
 {
     $stmt = $pdo->prepare(

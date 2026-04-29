@@ -183,6 +183,7 @@ module -> point -> slot -> subject
 - [서버별 배포 예시](docs/deployment-examples.md)
 - [현재 구현 상태](docs/current-implementation-status.md)
 - [모듈 작성 가이드](docs/module-guide.md)
+- [모듈 별도 리포지토리 관리 방안](docs/module-repository-strategy.md)
 - [회원 모듈 상세 계획](docs/member-plan.md)
 - [관리자 모듈 상세 계획](docs/admin-plan.md)
 - [다국어 처리 계획](docs/i18n-plan.md)

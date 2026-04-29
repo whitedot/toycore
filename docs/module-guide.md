@@ -1,68 +1,241 @@
 # 모듈 작성 가이드
 
-Toycore의 모듈은 프레임워크 패키지가 아닙니다.
+이 문서는 Toycore 모듈을 실제로 만들고 유지보수할 때 따르는 기준이다.
 
-모듈은 정해진 디렉터리에 놓인 절차형 PHP 파일과 DB에 저장된 설치/활성 상태로 동작합니다. 자동 발견, 서비스 프로바이더, ORM, 클래스 마이그레이션, DI 컨테이너를 전제로 하지 않습니다.
+Toycore의 모듈은 프레임워크 패키지가 아니다. 모듈은 정해진 디렉터리에 놓인 절차형 PHP 파일, 정적 SQL 파일, DB에 저장된 설치/활성 상태로 동작한다. 자동 발견, 서비스 프로바이더, ORM, 클래스 마이그레이션, DI 컨테이너, 이벤트 버스를 기본 전제로 두지 않는다.
 
-## 기본 구조
+모듈 작성의 목표는 기능을 빠르게 붙이는 것이 아니라 다음 상태를 유지하는 것이다.
 
-```text
-modules/{module_key}/
-- module.php
-- paths.php
-- admin-menu.php (optional)
-- menu-links.php (optional)
-- output-slots.php (optional)
-- extension-points.php (optional)
-- privacy-export.php (optional)
-- sitemap.php (optional)
-- actions/
-- views/
-- lang/
-- install.sql
-- updates/ (optional)
-```
+- 요청 흐름이 파일을 열면 보일 것
+- 코어가 도메인 정책을 대신 소유하지 않을 것
+- 모듈이 자기 테이블, 화면, 정책, 업데이트를 책임질 것
+- 저가형 웹호스팅에서도 PHP 파일과 SQL만으로 설치 가능할 것
+- 보안 판단을 view나 클라이언트 코드에 미루지 않을 것
 
-## 모듈과 플러그인
+별도 리포지토리에서 모듈을 관리하는 배포 전략은 [모듈 별도 리포지토리 관리 방안](module-repository-strategy.md)을 함께 따른다.
 
-Toycore에서 설치/활성화 가능한 확장 단위는 같은 `toy_modules` 등록 흐름을 사용합니다. 다만 개념은 구분합니다.
+## 1. 모듈 판단 기준
+
+Toycore에서 설치/활성화 가능한 확장 단위는 같은 `toy_modules` 등록 흐름을 사용한다. 다만 개념은 구분한다.
 
 ```text
 module = 자기 도메인과 정책을 소유하는 확장
 plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 ```
 
-판단 기준:
+모듈로 만든다:
 
-- 자기 테이블, 관리자 화면, route, 정책을 소유하면 모듈입니다.
-- 다른 모듈의 확장 지점에 붙어 기능을 보강하면 플러그인입니다.
-- `member`, `admin`, `seo`, `popup_layer`, `point`, `deposit`, `reward`, `site_menu`, `banner`, `notification`처럼 독립 기능을 소유하는 기본 확장은 모듈입니다.
-- 소셜 로그인 제공자, 특정 에디터 연동, 결제 수단 어댑터처럼 다른 모듈의 계약에 붙는 확장은 플러그인입니다.
+- 자기 테이블이 있다.
+- 자기 관리자 화면이 있다.
+- 자기 public/account/admin route가 있다.
+- 자기 권한, 검증, 정책을 판단한다.
+- 설치/업데이트 SQL을 소유한다.
 
-현재 DB registry는 `toy_modules`를 유지합니다. 모듈/플러그인 구분은 `module.php`의 `type` 값으로 표시합니다.
+플러그인으로 만든다:
+
+- 다른 모듈의 계약 파일이나 출력 지점에 붙어 기능을 보강한다.
+- 자기 테이블은 있을 수 있지만 독립 도메인이라기보다 어댑터 성격이다.
+- 소셜 로그인 제공자, 결제 수단 어댑터, 에디터 연동처럼 특정 모듈의 확장점에 붙는다.
+
+코어에 넣지 않는다:
+
+- 게시글, 상품, 주문, 댓글, 메뉴, 포인트, 쿠폰, 알림, SEO 판단 같은 도메인 기능
+- 미래 모듈을 예상한 공통 컬럼
+- 모듈별 workflow를 대신 처리하는 범용 관리자
+- 자동 route 등록, 자동 hook 등록, 자동 migration
+
+## 2. 기본 디렉터리 구조
+
+권장 구조:
+
+```text
+modules/{module_key}/
+- module.php
+- helpers.php (optional)
+- helpers/ (optional)
+- paths.php (optional)
+- admin-menu.php (optional)
+- menu-links.php (optional)
+- output-slots.php (optional)
+- extension-points.php (optional)
+- privacy-export.php (optional)
+- sitemap.php (optional)
+- actions/ (optional)
+- views/ (optional)
+- lang/ (optional)
+- install.sql
+- updates/ (optional)
+```
+
+최소 설치 가능한 모듈:
+
+```text
+modules/sample/
+- module.php
+- install.sql
+```
+
+관리자 화면이 있는 모듈:
+
+```text
+modules/sample/
+- module.php
+- helpers.php
+- paths.php
+- admin-menu.php
+- actions/admin-sample.php
+- views/admin-sample.php
+- install.sql
+```
+
+공개 화면과 확장 지점이 있는 모듈:
+
+```text
+modules/board/
+- module.php
+- helpers.php
+- paths.php
+- extension-points.php
+- sitemap.php
+- privacy-export.php
+- actions/list.php
+- actions/view.php
+- actions/admin-posts.php
+- views/list.php
+- views/view.php
+- views/admin-posts.php
+- install.sql
+- updates/2026.05.002.sql
+```
+
+## 3. 이름 규칙
+
+`module_key`는 영문 소문자, 숫자, 밑줄만 사용한다.
+
+좋은 예:
+
+```text
+member
+board
+shop_order
+payment_toss
+```
+
+피할 예:
+
+```text
+Member
+shop-order
+vendor/package
+../admin
+```
+
+DB 테이블은 프로젝트 prefix인 `toy_`로 시작한다.
+
+좋은 예:
+
+```text
+toy_board_posts
+toy_board_comments
+toy_payment_toss_transactions
+```
+
+피할 예:
+
+```text
+core_posts
+member_points
+posts
+```
+
+모듈이 회원과 연결되는 데이터를 저장할 때는 `toy_member_accounts`를 넓히지 않고 자기 테이블에 `account_id`를 둔다.
+
+```sql
+CREATE TABLE IF NOT EXISTS toy_board_posts (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    title VARCHAR(160) NOT NULL,
+    body_text TEXT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'published',
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_toy_board_posts_account (account_id),
+    KEY idx_toy_board_posts_status_created (status, created_at)
+);
+```
+
+## 4. `module.php`
+
+`module.php`는 모듈 메타데이터 파일이다. 코어와 admin 모듈은 이 파일을 필요할 때 명시적으로 읽는다.
+
+예:
 
 ```php
 <?php
 
 return [
-    'name' => 'Popup Layer',
-    'version' => '2026.04.001',
+    'name' => 'Board',
+    'version' => '2026.05.001',
     'type' => 'module',
+    'description' => 'Simple board module.',
+    'requires' => [
+        'modules' => [
+            'member',
+            'admin',
+        ],
+    ],
+    'contracts' => [
+        'provides' => [
+            'admin-menu.php',
+            'extension-points.php',
+            'privacy-export.php',
+            'sitemap.php',
+        ],
+        'consumes' => [
+            'output-slots.php',
+        ],
+    ],
+    'settings' => [
+        'posts_per_page' => 20,
+        'allow_comments' => true,
+    ],
 ];
 ```
 
-`type`은 `module` 또는 `plugin`만 사용합니다. 타입은 운영자가 확장 성격을 이해하기 위한 값이며, 요청 흐름을 자동으로 바꾸지 않습니다.
+필드 기준:
 
-## 모듈 의존성
+- `name`: 관리자 화면에 표시할 짧은 이름
+- `version`: 코드 기준 현재 버전
+- `type`: `module` 또는 `plugin`
+- `description`: 운영자가 이해할 수 있는 설명
+- `requires.modules`: 활성화 전에 필요한 모듈
+- `requires.contracts`: 활성화 전에 필요한 계약 파일
+- `contracts.provides`: 이 모듈이 제공하는 계약 파일
+- `contracts.consumes`: 이 모듈이 읽는 계약 파일
+- `settings`: 모듈 기본 설정 후보
 
-다른 모듈이나 계약 파일이 있어야 정상 동작하는 모듈은 `module.php`에 `requires`를 선언합니다.
+`module.php`에서 하지 않는다:
+
+- DB 변경
+- route 등록
+- action include
+- output 출력
+- 세션 변경
+- 활성화되지 않은 모듈의 부팅 처리
+
+`module.php`는 Service Provider가 아니다. 정보 파일이다.
+
+## 5. 의존성 선언
+
+다른 모듈이나 계약 파일이 있어야 정상 동작하는 모듈은 `requires`를 선언한다.
 
 ```php
 <?php
 
 return [
     'name' => 'Example Plugin',
-    'version' => '2026.04.001',
+    'version' => '2026.05.001',
     'type' => 'plugin',
     'requires' => [
         'modules' => [
@@ -79,87 +252,354 @@ return [
 ];
 ```
 
-관리자 모듈 설치와 활성화 흐름은 `enabled` 상태로 만들기 전에 선언된 의존 모듈이 활성화되어 있는지 확인합니다. `module_key => version` 형태로 쓰면 최소 설치 버전도 확인합니다. 설치 후 `disabled` 상태로 둘 때는 의존성 검사를 강제하지 않습니다.
+관리자 모듈 설치/활성화 흐름은 `enabled` 상태로 만들기 전에 의존 모듈이 활성화되어 있는지 확인한다. `module_key => version` 형태를 쓰면 최소 버전도 확인한다. 설치 후 `disabled` 상태로 둘 때는 의존성 검사를 강제하지 않는다.
 
-## 모듈 계약 파일
+의존성은 실행 순서가 아니라 운영 조건이다. 의존성 선언만으로 다른 모듈 파일을 자동 include하지 않는다.
 
-모듈 간 영향은 숨은 event bus나 자동 등록 대신 명시적인 계약 파일로 연결합니다.
+## 6. 요청 흐름과 `paths.php`
 
-계약 파일은 다음 원칙을 지킵니다.
+Toycore 요청 흐름은 다음 형태다.
 
-- 활성 모듈만 계약 파일을 제공할 수 있습니다.
-- 계약 파일은 모듈 디렉터리 바로 아래에 둡니다.
-- 계약 파일은 실행 흐름을 만들지 않고 배열 또는 callable만 반환합니다.
-- 소비 모듈은 `toy_enabled_module_contract_files()`로 활성 모듈의 계약 파일 목록을 얻은 뒤 직접 검증하고 읽습니다.
-- 계약 파일을 제공하는 모듈은 자기 도메인의 공개 가능한 정보만 선언합니다.
-
-대표 계약 파일:
-
-- `admin-menu.php`: 관리자 메뉴 항목
-- `menu-links.php`: 사이트 메뉴 후보 링크
-- `output-slots.php`: 화면 출력 renderer
-- `extension-points.php`: 확장 가능한 화면/기능 위치
-- `privacy-export.php`: 회원 개인정보 내보내기 확장
-- `sitemap.php`: SEO sitemap URL 확장
-
-## Output Slots
-
-화면 출력 지점에 여러 확장 모듈이 붙을 수 있을 때는 소유 모듈 view에서 특정 확장 모듈 helper를 직접 호출하지 않습니다.
-
-소유 모듈은 공통 helper를 호출합니다.
-
-```php
-<?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login']); ?>
+```text
+index.php
+-> method/path 확인
+-> 설치 상태 확인
+-> DB와 사이트 설정 로드
+-> 활성 모듈 목록 조회
+-> 각 활성 모듈의 paths.php 읽기
+-> METHOD /path와 일치하는 action 파일 검증
+-> action include
 ```
 
-출력 확장 모듈은 `output-slots.php`에서 renderer callable을 반환합니다.
-
-```php
-<?php
-
-return static function (PDO $pdo, array $context): string {
-    return '';
-};
-```
-
-renderer는 현재 요청에서 즉시 출력할 HTML 문자열을 반환합니다. 아무것도 출력하지 않을 때는 빈 문자열을 반환합니다.
-
-## 사이트 메뉴 후보
-
-사이트 전체 header/footer/account 같은 메뉴 그룹은 `site_menu` 모듈이 소유합니다. 각 도메인 모듈은 메뉴 구조를 직접 바꾸지 않고, 운영자가 선택할 수 있는 링크 후보만 `menu-links.php`로 제공합니다.
+`paths.php`는 단순 배열만 반환한다.
 
 ```php
 <?php
 
 return [
-    [
-        'label' => '내 계정',
-        'url' => '/account',
-    ],
+    'GET /board' => 'actions/list.php',
+    'GET /board/view' => 'actions/view.php',
+    'GET /admin/board/posts' => 'actions/admin-posts.php',
+    'POST /admin/board/posts' => 'actions/admin-posts.php',
 ];
 ```
 
 규칙:
 
-- `label`은 관리자 화면에 표시할 짧은 이름입니다.
-- `url`은 `/`로 시작하는 내부 URL 또는 `http/https` URL만 사용합니다.
-- 후보 제공은 메뉴 항목을 자동 생성하지 않습니다. 최종 메뉴 구성은 `site_menu` 관리자 화면에서 운영자가 결정합니다.
-- 메뉴 출력은 `site_menu` 모듈이 제공하는 `output-slots.php`에서 담당합니다. 코어 화면은 `toy_render_output_slot()`으로 위치만 열어 둡니다.
-- 메뉴는 사이트 구조에 가까우므로 메뉴 후보 위치를 `extension-points.php`로 선언하지 않습니다.
+- key는 `METHOD /path` 형식이다.
+- method는 보통 `GET` 또는 `POST`를 사용한다.
+- action 경로는 `actions/...php`만 사용한다.
+- path 등록 함수나 전역 dispatcher를 만들지 않는다.
+- 같은 method/path를 여러 활성 모듈이 선언하면 요청은 실패한다.
+- 관리자 화면 path는 `/admin/...` 아래에 둔다.
+- 상태 변경은 `POST`로 처리한다.
 
-## Admin Menu
+경로 설계 기준:
 
-관리자 공통 레이아웃은 활성 모듈의 `admin-menu.php`를 읽어 모듈별 관리자 메뉴를 표시할 수 있습니다.
+- public: `/board`, `/board/view`
+- account: `/account/notifications`
+- admin: `/admin/board/posts`
+- API처럼 보이는 endpoint도 처음에는 같은 action 흐름으로 둔다.
+- 숨은 JSON router를 따로 만들지 않는다.
 
-`admin-menu.php`는 화면을 등록하거나 실행하지 않습니다. 메뉴에 표시할 label/path/order만 반환하고, 실제 요청 처리는 같은 모듈의 `paths.php`, `actions/`, `views/`가 소유합니다.
+## 7. action 파일 작성
+
+action 파일은 요청 판단과 상태 변경을 담당한다. view는 출력만 담당한다.
+
+기본 골격:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once TOY_ROOT . '/modules/admin/helpers.php';
+require_once TOY_ROOT . '/modules/board/helpers.php';
+
+$account = toy_member_require_login($pdo);
+toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+
+$errors = [];
+$notice = '';
+
+if (toy_request_method() === 'POST') {
+    toy_require_csrf();
+
+    $title = toy_post_string('title', 160);
+
+    if ($title === '') {
+        $errors[] = '제목을 입력하세요.';
+    }
+
+    if ($errors === []) {
+        toy_board_save_post($pdo, [
+            'title' => $title,
+            'account_id' => (int) $account['id'],
+        ]);
+
+        toy_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'board.post.saved',
+            'target_type' => 'board_post',
+            'target_id' => '',
+            'result' => 'success',
+            'message' => 'Board post saved.',
+        ]);
+
+        $notice = '저장했습니다.';
+    }
+}
+
+$posts = toy_board_recent_posts($pdo);
+$adminPageTitle = '게시판';
+include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include TOY_ROOT . '/modules/board/views/admin-posts.php';
+include TOY_ROOT . '/modules/admin/views/layout-footer.php';
+```
+
+action 파일 책임:
+
+- 로그인/권한 검증
+- 입력 읽기와 서버 검증
+- CSRF 검증
+- DB 조회/변경
+- 감사 로그 또는 인증 로그 기록
+- redirect 결정
+- view에 필요한 변수 준비
+- view include
+
+action 파일에서 피한다:
+
+- 전체 HTML을 heredoc 문자열로 출력
+- 사용자 입력을 escape 없이 출력
+- 권한 판단을 view에 맡기기
+- 다른 모듈의 내부 helper 하위 파일을 직접 require
+- path 등록 또는 자동 dispatcher 변경
+- 토큰, 비밀번호, 개인정보 원문 로그 기록
+
+## 8. view 작성
+
+view는 PHP와 HTML을 섞되, HTML을 기본으로 쓰고 필요한 위치에만 `<?php echo ...; ?>`를 둔다.
+
+```php
+<?php if ($notice !== '') { ?>
+    <p><?php echo toy_e($notice); ?></p>
+<?php } ?>
+
+<form method="post" action="<?php echo toy_e(toy_url('/admin/board/posts')); ?>">
+    <?php echo toy_csrf_field(); ?>
+    <label>
+        제목
+        <input type="text" name="title" value="<?php echo toy_e($title); ?>" maxlength="160" required>
+    </label>
+    <button type="submit">저장</button>
+</form>
+```
+
+view 규칙:
+
+- 변수 출력은 `toy_e()`로 escape한다.
+- 줄바꿈이 필요한 텍스트는 `nl2br(toy_e($value))`를 사용한다.
+- `<?= ... ?>` 숏 echo 태그를 쓰지 않는다.
+- `echo <<<HTML`로 전체 레이아웃을 출력하지 않는다.
+- view에서 `$_GET`, `$_POST`, `$_COOKIE`를 직접 읽지 않는다.
+- view에서 DB 변경을 하지 않는다.
+- 상태 변경 form에는 CSRF 필드를 넣는다.
+- 권한 최종 판단은 action에서 끝낸다.
+
+출력 예외:
+
+- 이미 helper가 escape를 끝내고 반환한 HTML 조각은 그대로 출력할 수 있다.
+- `toy_render_output_slot()`처럼 출력 확장 helper가 반환하는 HTML은 그 helper/모듈이 escape 책임을 가진다.
+- 그래도 view 작성자는 사용자 입력 원문 HTML을 신뢰하지 않는다.
+
+## 9. helper 파일
+
+공통 함수가 필요하면 `helpers.php`를 모듈 helper 진입점으로 둔다.
+
+```text
+modules/board/
+- helpers.php
+- helpers/posts.php
+- helpers/comments.php
+- helpers/settings.php
+```
+
+`helpers.php` 예:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+require_once TOY_ROOT . '/modules/board/helpers/posts.php';
+require_once TOY_ROOT . '/modules/board/helpers/settings.php';
+```
+
+규칙:
+
+- action은 가능하면 모듈의 `helpers.php`만 require한다.
+- 하위 helper 파일은 로드 시 부작용을 만들지 않는다.
+- helper 함수는 `PDO $pdo`를 명시적으로 인자로 받는다.
+- 함수명은 `toy_{module_key}_...` prefix를 사용한다.
+- 다른 모듈의 테이블을 직접 조인하기 전에 공개 helper나 계약 파일로 대체 가능한지 본다.
+- helper가 HTML을 반환한다면 escape 책임을 helper 안에서 끝낸다.
+
+## 10. DB 접근
+
+Toycore는 PDO prepared statement를 기본으로 한다.
+
+```php
+<?php
+
+$stmt = $pdo->prepare(
+    'SELECT id, title
+     FROM toy_board_posts
+     WHERE status = :status
+     ORDER BY id DESC
+     LIMIT 20'
+);
+$stmt->execute(['status' => 'published']);
+$posts = $stmt->fetchAll();
+```
+
+허용:
+
+- 외부 값이 없는 고정 SQL에 `query()`
+- 동적 값에 `prepare()`와 named placeholder
+- 설치/업데이트 SQL 파일 실행에 `exec()`
+- 테이블명/컬럼명은 허용 목록에서 선택한 값만 문자열 결합
+
+금지:
+
+```php
+<?php
+
+$pdo->query("SELECT * FROM toy_board_posts WHERE title = '" . $_GET['title'] . "'");
+$pdo->exec("DELETE FROM " . $_POST['table']);
+```
+
+정렬 예:
+
+```php
+<?php
+
+$allowedSorts = [
+    'newest' => 'id DESC',
+    'oldest' => 'id ASC',
+];
+$sort = $allowedSorts[$requestedSort] ?? $allowedSorts['newest'];
+$stmt = $pdo->query('SELECT id, title FROM toy_board_posts ORDER BY ' . $sort . ' LIMIT 50');
+```
+
+자세한 기준은 [DB 접근 정책](database-access-policy.md)을 따른다.
+
+## 11. 설치 SQL
+
+`install.sql`은 모듈이 소유한 테이블과 초기 데이터를 만든다.
+
+규칙:
+
+- 모듈 소유 테이블만 만든다.
+- 테이블명은 `toy_` prefix를 사용한다.
+- `CREATE TABLE IF NOT EXISTS`를 사용한다.
+- 초기 데이터는 재실행해도 안전하게 작성한다.
+- 너무 많은 대량 데이터 seed를 넣지 않는다.
+- 외래키는 공유호스팅 호환성을 고려해 선택적으로 사용한다.
+- 실패 후 재시도를 고려해 unique key와 `ON DUPLICATE KEY UPDATE`를 함께 설계한다.
+
+예:
+
+```sql
+CREATE TABLE IF NOT EXISTS toy_board_categories (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    category_key VARCHAR(60) NOT NULL,
+    label VARCHAR(120) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'enabled',
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_toy_board_categories_key (category_key)
+);
+
+INSERT INTO toy_board_categories (category_key, label, status, created_at, updated_at)
+VALUES ('notice', '공지사항', 'enabled', NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+    label = VALUES(label),
+    status = VALUES(status),
+    updated_at = VALUES(updated_at);
+```
+
+## 12. 업데이트 SQL
+
+이미 설치된 모듈의 구조 변경은 `updates/` 아래 SQL 파일로 처리한다.
+
+```text
+modules/board/updates/2026.05.002.sql
+```
+
+규칙:
+
+- 파일명은 `YYYY.MM.NNN.sql` 형식이다.
+- 한 파일은 한 버전의 변경만 담는다.
+- 파일을 추가하면 `module.php`의 `version`도 올린다.
+- 기본 설치 SQL에도 최신 구조를 반영한다.
+- unique key 추가 전 중복 데이터를 정리한다.
+- 실패한 SQL을 같은 version으로 조용히 바꾸지 않는다.
+- 이미 배포된 update 파일을 수정해야 했다면 새 version 파일을 추가하는 것을 우선한다.
+
+업데이트 작성 전 확인:
+
+- 기존 설치에서 바로 올라올 수 있는가?
+- 일부 DDL이 적용된 뒤 실패해도 복구 가능성이 있는가?
+- 큰 테이블에서 오래 걸리는 작업은 없는가?
+- 관리자 업데이트 화면에 표시될 변경 단위가 이해 가능한가?
+
+업데이트 정책은 [업데이트 및 스키마 버전 계획](update-plan.md)을 따른다.
+
+## 13. 모듈 설정
+
+모듈 설정은 `toy_module_settings`에 저장한다. 설정 조회는 코어 helper를 사용한다.
+
+```php
+<?php
+
+$settings = toy_module_settings($pdo, 'board');
+$postsPerPage = (int) toy_module_setting($pdo, 'board', 'posts_per_page', 20);
+```
+
+설정 기본값은 `module.php`에 둘 수 있지만, 실제 저장과 검증은 모듈 action에서 처리한다.
+
+전용 설정 화면을 권장한다:
+
+- 운영자가 자주 바꾸는 설정
+- 값의 단위와 범위가 중요한 설정
+- 보안에 영향을 주는 설정
+- 공개 화면 동작이 바뀌는 설정
+
+전용 설정 화면 규칙:
+
+- `GET`은 현재 값 표시
+- `POST`는 CSRF 검증 후 저장
+- 서버에서 타입과 범위 검증
+- 저장 후 `toy_clear_module_settings_cache('{module_key}')` 호출
+- 변경 감사 로그 기록
+
+범용 `/admin/modules` key/value 설정은 비상용 또는 낮은 수준의 관리 도구로 본다.
+
+## 14. 관리자 메뉴
+
+관리자 메뉴가 필요한 모듈은 `admin-menu.php`를 둔다.
 
 ```php
 <?php
 
 return [
     [
-        'label' => '포인트',
-        'path' => '/admin/points',
+        'label' => '게시판',
+        'path' => '/admin/board/posts',
         'order' => 40,
     ],
 ];
@@ -167,171 +607,90 @@ return [
 
 규칙:
 
-- `path`는 `/admin/...` 아래 경로만 사용합니다.
-- `path`는 같은 모듈의 `paths.php`에 선언된 관리자 경로와 일치해야 합니다.
-- 기본 점검 스크립트는 `admin-menu.php`의 `path`가 같은 모듈 `paths.php`의 `GET` route에 있는지 확인합니다.
-- 메뉴 노출은 admin 모듈이 조정하지만, 권한 검사와 상태 변경 처리는 소유 모듈 action에서 수행합니다.
-- admin 모듈은 도메인 모듈의 메뉴 label/path를 하드코딩하지 않습니다.
+- `path`는 `/admin/...` 아래만 사용한다.
+- 같은 모듈의 `paths.php`에 `GET {path}`가 있어야 한다.
+- 메뉴는 화면 등록이 아니라 노출 정보다.
+- 권한 검사는 action 파일에서 한다.
+- admin 모듈은 도메인 모듈의 메뉴 label/path를 하드코딩하지 않는다.
 
-## Extension Points
+## 15. 계약 파일
 
-Toycore용 모듈은 외부 확장이 붙을 수 있는 화면이나 기능 위치를 `extension-points.php`로 선언할 수 있습니다.
+모듈 간 영향은 숨은 event bus가 아니라 계약 파일로 연결한다.
 
-`extension-points.php`는 팝업레이어 전용 파일이 아닙니다. 팝업레이어, 배너, 쿠폰, 추천, 분석 같은 확장 모듈이 자기 정책에 맞게 읽어 사용할 수 있는 표준 확장 지점 목록입니다.
+대표 계약 파일:
 
-기본 용어:
+- `admin-menu.php`: 관리자 메뉴 항목
+- `menu-links.php`: 사이트 메뉴 후보 링크
+- `output-slots.php`: 출력 renderer
+- `extension-points.php`: 확장 가능한 화면/기능 위치
+- `privacy-export.php`: 회원 개인정보 내보내기 확장
+- `sitemap.php`: SEO sitemap URL 확장
+
+계약 파일 규칙:
+
+- 모듈 디렉터리 바로 아래에 둔다.
+- 배열 또는 callable을 반환한다.
+- 로드 시 상태 변경을 하지 않는다.
+- 공개 가능한 정보만 선언한다.
+- 소비 모듈은 값을 다시 검증한다.
+- 사용자 요청마다 비싼 계약 파일 탐색을 반복하지 않는다.
+
+계약 파일은 자동 등록이 아니다. 소비 모듈이 필요한 시점에 명시적으로 읽는 공개 약속이다.
+
+## 16. Output Slots
+
+화면 출력 지점에 여러 확장 모듈이 붙을 수 있을 때는 화면 소유 모듈 view에서 특정 확장 모듈 helper를 직접 호출하지 않는다.
+
+화면 소유 모듈:
+
+```php
+<?php echo toy_render_output_slot($pdo, [
+    'module_key' => 'board',
+    'point_key' => 'board.post.view',
+    'slot_key' => 'before_content',
+    'subject_id' => (string) $post['id'],
+]); ?>
+```
+
+출력 확장 모듈의 `output-slots.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+require_once TOY_ROOT . '/modules/example_banner/helpers.php';
+
+return static function (PDO $pdo, array $context): string {
+    return toy_example_banner_render($pdo, $context);
+};
+```
+
+renderer 규칙:
+
+- 출력할 HTML 문자열을 반환한다.
+- 아무것도 출력하지 않으면 빈 문자열을 반환한다.
+- context 값을 검증한다.
+- 사용자 입력과 DB 값은 escape 후 출력한다.
+- DB 조회가 필요하면 인덱스가 있는 저장 규칙 테이블을 사용한다.
+
+## 17. Extension Points
+
+`extension-points.php`는 외부 확장이 붙을 수 있는 화면이나 기능 위치를 선언한다.
+
+용어:
 
 ```text
 extension point = 확장 가능한 화면/기능 단위
 slot = extension point 안의 구체적인 출력 위치
-subject = 특정 상품, 게시판, 글 같은 세부 대상
+subject = 특정 글, 상품, 게시판 같은 세부 대상
 ```
 
-선택 깊이:
+선택 깊이는 기본적으로 4단계를 넘기지 않는다.
 
 ```text
-1단계: module
-2단계: point
-3단계: slot
-4단계: subject
+module -> point -> slot -> subject
 ```
-
-Toycore의 확장 선택 UI는 4단계를 최대치로 봅니다. 5단계 이상이 필요해 보이면 단계를 늘리지 않고 `filters`, `schedule`, `device`, `locale`, `member_status` 같은 조건 필드로 분리합니다.
-
-확장 모듈은 자기에게 필요한 깊이까지만 사용합니다.
-
-```text
-popup_layer = module -> point -> slot -> subject
-banner = module -> point -> slot -> subject
-analytics = module -> point
-```
-
-규칙:
-
-- `extension-points.php`는 배열 또는 callable을 반환합니다.
-- 프론트 요청에서는 이 파일을 읽지 않습니다.
-- 관리자 설정 화면처럼 확장 대상을 고르는 시점에만 읽습니다.
-- 실제 출력 위치는 각 모듈의 화면 파일에서 helper를 명시적으로 호출합니다.
-- 코어는 파일을 안전하게 찾는 helper까지만 제공합니다.
-- 계약 값의 의미, 필터링, 출력 정책은 확장 모듈이 책임집니다.
-
-예:
-
-```text
-modules/member/extension-points.php
-```
-
-```php
-<?php
-
-return [
-    [
-        'point_key' => 'member.login',
-        'label' => '로그인',
-        'surface' => 'public',
-        'output' => true,
-        'slots' => [
-            [
-                'slot_key' => 'overlay',
-                'label' => '화면',
-                'kind' => 'overlay',
-            ],
-        ],
-    ],
-];
-```
-
-필드 의미:
-
-- `point_key`: 모듈 안에서 안정적으로 유지되는 확장 지점 key
-- `label`: 관리자 화면에 표시할 이름
-- `surface`: `public`, `admin` 같은 노출 영역
-- `output`: 출력형 확장이 붙을 수 있는지 여부
-- `slots`: 실제 출력 위치 목록
-- `slot_key`: point 안에서 안정적으로 유지되는 위치 key
-- `kind`: `content`, `overlay`, `head`, `script` 같은 위치 성격
-- `subjects`: 선택 사항. 특정 상품/게시판/글 같은 세부 대상 선택 정보를 제공할 때 사용
-
-현재 `popup_layer` 구현은 관리자 UI에서 `module_key`, `point_key`, `slot_key`, 수동 `subject_id`를 사용합니다. `slots`가 비어 있으면 호환을 위해 `overlay` 기본 위치로 취급하고, 선언된 slot이 있으면 `kind`가 `overlay`인 slot만 노출 대상으로 표시합니다. `subjects.options`와 `subjects.selector`는 커뮤니티, 커머스처럼 세부 대상 선택 UI가 필요한 모듈을 위한 표준 필드이며, 검색/선택 UI는 후속 관리자 화면에서 이 규격을 읽어 확장합니다.
-
-작은 목록은 `subjects.options`로 직접 제공할 수 있습니다.
-
-```php
-<?php
-
-return [
-    [
-        'point_key' => 'community.board.view',
-        'label' => '게시판 보기',
-        'surface' => 'public',
-        'output' => true,
-        'slots' => [
-            [
-                'slot_key' => 'before_content',
-                'label' => '본문 위',
-                'kind' => 'content',
-            ],
-        ],
-        'subjects' => [
-            'type' => 'board',
-            'label' => '게시판',
-            'options' => [
-                ['value' => 'notice', 'label' => '공지사항'],
-                ['value' => 'free', 'label' => '자유게시판'],
-            ],
-        ],
-    ],
-];
-```
-
-상품처럼 대상이 많을 수 있으면 전체 options를 반환하지 않고 검색형 selector 정보를 제공합니다.
-
-```php
-'subjects' => [
-    'type' => 'product',
-    'label' => '상품',
-    'selector' => [
-        'mode' => 'search',
-        'action' => '/admin/commerce/products/search',
-    ],
-],
-```
-
-화면을 소유한 모듈은 필요한 위치에서 공통 출력 슬롯 helper를 호출합니다.
-
-```php
-<?php
-echo toy_render_output_slot($pdo, [
-    'module_key' => 'member',
-    'point_key' => 'member.login',
-]);
-?>
-```
-
-특정 subject에만 출력하려면 화면 모듈이 현재 subject id를 전달합니다.
-
-```php
-<?php
-echo toy_render_output_slot($pdo, [
-    'module_key' => 'commerce',
-    'point_key' => 'commerce.product.view',
-    'subject_id' => (string) $product['id'],
-]);
-?>
-```
-
-이 구조에서 팝업레이어 모듈은 커머스나 회원 모듈 내부 파일을 직접 include하지 않고, 화면 소유 모듈은 팝업레이어 테이블 구조를 직접 조회하지 않습니다.
-
-## 배너 모듈 사용
-
-배너는 화면 소유 모듈이 선언한 `content` 성격의 출력 위치에 붙는 운영 콘텐츠입니다. 배너 모듈이 다른 모듈의 화면 위치를 하드코딩하지 않고, 각 모듈이 자기 화면에서 배너를 받을 수 있는 위치를 선언합니다.
-
-화면 소유 모듈이 할 일:
-
-- `extension-points.php`에 `output => true`인 point를 선언합니다.
-- 배너가 들어갈 위치는 `slots` 안에 `kind => content`로 선언합니다.
-- 실제 view에서 `toy_render_output_slot()`을 호출합니다.
-- 배너 모듈 helper나 테이블을 직접 require/query하지 않습니다.
 
 예:
 
@@ -340,7 +699,7 @@ echo toy_render_output_slot($pdo, [
 
 return [
     [
-        'point_key' => 'community.post.view',
+        'point_key' => 'board.post.view',
         'label' => '게시글 보기',
         'surface' => 'public',
         'output' => true,
@@ -355,514 +714,241 @@ return [
                 'label' => '본문 아래',
                 'kind' => 'content',
             ],
+            [
+                'slot_key' => 'overlay',
+                'label' => '화면',
+                'kind' => 'overlay',
+            ],
+        ],
+        'subjects' => [
+            'type' => 'board',
+            'label' => '게시판',
+            'options' => [
+                ['value' => 'notice', 'label' => '공지사항'],
+                ['value' => 'free', 'label' => '자유게시판'],
+            ],
         ],
     ],
 ];
 ```
 
-view에서는 선언한 위치와 같은 값으로 출력 슬롯을 호출합니다.
+필드 기준:
+
+- `point_key`: 모듈 안에서 안정적으로 유지되는 key
+- `label`: 관리자 화면 표시 이름
+- `surface`: `public`, `account`, `admin` 등 노출 영역
+- `output`: 출력형 확장이 붙을 수 있는지 여부
+- `slots`: 실제 출력 위치 목록
+- `slot_key`: point 안의 위치 key
+- `kind`: `content`, `overlay`, `head`, `script` 같은 위치 성격
+- `subjects`: 선택 대상 정보
+
+대상이 많으면 `options` 전체를 반환하지 말고 검색형 selector를 선언한다.
 
 ```php
-<?php
-echo toy_render_output_slot($pdo, [
-    'module_key' => 'community',
-    'point_key' => 'community.post.view',
-    'slot_key' => 'before_content',
-    'subject_id' => (string) $post['id'],
-]);
-?>
+'subjects' => [
+    'type' => 'product',
+    'label' => '상품',
+    'selector' => [
+        'mode' => 'search',
+        'action' => '/admin/shop/products/search',
+    ],
+],
 ```
-
-배너 모듈이 하는 일:
-
-- 활성 모듈의 `extension-points.php`를 읽어 관리자 화면에서 선택 가능한 출력 위치를 보여줍니다.
-- `kind`가 `content`인 slot만 배너 출력 위치로 사용합니다.
-- 저장된 `module_key`, `point_key`, `slot_key`, `subject_id` 규칙으로 사용자 요청 시 배너를 조회합니다.
-- 외부 `http/https` 링크는 새 창 보안 속성을 붙여 출력하고, 이미지 URL은 내부 경로만 허용합니다.
-- 선언이 사라진 저장 위치는 관리자 화면에서 보존된 위치로 표시해 기존 배너가 의도치 않게 다른 위치로 바뀌지 않게 합니다.
-
-배너와 팝업레이어의 차이:
-
-- 배너는 본문 안에 흐르는 콘텐츠이므로 `kind => content` slot을 사용합니다.
-- 팝업레이어는 화면 위에 뜨는 확장이므로 `kind => overlay` slot을 사용합니다.
-- 한 point에 `content`와 `overlay` slot을 함께 선언할 수 있지만, 각 확장 모듈은 자기 성격에 맞는 slot만 선택합니다.
 
 성능 기준:
 
-- 사용자 요청에서 `extension-points.php`를 읽지 않습니다.
-- 사용자 요청에서는 저장된 규칙 테이블만 조회합니다.
-- 조회 조건에는 `module_key`, `point_key`, `slot_key`, `match_type`, `subject_id` 인덱스를 둡니다.
-- 한 요청에서 같은 slot이 반복 호출될 가능성이 생기면 확장 모듈 helper 안에 요청 단위 static cache를 둡니다.
-- 대량 subject는 options 전체 반환을 금지하고 검색형 selector를 사용합니다.
+- 사용자 요청에서는 `extension-points.php`를 읽지 않는다.
+- 관리자 설정 화면에서만 확장 대상 목록을 읽는다.
+- 사용자 요청에서는 저장된 규칙 테이블만 조회한다.
+- 대량 subject는 검색 selector를 사용한다.
 
-권장 예시:
+## 18. 사이트 메뉴 후보
 
-```text
-modules/member/
-- module.php
-- paths.php
-- actions/login.php
-- actions/logout.php
-- actions/register.php
-- views/login.php
-- views/register.php
-- lang/ko.php
-- install.sql
-- sitemap.php
-```
-
-## 파일 역할
-
-### `module.php`
-
-`module.php`는 모듈의 기본 정보를 설명하는 파일입니다. 코어가 모듈 목록이나 관리자 화면에서 표시할 이름, 버전, 기본 설정 후보 같은 정적 정보를 확인할 때 사용할 수 있습니다.
-
-예상 역할:
-
-- 모듈 이름, 설명, 버전, 기본 제공 여부 같은 메타 정보 반환
-- 기본 설정 키와 기본값 후보 제공
-- 필요 시 모듈 전용 helper 함수 정의
-
-금지하는 역할:
-
-- 요청 처리 자동 실행
-- path 등록
-- 다른 action 파일 자동 include
-- DB 변경 자동 실행
-- 활성화되지 않은 모듈의 부팅 처리
-
-`module.php`는 Laravel Service Provider 같은 부팅 클래스가 아닙니다. 코어가 필요할 때 명시적으로 읽는 정보 파일이며, 요청 흐름을 숨기면 안 됩니다.
-
-관리자 모듈 화면은 DB에 기록된 설치 버전과 함께 `module.php`의 코드 버전, 설명을 표시합니다. 이 표시는 운영자가 배포된 코드와 설치 기록의 차이를 확인하기 위한 정보이며, 모듈을 자동 등록하거나 자동 업데이트하지 않습니다.
-
-예시:
-
-```php
-<?php
-
-return [
-    'name' => 'Member',
-    'version' => '2026.04.001',
-    'description' => 'Member account and authentication module.',
-    'settings' => [
-        'allow_signup' => '1',
-        'login_identifier' => 'email',
-    ],
-];
-```
-
-### `helpers.php`와 helper 하위 파일
-
-모듈의 공통 함수는 `helpers.php`에서 명시적으로 제공합니다. 함수가 적을 때는 한 파일로 시작할 수 있지만, 역할이 섞이기 시작하면 `helpers/` 하위 파일로 나눕니다.
-
-권장 구조:
-
-```text
-modules/{module_key}/
-- helpers.php
-- helpers/{area}.php
-```
-
-예:
-
-```php
-<?php
-
-declare(strict_types=1);
-
-require_once TOY_ROOT . '/modules/admin/helpers/roles.php';
-require_once TOY_ROOT . '/modules/admin/helpers/updates.php';
-```
-
-원칙:
-
-- `helpers.php`는 모듈 helper의 명시적 진입점입니다.
-- 하위 helper 파일은 `roles`, `updates`, `sessions`, `privacy`처럼 소유 책임이 드러나는 이름을 사용합니다.
-- 너무 잘게 나누지 않고, 한 화면 흐름을 이해할 때 같이 읽는 함수는 같은 파일에 둡니다.
-- helper 하위 파일은 보통 모듈당 4~7개 안쪽으로 유지합니다.
-- action 파일은 가능하면 모듈의 `helpers.php`만 require하고, helper 내부의 하위 파일 순서는 `helpers.php`에서 관리합니다.
-- 하위 helper 파일은 로드 시 DB 변경, route 등록, 출력 같은 부작용을 만들지 않습니다.
-- 다른 모듈의 내부 helper 하위 파일을 직접 require하지 않습니다. 공개 helper가 필요하면 해당 모듈의 `helpers.php`를 통해 사용합니다.
-
-### `paths.php`
-
-`paths.php`는 현재 모듈이 처리할 수 있는 method/path와 action 파일의 허용 목록입니다. 이 파일은 실행 흐름을 만들지 않고 배열만 반환합니다.
-
-코어는 활성 모듈의 `paths.php`를 읽은 뒤 현재 요청과 일치하는 항목만 선택하고, action 파일 경로가 모듈 디렉터리 안에 있는지 검증한 뒤 include합니다.
-
-활성 모듈 둘 이상이 같은 `METHOD /path`를 선언하면 코어는 한쪽을 임의로 선택하지 않고 요청을 중단합니다. 경로 충돌은 `storage/logs/error.log`에 기록되므로, 모듈 작성자는 공개 path와 관리자 path를 안정적으로 소유해야 합니다.
-
-### 설정 화면
-
-모듈은 운영자가 자주 변경하거나 동작에 직접 영향을 주는 설정에 대해 전용 관리자 화면을 최대한 제공합니다.
-
-기본 방향:
-
-- 범용 `/admin/modules` 설정 key/value 화면은 비상용 또는 낮은 수준의 관리 도구로 둡니다.
-- 모듈 설정은 가능하면 `modules/{module_key}/actions/admin-settings.php`와 전용 view에서 저장합니다.
-- 전용 화면은 설정 이름, 단위, 허용 범위, 기본값의 의미가 드러나야 합니다.
-- 상태 변경은 POST와 CSRF 검증을 사용합니다.
-- 서버에서 허용 범위와 타입을 다시 검증합니다.
-- 설정 변경은 감사 로그에 남깁니다.
-
-예:
-
-```text
-member -> /admin/member-settings
-seo -> /admin/seo
-popup_layer -> /admin/popup-layers
-```
-
-범용 모듈 설정 화면은 전용 화면이 아직 없거나, 긴급히 key/value를 확인해야 할 때만 사용합니다.
-
-### `actions/`
-
-`actions/` 디렉터리는 요청을 실제로 처리하는 절차형 PHP 파일을 둡니다.
-
-action 파일의 책임:
-
-- 현재 요청의 입력값 읽기
-- method별 처리 분기
-- CSRF 검증
-- 로그인/권한 검증
-- DB 조회와 변경
-- 감사 로그 또는 인증 로그 기록
-- redirect 결정
-- view에 넘길 변수 준비
-- 필요한 view include
-
-action 파일이 피해야 할 일:
-
-- 전체 HTML 레이아웃을 긴 문자열로 직접 출력
-- 사용자 입력을 escape 없이 출력
-- 권한 검증을 view에 맡기기
-- 다른 모듈의 내부 파일을 직접 include
-- path를 새로 등록하거나 전역 dispatcher를 변경
-
-action 파일은 화면을 만들기보다 요청의 의사결정과 상태 변경을 담당합니다. 출력이 필요하면 view에 필요한 변수만 준비하고 `views/` 파일을 include합니다.
-
-### `views/`
-
-`views/` 디렉터리는 화면 조각이나 페이지 본문을 출력하는 PHP/HTML 파일을 둡니다.
-
-view의 책임:
-
-- 일반 HTML 작성
-- action 파일이 준비한 변수 출력
-- `toy_e()` 같은 helper로 출력 escape
-- form markup 작성
-- 상태 변경 form에 CSRF hidden 필드 포함
-- 번역 helper를 사용해 화면 문구 출력
-
-view가 피해야 할 일:
-
-- `$_GET`, `$_POST`, `$_COOKIE` 직접 읽기
-- DB 조회나 DB 변경
-- 권한 판단의 최종 결정
-- redirect 처리
-- 세션 상태 변경
-- 비밀번호, 토큰, 개인정보 원문 로그 기록
-
-view는 표시 담당입니다. 보안상 중요한 판단과 상태 변경은 action 파일에서 끝낸 뒤 view가 출력만 하도록 유지합니다.
-
-### `install.sql`
-
-`install.sql`은 모듈이 소유한 테이블과 초기 데이터 구조를 만드는 SQL 파일입니다. 코어는 모듈 내부 테이블 구조를 직접 만들지 않고, 설치 과정에서 해당 모듈의 `install.sql`을 명시적으로 실행합니다.
-
-설치 SQL은 가능한 한 일반적인 MySQL/MariaDB 문법을 사용하고, 저가형 웹호스팅에서 실행 가능한 크기로 유지합니다. 초기 데이터는 재시도해도 같은 상태가 되도록 `INSERT ... ON DUPLICATE KEY UPDATE` 또는 동등한 idempotent 패턴을 사용합니다.
-
-### `updates/`
-
-`updates/` 디렉터리는 이미 설치된 모듈의 구조나 기본 데이터를 버전별로 보정하는 SQL 파일을 둡니다.
-
-```text
-modules/{module_key}/updates/2026.04.002.sql
-```
-
-업데이트 SQL 규칙:
-
-- 파일명은 모듈 버전과 맞추기 쉬운 `YYYY.MM.NNN.sql` 형식을 사용합니다.
-- 한 파일은 한 버전의 변경만 담고, 가능한 작고 재시도하기 쉽게 유지합니다.
-- unique key를 추가하기 전에는 중복 데이터를 먼저 정리하거나 운영자가 처리해야 할 복구 절차를 문서화합니다.
-- 기본 seed 보정은 `ON DUPLICATE KEY UPDATE` 같은 재실행 안전 패턴을 사용합니다.
-- 업데이트 파일을 추가하면 `module.php`의 `version`도 함께 올립니다.
-- 기본 설치 화면에 포함된 선택 모듈이면 `core/actions/install.php`의 기본 설치 버전도 맞춥니다.
-
-## 모듈 키
-
-`module_key`는 영문 소문자, 숫자, 밑줄만 사용합니다.
-
-좋은 예:
-
-```text
-member
-board
-page
-shop_order
-```
-
-피할 예:
-
-```text
-Member
-shop-order
-../admin
-vendor/package
-```
-
-## 설치 방식
-
-모듈 설치는 다음 방식으로 처리합니다.
-
-```text
-1. modules/{module_key}/install.sql 실행
-2. toy_modules에 모듈 등록
-3. toy_modules.status로 활성 상태 설정
-4. toy_module_settings에 기본 설정 등록
-```
-
-웹 설치 화면에서는 `member`, `admin`을 필수 모듈로 설치하고, 기본 제공 선택 모듈은 선택한 경우에만 설치합니다. 설치 후에는 `/admin/modules`에서 코드에 있지만 DB에 등록되지 않은 모듈을 설치할 수 있습니다.
-
-모듈 설정을 읽을 때는 코어 helper를 사용합니다.
-
-```php
-$settings = toy_module_settings($pdo, 'member');
-$loginIdentifier = toy_module_setting($pdo, 'member', 'login_identifier', 'email');
-```
-
-이 helper는 요청 단위로 값을 메모리에 보관하지만, 파일 캐시나 외부 캐시 서버를 필수로 요구하지 않습니다.
-
-설치 SQL은 가능한 한 일반적인 MySQL/MariaDB 문법을 사용합니다. 기본 메뉴, 기본 배너 위치, 기본 알림 템플릿처럼 초기 데이터를 함께 넣는 모듈은 재설치나 중간 실패 후 재시도에서도 중복이 생기지 않게 unique key와 idempotent insert를 같이 설계합니다.
-
-```sql
-CREATE TABLE IF NOT EXISTS toy_member_accounts (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    account_identifier_hash CHAR(64) NOT NULL,
-    login_id_hash CHAR(64) NULL,
-    email VARCHAR(255) NOT NULL,
-    email_hash CHAR(64) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    status VARCHAR(30) NOT NULL DEFAULT 'active',
-    created_at DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_member_identifier (account_identifier_hash),
-    UNIQUE KEY uq_toy_member_email_hash (email_hash)
-);
-```
-
-## 개인정보 내보내기 확장
-
-회원 모듈은 계정, 인증, 동의처럼 자신이 소유한 데이터만 기본 JSON 내보내기에 포함합니다. 게시판, 커머스, 예약 같은 확장 모듈의 개인정보는 각 모듈이 직접 export 계약을 제공합니다.
-
-확장 모듈은 필요한 경우 다음 파일을 둡니다.
-
-```text
-modules/{module_key}/privacy-export.php
-```
-
-파일은 callable을 반환합니다.
-
-```php
-<?php
-
-return function (PDO $pdo, int $accountId): array {
-    return [
-        'items' => [],
-    ];
-};
-```
-
-회원 모듈은 활성 모듈의 `privacy-export.php`만 명시적으로 include하고, 반환값을 `module_exports.{module_key}` 아래에 넣습니다. 확장 모듈은 회원 테이블에 도메인 컬럼을 추가하지 않고 `account_id`로 자기 테이블의 데이터를 조회합니다.
-
-공용 알림처럼 하나의 원본 레코드를 여러 회원이 공유하는 모듈은 내보내기에서 다른 회원의 수신자, 읽음 상태, 전달 로그가 섞이지 않도록 계정별 delivery/read 데이터만 포함합니다. 전역 공지 원문처럼 특정 회원에게 귀속되지 않는 값은 개인정보가 아닌 범위에서만 포함합니다.
-
-## 운영 알림 화면 기준
-
-`notification` 모듈처럼 회원에게 실제 내용을 전달하는 모듈은 관리자 화면과 회원 화면의 정보량을 분리합니다.
-
-관리자 화면:
-
-- 등록, 삭제, 상태 변경, 큐 점검 같은 운영 작업을 제공합니다.
-- 목록은 알림 ID, 대상 범위, 발송 채널, 발송 상태, 생성일처럼 처리에 필요한 값 중심으로 구성합니다.
-- 제목, 본문, 외부 수신자, provider 세부 값, 생성자 계정 ID는 기본 목록에 노출하지 않습니다.
-- 생성 주체 확인은 관리자 작업 로그가 담당합니다.
-
-회원 화면과 개인정보 내보내기:
-
-- 알림 제목, 본문, 링크처럼 회원 본인에게 보여야 하는 내용은 회원 화면에서 제공합니다.
-- 개인정보 내보내기는 계정별 delivery/read 데이터만 포함하고 다른 회원의 수신자나 읽음 상태를 섞지 않습니다.
-
-## Sitemap 확장
-
-`seo` 모듈은 `toy_enabled_module_contract_files()`로 활성 모듈의 `sitemap.php` 파일을 선택적으로 읽습니다. 이 파일은 배열을 반환하거나 callable을 반환할 수 있습니다.
-
-예:
+사이트 공통 메뉴 구조는 `site_menu` 모듈이 소유한다. 각 모듈은 운영자가 선택할 수 있는 후보 링크만 `menu-links.php`로 제공한다.
 
 ```php
 <?php
 
 return [
     [
-        'loc' => '/example',
-        'lastmod' => '2026-04-28',
-        'changefreq' => 'weekly',
+        'label' => '게시판',
+        'url' => '/board',
+    ],
+];
+```
+
+규칙:
+
+- 후보 제공은 메뉴 항목 자동 생성을 의미하지 않는다.
+- 최종 메뉴 구성은 `site_menu` 관리자 화면에서 운영자가 결정한다.
+- `url`은 내부 상대 경로 또는 허용된 외부 URL이어야 한다.
+- 메뉴 후보는 화면 위치가 아니므로 `extension-points.php`로 선언하지 않는다.
+
+## 19. 개인정보 내보내기
+
+회원 모듈은 회원 계정, 인증, 동의처럼 자신이 소유한 데이터만 기본 JSON 내보내기에 포함한다. 게시판, 커머스, 예약, 알림 같은 확장 모듈의 개인정보는 각 모듈이 `privacy-export.php`로 제공한다.
+
+```php
+<?php
+
+return function (PDO $pdo, int $accountId): array {
+    $stmt = $pdo->prepare(
+        'SELECT id, title, status, created_at
+         FROM toy_board_posts
+         WHERE account_id = :account_id
+         ORDER BY id ASC'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    return [
+        'posts' => $stmt->fetchAll(),
+    ];
+};
+```
+
+규칙:
+
+- 다른 회원 데이터가 섞이지 않게 `account_id` 조건을 명확히 둔다.
+- 내부 hash, token hash, 비밀번호 hash는 내보내지 않는다.
+- 전역 공지 원문처럼 특정 회원에게 귀속되지 않는 값은 신중히 포함한다.
+- 회원 테이블에 도메인 컬럼을 추가하지 않는다.
+
+## 20. Sitemap 확장
+
+SEO sitemap에 공개 URL을 제공하려면 `sitemap.php`를 둔다.
+
+배열 반환:
+
+```php
+<?php
+
+return [
+    [
+        'loc' => '/board',
+        'changefreq' => 'daily',
         'priority' => '0.5',
     ],
 ];
 ```
 
-또는:
+callable 반환:
 
 ```php
 <?php
 
 return function (PDO $pdo, ?array $site): array {
-    return [
-        ['loc' => '/example'],
-    ];
+    unset($site);
+
+    $stmt = $pdo->query(
+        "SELECT id, updated_at
+         FROM toy_board_posts
+         WHERE status = 'published'
+         ORDER BY id DESC
+         LIMIT 1000"
+    );
+
+    $urls = [];
+    foreach ($stmt->fetchAll() as $post) {
+        $urls[] = [
+            'loc' => '/board/view?id=' . (int) $post['id'],
+            'lastmod' => substr((string) $post['updated_at'], 0, 10),
+        ];
+    }
+
+    return $urls;
 };
 ```
 
-모듈은 공개 가능한 URL만 반환해야 합니다. `seo` 모듈은 URL 형식과 XML escape만 처리하고, 콘텐츠의 공개 여부나 의미를 추론하지 않습니다.
-
-`robots.txt`는 `seo` 모듈이 기본 운영 경로 차단과 sitemap 위치 안내만 제공합니다. 콘텐츠별 색인 여부는 각 모듈의 화면에서 meta robots 값을 정하거나, 공개 가능한 URL만 sitemap에 반환하는 방식으로 처리합니다.
-
-## 활성화 방식
-
-모듈 활성 여부는 초기 구현에서 `toy_modules.status`로 판단합니다.
-
-```text
-enabled
-disabled
-```
-
-코어는 요청마다 현재 사이트에서 `enabled` 상태인 모듈만 대상으로 삼습니다. 비활성 모듈의 action 파일은 include하지 않습니다.
-
-## Path 매핑
-
-모듈이 처리할 수 있는 path는 `paths.php`에서 단순 배열로 반환합니다. 이 파일은 path를 등록하거나 실행하지 않습니다.
-
-예시:
-
-```php
-<?php
-
-return [
-    'GET /login' => 'actions/login.php',
-    'POST /login' => 'actions/login.php',
-    'POST /logout' => 'actions/logout.php',
-];
-```
-
-코어는 활성 모듈의 `paths.php`를 읽고, 현재 method/path와 일치하는 action 파일을 검증한 뒤 include합니다.
-
-기본 원칙:
-
-- `toy_route()` 같은 전역 path 등록 API를 기본 모델로 사용하지 않음
-- `paths.php`는 실행 흐름을 만들지 않고 배열만 반환
-- action 파일 경로는 모듈 디렉터리 내부의 허용된 상대 경로만 사용
-- 활성 모듈 간 같은 method/path 중복은 오류로 처리
-- 파일명, 클래스명, attribute를 자동 스캔해서 path 매핑을 만들지 않음
-- 현재 요청에 필요한 action 파일만 include
-
-## action 파일 작성
-
-action 파일은 절차형 PHP 파일입니다.
-
-action 파일은 코어가 검증한 뒤 include하는 요청 처리 파일입니다. 하나의 action 파일은 하나의 화면을 보여줄 수도 있고, 같은 path의 `GET`과 `POST`를 함께 처리할 수도 있습니다.
-
-```php
-<?php
-
-$loginId = toy_post_string('login_id', 100);
-$password = toy_post_string('password', 255);
-
-toy_require_csrf();
-
-// 인증 처리
-```
-
-action 파일은 다음 원칙을 지킵니다.
-
-- 입력값은 helper로 읽고 검증
-- DB 접근은 PDO prepared statement 사용
-- 출력은 view에서 escape helper 사용
-- 권한 검사는 action 파일 초기에 수행
-- redirect 후에는 실행을 종료
-- 상태 변경 요청은 처리 전에 CSRF 검증
-- view include 전에 출력에 필요한 변수 준비
-- 오류 메시지는 민감 정보를 포함하지 않도록 제한
-
-## DB 접근
-
-모듈 action/helper는 코어가 전달한 `PDO` 인스턴스를 사용합니다.
-
 규칙:
 
-- 동적 값은 `PDO::prepare()`와 named placeholder로 바인딩
-- `PDO::query()`는 외부 값이 섞이지 않는 고정 SQL에만 사용
-- `PDO::exec()`는 설치/업데이트 SQL 파일 같은 정적 SQL 실행에만 사용
-- 테이블명, 컬럼명, 정렬 방향은 사용자 입력을 그대로 쓰지 않고 허용 목록에서 선택
-- 자세한 기준은 [DB 접근 정책](database-access-policy.md)을 따름
+- 공개 가능한 URL만 반환한다.
+- 비공개/삭제/임시저장 콘텐츠는 반환하지 않는다.
+- SEO 모듈은 URL 형식과 XML escape를 처리하지만 콘텐츠 공개 정책은 모듈이 판단한다.
+- 너무 많은 URL을 한 번에 반환하지 않는다.
 
-## View 작성
+## 21. 보안 체크리스트
 
-view는 일반 HTML 안에 필요한 PHP 출력만 섞어 작성합니다.
+모듈 PR 또는 배포 전 확인한다.
 
-view는 action 파일이 준비한 값을 출력하는 파일입니다. view가 요청을 새로 해석하거나 DB를 직접 변경하지 않도록 합니다.
+- 모든 상태 변경 요청이 `POST`인가?
+- 모든 `POST` action에서 `toy_require_csrf()`를 호출하는가?
+- 관리자 action 시작 부분에서 로그인과 role을 검증하는가?
+- 회원 전용 action에서 `toy_member_require_login()`을 사용하는가?
+- 출력 값은 `toy_e()` 또는 동등한 escape를 거쳤는가?
+- SQL 동적 값은 prepared statement로 바인딩했는가?
+- 정렬 컬럼, 테이블명, 상태 값은 allowlist를 사용하는가?
+- redirect 대상은 내부 상대 경로로 제한했는가?
+- 토큰 원문을 DB나 로그에 저장하지 않는가?
+- 개인정보 내보내기에 hash/token/password가 빠져 있는가?
+- 감사 로그에 민감 원문을 넣지 않았는가?
+- 파일 경로 입력이 있으면 모듈 디렉터리 밖으로 나갈 수 없는가?
+- 외부 링크 출력에는 `rel="noopener noreferrer"`가 붙는가?
 
-```php
-<input type="text" name="login_id" value="<?php echo toy_e($loginId); ?>">
+## 22. 성능 기준
+
+Toycore는 저가형 웹호스팅을 고려한다.
+
+- 요청마다 전체 모듈 디렉터리를 깊게 스캔하지 않는다.
+- 사용자 요청에서 관리자용 계약 파일을 반복 파싱하지 않는다.
+- 목록 조회는 기본적으로 limit을 둔다.
+- 대량 데이터 export는 한 번에 너무 크게 만들지 않는다.
+- 캐시는 필수가 아니라 선택 최적화로 둔다.
+- DB 인덱스는 실제 조회 조건에 맞춘다.
+- 백그라운드 worker가 필수인 설계는 초기 모듈로 피한다.
+
+## 23. 테스트와 점검
+
+기본 점검:
+
+```sh
+./.tools/bin/check
 ```
 
-기본 원칙:
+확인 항목:
 
-- 출력은 `toy_e()` 같은 escape helper 사용
-- `<?= ... ?>` 숏 echo 태그를 사용하지 않음
-- 전체 HTML 레이아웃을 `echo <<<HTML` heredoc 문자열로 출력하지 않음
-- PHP를 닫고 일반 HTML을 작성한 뒤 필요한 위치에만 `<?php echo ...; ?>` 사용
-- 사용자 입력 HTML은 기본적으로 출력하지 않음
-- 상태 변경 폼에는 CSRF 토큰 포함
-- redirect, 권한 검증, DB 변경은 action 파일에서 처리
-- view 안에서 다른 모듈의 내부 파일을 직접 include하지 않음
+- `git diff --check`
+- SQL 파일이 비어 있지 않은지
+- 모듈 기본 구조
+- `admin-menu.php` path와 `paths.php` GET route 일치
+- Docker 또는 OrbStack 실행 시 PHP lint
 
-## 번역 파일
+수동 점검:
 
-모듈은 기본 locale 번역 파일을 제공해야 합니다.
+- 설치 전 새 모듈을 선택 설치할 수 있는가?
+- 이미 설치된 사이트에서 `/admin/modules`로 설치할 수 있는가?
+- 비활성 상태에서는 route가 열리지 않는가?
+- 활성화 의존성 오류가 이해 가능하게 표시되는가?
+- POST를 새로고침해도 중복 문제가 생기지 않는가?
+- 업데이트 실패 시 재시도 가능한가?
 
-```text
-modules/{module_key}/lang/{locale}.php
-```
+## 24. 배포와 버전
 
-예시:
+모듈 버전은 `module.php`의 `version`과 `updates/` 파일명을 같이 관리한다.
 
-```php
-<?php
+권장:
 
-return [
-    'login.title' => '로그인',
-    'login.submit' => '로그인',
-];
-```
+- 기능 추가: version 증가, 필요하면 update SQL 추가
+- SQL 구조 변경: install.sql 최신화 + updates 파일 추가
+- 문서만 변경: module.php version은 보통 유지
+- 배포된 update SQL 수정 대신 새 update SQL 추가
+- 릴리스 노트에 설치/업데이트/호환 버전을 적는다.
 
-action 파일과 view는 화면 문구를 직접 고정하지 않고 번역 helper를 우선 사용합니다.
+별도 리포지토리 배포를 고려하는 모듈은 모듈 루트에 `README.md`, `CHANGELOG.md`, `LICENSE`를 두는 것을 권장한다. 자세한 운영안은 [모듈 별도 리포지토리 관리 방안](module-repository-strategy.md)을 따른다.
 
-```php
-toy_t('member::login.title');
-```
+## 25. 금지하는 방향
 
-## 금지하는 방향
-
-Toycore 기본 구현에서는 다음 방식을 사용하지 않습니다.
+Toycore 기본 구현에서는 다음 방식을 사용하지 않는다.
 
 - Laravel Service Provider 같은 부팅 클래스
-- Composer 자동 패키지 발견
+- Composer 자동 패키지 발견을 필수로 하는 구조
 - Artisan 같은 CLI 필수 명령
 - ORM 모델 중심의 데이터 접근
 - 클래스 기반 migration 필수화
-- DI 컨테이너
+- DI 컨테이너 필수화
 - 이벤트 버스 중심 실행
 - reflection 기반 자동 요청 분기
+- 모듈이 부팅 중 path를 몰래 등록하는 구조
+- 코어/member 테이블을 미래 도메인 요구로 넓히는 구조
 
-도구를 쓰더라도 프로젝트 실행에 필수가 되지 않아야 합니다. 코어는 일반 웹호스팅에서 PHP 파일과 SQL만으로 설치되고 동작해야 합니다.
+도구를 쓰더라도 프로젝트 실행에 필수가 되면 안 된다. Toycore의 기본 가정은 일반 웹호스팅에서 PHP 파일과 SQL만으로 설치되고 동작하는 구조다.

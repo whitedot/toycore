@@ -69,7 +69,7 @@ $optionalModules = [
         'description' => '사이트 내 알림과 이메일/SMS/알림톡 발송 대기열을 관리합니다.',
     ],
 ];
-$selectedOptionalModuleKeys = array_keys($optionalModules);
+$selectedOptionalModuleKeys = ['seo', 'popup_layer', 'point', 'deposit', 'reward'];
 $values = [
     'db_host' => 'localhost',
     'db_name' => '',

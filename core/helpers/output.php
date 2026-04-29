@@ -265,16 +265,12 @@ function toy_seo_tags(array $seo = [], ?array $site = null): string
 
 function toy_redirect(string $url): void
 {
-    if ($url === '' || preg_match('/[\x00-\x1F\x7F]/', $url) === 1) {
+    if (!toy_is_safe_relative_url($url)) {
         toy_render_error(500, '리다이렉트 URL이 올바르지 않습니다.');
         exit;
     }
 
-    if (toy_is_safe_relative_url($url)) {
-        $url = toy_url($url);
-    }
-
-    header('Location: ' . $url, true, 302);
+    header('Location: ' . toy_url($url), true, 302);
     exit;
 }
 
