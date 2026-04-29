@@ -222,7 +222,7 @@ function toy_popup_layer_close_script(): string
 
     $printed = true;
 
-    return '<script src="' . toy_e(toy_url('/assets/toycore-popup-layer.js')) . '" defer></script>';
+    return '<script src="' . toy_e(toy_url('/modules/popup_layer/assets/toycore-popup-layer.js')) . '" defer></script>';
 }
 
 function toy_popup_layer_clean_single_line(string $value, int $maxLength): string

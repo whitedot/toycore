@@ -118,6 +118,7 @@ modules/{module_key}/
 - output-slots.php
 - actions/
 - views/
+- assets/
 - lang/
 - install.sql
 - updates/

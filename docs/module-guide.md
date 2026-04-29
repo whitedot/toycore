@@ -62,6 +62,7 @@ modules/{module_key}/
 - sitemap.php (optional)
 - actions/ (optional)
 - views/ (optional)
+- assets/ (optional)
 - lang/ (optional)
 - install.sql
 - updates/ (optional)

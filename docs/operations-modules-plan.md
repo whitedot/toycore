@@ -29,7 +29,7 @@
 - `toy_banner_targets`에 출력 대상 module/point/slot/subject 규칙을 저장한다.
 - 관리자 화면 `/admin/banners`에서 배너와 대상 규칙을 관리한다.
 - 관리자 화면에서 배너 상태별 조회를 제공한다.
-- 기본 CSP와 맞추기 위해 이미지 URL은 `/assets/...` 같은 내부 경로만 허용한다.
+- 기본 CSP와 맞추기 위해 이미지 URL은 `/assets/...` 또는 `/modules/{module_key}/assets/...` 같은 내부 경로만 허용한다.
 - 기본 홈 화면의 `core/site.home/before_content`, `core/site.home/after_content` 위치에 배너를 출력할 수 있다.
 
 ### 알림
