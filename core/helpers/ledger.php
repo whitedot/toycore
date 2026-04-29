@@ -19,7 +19,7 @@ function toy_ledger_create_transaction(PDO $pdo, array $config, array $data): in
     $reason = (string) ($data['reason'] ?? '');
     $referenceType = (string) ($data['reference_type'] ?? '');
     $referenceId = (string) ($data['reference_id'] ?? '');
-    $createdByAccountId = isset($data['created_by_account_id']) ? (int) $data['created_by_account_id'] : null;
+    $createdByAccountId = toy_ledger_nullable_positive_int($data['created_by_account_id'] ?? null);
 
     if ($accountId <= 0) {
         throw new InvalidArgumentException('Account id is required.');
@@ -100,4 +100,14 @@ function toy_ledger_create_transaction(PDO $pdo, array $config, array $data): in
 function toy_ledger_is_safe_table_name(string $tableName): bool
 {
     return preg_match('/\Atoy_[a-z0-9_]{1,120}\z/', $tableName) === 1;
+}
+
+function toy_ledger_nullable_positive_int(mixed $value): ?int
+{
+    if ($value === null || $value === '') {
+        return null;
+    }
+
+    $intValue = (int) $value;
+    return $intValue > 0 ? $intValue : null;
 }

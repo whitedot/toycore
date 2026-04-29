@@ -534,6 +534,8 @@ hash_hmac('sha256', normalized_identifier, app_key)
 
 지급, 차감, 환불, 만료 같은 거래 이력을 원장 형태로 저장합니다. 거래가 생성될 때 `balance_after`를 함께 기록해 나중에 잔액 변화를 추적할 수 있게 합니다.
 
+`created_by_account_id`는 관리자 수동 조정처럼 생성 주체가 명확할 때만 저장합니다. 생성 주체가 없거나 0 이하인 값은 `NULL`로 다룹니다.
+
 권장 인덱스:
 
 - `account_id`, `created_at`
