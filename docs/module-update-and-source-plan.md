@@ -18,6 +18,9 @@
 
 ## 2. 원칙
 
+- 모듈 리포지토리 분리 전략은 유지하되, 일반 운영자의 기본 설치 경험에는 repository 분리를 노출하지 않는다.
+- 일반 운영자의 기본 다운로드 대상은 `toycore-standard.zip`으로 둔다.
+- `toycore-minimal.zip`은 작게 시작하려는 고급 선택지로 설명한다.
 - 기본 설치와 업데이트는 Git 없이 가능해야 한다.
 - Git 또는 public repository 가져오기는 기본 경로가 아니라 owner 전용 고급 경로로 둔다.
 - 어떤 소스에서 가져오든 최종 설치 구조는 항상 `modules/{module_key}/`여야 한다.
@@ -48,6 +51,16 @@ toycore-ops.zip
 ```
 
 따라서 일반 운영자에게 "toycore.git을 clone하고 필요한 모듈 repository도 각각 clone하라"고 안내하지 않는다. Git clone과 모듈 조립은 릴리스 담당자 또는 개발자 역할이다.
+
+운영자에게 보여줄 기본 흐름:
+
+```text
+1. toycore-standard.zip 다운로드
+2. 서버에 업로드
+3. 웹 설치 화면 접속
+4. 필요한 선택 모듈 체크
+5. 설치 완료
+```
 
 ### 1순위: zip 업로드
 
