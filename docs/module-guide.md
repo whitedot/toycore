@@ -144,6 +144,8 @@ return [
 - `label`은 관리자 화면에 표시할 짧은 이름입니다.
 - `url`은 `/`로 시작하는 내부 URL 또는 `http/https` URL만 사용합니다.
 - 후보 제공은 메뉴 항목을 자동 생성하지 않습니다. 최종 메뉴 구성은 `site_menu` 관리자 화면에서 운영자가 결정합니다.
+- 화면 레이아웃은 필요한 `menu_key`를 직접 참조해 `toy_site_menu_render($pdo, 'header')`처럼 출력합니다.
+- 메뉴는 배너처럼 각 화면의 `output slot`에 붙는 콘텐츠가 아니라 사이트 구조입니다. 메뉴 위치를 `extension-points.php`로 선언하지 않습니다.
 
 ## Admin Menu
 
@@ -319,6 +321,71 @@ echo toy_render_output_slot($pdo, [
 ```
 
 이 구조에서 팝업레이어 모듈은 커머스나 회원 모듈 내부 파일을 직접 include하지 않고, 화면 소유 모듈은 팝업레이어 테이블 구조를 직접 조회하지 않습니다.
+
+## 배너 모듈 사용
+
+배너는 화면 소유 모듈이 선언한 `content` 성격의 출력 위치에 붙는 운영 콘텐츠입니다. 배너 모듈이 다른 모듈의 화면 위치를 하드코딩하지 않고, 각 모듈이 자기 화면에서 배너를 받을 수 있는 위치를 선언합니다.
+
+화면 소유 모듈이 할 일:
+
+- `extension-points.php`에 `output => true`인 point를 선언합니다.
+- 배너가 들어갈 위치는 `slots` 안에 `kind => content`로 선언합니다.
+- 실제 view에서 `toy_render_output_slot()`을 호출합니다.
+- 배너 모듈 helper나 테이블을 직접 require/query하지 않습니다.
+
+예:
+
+```php
+<?php
+
+return [
+    [
+        'point_key' => 'community.post.view',
+        'label' => '게시글 보기',
+        'surface' => 'public',
+        'output' => true,
+        'slots' => [
+            [
+                'slot_key' => 'before_content',
+                'label' => '본문 위',
+                'kind' => 'content',
+            ],
+            [
+                'slot_key' => 'after_content',
+                'label' => '본문 아래',
+                'kind' => 'content',
+            ],
+        ],
+    ],
+];
+```
+
+view에서는 선언한 위치와 같은 값으로 출력 슬롯을 호출합니다.
+
+```php
+<?php
+echo toy_render_output_slot($pdo, [
+    'module_key' => 'community',
+    'point_key' => 'community.post.view',
+    'slot_key' => 'before_content',
+    'subject_id' => (string) $post['id'],
+]);
+?>
+```
+
+배너 모듈이 하는 일:
+
+- 활성 모듈의 `extension-points.php`를 읽어 관리자 화면에서 선택 가능한 출력 위치를 보여줍니다.
+- `kind`가 `content`인 slot만 배너 출력 위치로 사용합니다.
+- 저장된 `module_key`, `point_key`, `slot_key`, `subject_id` 규칙으로 사용자 요청 시 배너를 조회합니다.
+- 외부 `http/https` 링크는 새 창 보안 속성을 붙여 출력하고, 이미지 URL은 내부 경로만 허용합니다.
+- 선언이 사라진 저장 위치는 관리자 화면에서 보존된 위치로 표시해 기존 배너가 의도치 않게 다른 위치로 바뀌지 않게 합니다.
+
+배너와 팝업레이어의 차이:
+
+- 배너는 본문 안에 흐르는 콘텐츠이므로 `kind => content` slot을 사용합니다.
+- 팝업레이어는 화면 위에 뜨는 확장이므로 `kind => overlay` slot을 사용합니다.
+- 한 point에 `content`와 `overlay` slot을 함께 선언할 수 있지만, 각 확장 모듈은 자기 성격에 맞는 slot만 선택합니다.
 
 성능 기준:
 
@@ -609,6 +676,22 @@ return function (PDO $pdo, int $accountId): array {
 회원 모듈은 활성 모듈의 `privacy-export.php`만 명시적으로 include하고, 반환값을 `module_exports.{module_key}` 아래에 넣습니다. 확장 모듈은 회원 테이블에 도메인 컬럼을 추가하지 않고 `account_id`로 자기 테이블의 데이터를 조회합니다.
 
 공용 알림처럼 하나의 원본 레코드를 여러 회원이 공유하는 모듈은 내보내기에서 다른 회원의 수신자, 읽음 상태, 전달 로그가 섞이지 않도록 계정별 delivery/read 데이터만 포함합니다. 전역 공지 원문처럼 특정 회원에게 귀속되지 않는 값은 개인정보가 아닌 범위에서만 포함합니다.
+
+## 운영 알림 화면 기준
+
+`notification` 모듈처럼 회원에게 실제 내용을 전달하는 모듈은 관리자 화면과 회원 화면의 정보량을 분리합니다.
+
+관리자 화면:
+
+- 등록, 삭제, 상태 변경, 큐 점검 같은 운영 작업을 제공합니다.
+- 목록은 알림 ID, 대상 범위, 발송 채널, 발송 상태, 생성일처럼 처리에 필요한 값 중심으로 구성합니다.
+- 제목, 본문, 외부 수신자, provider 세부 값, 생성자 계정 ID는 기본 목록에 노출하지 않습니다.
+- 생성 주체 확인은 관리자 작업 로그가 담당합니다.
+
+회원 화면과 개인정보 내보내기:
+
+- 알림 제목, 본문, 링크처럼 회원 본인에게 보여야 하는 내용은 회원 화면에서 제공합니다.
+- 개인정보 내보내기는 계정별 delivery/read 데이터만 포함하고 다른 회원의 수신자나 읽음 상태를 섞지 않습니다.
 
 ## Sitemap 확장
 
