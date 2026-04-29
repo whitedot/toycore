@@ -14,6 +14,16 @@ $allowedChannels = ['site', 'email', 'sms', 'alimtalk'];
 $allowedDeliveryStatuses = ['queued', 'ready', 'sent', 'failed', 'canceled'];
 $errors = [];
 $notice = '';
+$filters = [
+    'audience' => toy_get_string('audience', 30),
+    'delivery_status' => toy_get_string('delivery_status', 30),
+];
+if ($filters['audience'] !== '' && !in_array($filters['audience'], $allowedAudiences, true)) {
+    $filters['audience'] = '';
+}
+if ($filters['delivery_status'] !== '' && !in_array($filters['delivery_status'], $allowedDeliveryStatuses, true)) {
+    $filters['delivery_status'] = '';
+}
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
@@ -201,23 +211,31 @@ if (toy_request_method() === 'POST') {
 }
 
 $notifications = [];
-$stmt = $pdo->query(
-    'SELECT id, account_id, audience, title, status, read_at, created_by_account_id, created_at
-     FROM toy_notifications
-     ORDER BY id DESC
-     LIMIT 100'
-);
+$notificationSql = 'SELECT id, account_id, audience, title, status, read_at, created_by_account_id, created_at
+                    FROM toy_notifications';
+$notificationParams = [];
+if ($filters['audience'] !== '') {
+    $notificationSql .= ' WHERE audience = :audience';
+    $notificationParams['audience'] = $filters['audience'];
+}
+$notificationSql .= ' ORDER BY id DESC LIMIT 100';
+$stmt = $pdo->prepare($notificationSql);
+$stmt->execute($notificationParams);
 foreach ($stmt->fetchAll() as $row) {
     $notifications[] = $row;
 }
 
 $deliveries = [];
-$stmt = $pdo->query(
-    'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.provider_message_id, d.error_message, d.updated_at
-     FROM toy_notification_deliveries d
-     ORDER BY d.id DESC
-     LIMIT 100'
-);
+$deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.provider_message_id, d.error_message, d.updated_at
+                FROM toy_notification_deliveries d';
+$deliveryParams = [];
+if ($filters['delivery_status'] !== '') {
+    $deliverySql .= ' WHERE d.status = :delivery_status';
+    $deliveryParams['delivery_status'] = $filters['delivery_status'];
+}
+$deliverySql .= ' ORDER BY d.id DESC LIMIT 100';
+$stmt = $pdo->prepare($deliverySql);
+$stmt->execute($deliveryParams);
 foreach ($stmt->fetchAll() as $row) {
     $deliveries[] = $row;
 }

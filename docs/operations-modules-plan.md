@@ -25,6 +25,7 @@
 - `toy_banners`에 배너 제목, 내용, 이미지 URL, 링크 URL, 상태, 기간, 정렬을 저장한다.
 - `toy_banner_targets`에 출력 대상 module/point/slot/subject 규칙을 저장한다.
 - 관리자 화면 `/admin/banners`에서 배너와 대상 규칙을 관리한다.
+- 관리자 화면에서 배너 상태별 조회를 제공한다.
 - 기본 CSP와 맞추기 위해 이미지 URL은 `/assets/...` 같은 내부 경로만 허용한다.
 - 기본 홈 화면의 `core/site.home/before_content`, `core/site.home/after_content` 위치에 배너를 출력할 수 있다.
 
@@ -34,6 +35,7 @@
 - `toy_notification_reads`에 전체 공지형 알림의 회원별 읽음 상태를 저장한다.
 - `toy_notification_deliveries`에 `site`, `email`, `sms`, `alimtalk` 채널별 발송 상태를 저장한다.
 - 관리자 화면 `/admin/notifications`에서 알림을 등록하고 대기열을 확인한다.
+- 관리자 화면에서 알림 대상과 발송 상태별 조회를 제공한다.
 - 관리자 화면에서 알림 삭제 시 발송 대기열과 읽음 기록을 같은 트랜잭션에서 삭제한다.
 - 실제 provider 연동 전에도 발송 대기열 상태를 수동으로 `sent`, `failed`, `canceled` 등으로 기록할 수 있다.
 - 회원 화면 `/account/notifications`에서 사이트 내 알림을 확인하고 개별/전체 읽음 처리한다.

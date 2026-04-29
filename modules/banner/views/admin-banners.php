@@ -111,6 +111,21 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>배너 목록</h2>
+    <form method="get" action="<?php echo toy_e(toy_url('/admin/banners')); ?>">
+        <p>
+            <label>상태<br>
+                <select name="status">
+                    <option value=""<?php echo $filters['status'] === '' ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($allowedStatuses as $status) { ?>
+                        <option value="<?php echo toy_e($status); ?>"<?php echo $filters['status'] === $status ? ' selected' : ''; ?>>
+                            <?php echo toy_e($status); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </label>
+        </p>
+        <button type="submit">조회</button>
+    </form>
     <?php if ($banners === []) { ?>
         <p>등록된 배너가 없습니다.</p>
     <?php } else { ?>

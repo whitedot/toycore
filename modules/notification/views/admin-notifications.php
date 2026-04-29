@@ -68,6 +68,33 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>최근 알림</h2>
+    <form method="get" action="<?php echo toy_e(toy_url('/admin/notifications')); ?>">
+        <p>
+            <label>대상<br>
+                <select name="audience">
+                    <option value=""<?php echo $filters['audience'] === '' ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($allowedAudiences as $audience) { ?>
+                        <option value="<?php echo toy_e($audience); ?>"<?php echo $filters['audience'] === $audience ? ' selected' : ''; ?>>
+                            <?php echo toy_e($audience); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </label>
+        </p>
+        <p>
+            <label>발송 상태<br>
+                <select name="delivery_status">
+                    <option value=""<?php echo $filters['delivery_status'] === '' ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($allowedDeliveryStatuses as $status) { ?>
+                        <option value="<?php echo toy_e($status); ?>"<?php echo $filters['delivery_status'] === $status ? ' selected' : ''; ?>>
+                            <?php echo toy_e($status); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </label>
+        </p>
+        <button type="submit">조회</button>
+    </form>
     <?php if ($notifications === []) { ?>
         <p>등록된 알림이 없습니다.</p>
     <?php } else { ?>

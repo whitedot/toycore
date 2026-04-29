@@ -14,6 +14,12 @@ $allowedMatchTypes = ['all', 'exact'];
 $errors = [];
 $notice = '';
 $availableTargets = toy_banner_available_targets($pdo);
+$filters = [
+    'status' => toy_get_string('status', 30),
+];
+if ($filters['status'] !== '' && !in_array($filters['status'], $allowedStatuses, true)) {
+    $filters['status'] = '';
+}
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
@@ -219,13 +225,18 @@ if ($editId > 0) {
 }
 
 $banners = [];
-$stmt = $pdo->query(
-    'SELECT b.id, b.title, b.status, b.starts_at, b.ends_at, b.sort_order, b.updated_at,
-            t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
-     FROM toy_banners b
-     LEFT JOIN toy_banner_targets t ON t.banner_id = b.id
-     ORDER BY b.sort_order ASC, b.id DESC'
-);
+$bannerSql = 'SELECT b.id, b.title, b.status, b.starts_at, b.ends_at, b.sort_order, b.updated_at,
+                     t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
+              FROM toy_banners b
+              LEFT JOIN toy_banner_targets t ON t.banner_id = b.id';
+$bannerParams = [];
+if ($filters['status'] !== '') {
+    $bannerSql .= ' WHERE b.status = :status';
+    $bannerParams['status'] = $filters['status'];
+}
+$bannerSql .= ' ORDER BY b.sort_order ASC, b.id DESC';
+$stmt = $pdo->prepare($bannerSql);
+$stmt->execute($bannerParams);
 foreach ($stmt->fetchAll() as $row) {
     $banners[] = $row;
 }
