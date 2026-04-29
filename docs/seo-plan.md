@@ -159,7 +159,7 @@ SEO를 위해 URL은 다음 원칙을 따릅니다.
 
 현재 구현은 `toy_seo_tags()`와 `toy_canonical_url()`을 제공한다. 각 view 또는 모듈 action은 `$seo` 배열에 필요한 값만 명시하고, 코어 helper는 전달된 값을 escape한 뒤 `<head>` 출력 태그로 변환한다. 코어는 콘텐츠 의미를 추론하지 않으며, `hreflang`과 locale별 sitemap 같은 다국어 SEO 판단은 후순위로 둔다.
 
-`seo` 모듈은 `/sitemap.xml`을 제공한다. 기본으로 홈 URL만 출력하고, 활성 모듈이 `modules/{module_key}/sitemap.php`를 제공하면 해당 모듈의 URL 후보를 합쳐 출력한다. 코어와 `seo` 모듈은 URL의 의미나 공개 여부를 추론하지 않으므로 콘텐츠 모듈은 공개 가능한 URL만 반환해야 한다.
+`seo` 모듈은 `/sitemap.xml`을 제공한다. 기본으로 홈 URL만 출력하고, 활성 모듈이 `modules/{module_key}/sitemap.php` 계약 파일을 제공하면 해당 모듈의 URL 후보를 합쳐 출력한다. 코어와 `seo` 모듈은 URL의 의미나 공개 여부를 추론하지 않으므로 콘텐츠 모듈은 공개 가능한 URL만 반환해야 한다.
 
 `seo` 모듈은 `/robots.txt`도 제공한다. 코어가 콘텐츠 공개 여부를 판단하지 않도록 기본 운영 경로만 차단하고, 콘텐츠별 검색 노출 판단은 각 모듈의 meta robots와 sitemap 후보 반환 정책에 둔다.
 

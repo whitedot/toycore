@@ -38,6 +38,8 @@ if (toy_request_method() === 'POST') {
 
     if (!in_array($transactionType, $allowedTransactionTypes, true)) {
         $errors[] = '거래 유형이 올바르지 않습니다.';
+    } elseif (!toy_reward_transaction_type_allows_amount($transactionType, $amount)) {
+        $errors[] = '지급과 환불은 양수, 사용과 만료는 음수로 입력하세요. 조정은 양수와 음수를 모두 사용할 수 있습니다.';
     }
 
     if ($reason === '') {
@@ -81,9 +83,13 @@ if (toy_request_method() === 'POST') {
 
             $notice = '적립금 거래를 저장했습니다.';
         } catch (Throwable $exception) {
-            $errors[] = $exception->getMessage() === 'Reward balance cannot be negative.'
-                ? '적립금 잔액은 음수가 될 수 없습니다.'
-                : '적립금 거래 저장 중 오류가 발생했습니다.';
+            if ($exception->getMessage() === 'Reward balance cannot be negative.') {
+                $errors[] = '적립금 잔액은 음수가 될 수 없습니다.';
+            } elseif ($exception->getMessage() === 'Reward transaction amount sign is invalid for type.') {
+                $errors[] = '거래 유형과 적립금 금액의 부호가 맞지 않습니다.';
+            } else {
+                $errors[] = '적립금 거래 저장 중 오류가 발생했습니다.';
+            }
         }
     }
 }

@@ -38,6 +38,8 @@ if (toy_request_method() === 'POST') {
 
     if (!in_array($transactionType, $allowedTransactionTypes, true)) {
         $errors[] = '거래 유형이 올바르지 않습니다.';
+    } elseif (!toy_deposit_transaction_type_allows_amount($transactionType, $amount)) {
+        $errors[] = '예치와 환불은 양수, 사용과 출금은 음수로 입력하세요. 조정은 양수와 음수를 모두 사용할 수 있습니다.';
     }
 
     if ($reason === '') {
@@ -81,9 +83,13 @@ if (toy_request_method() === 'POST') {
 
             $notice = '예치금 거래를 저장했습니다.';
         } catch (Throwable $exception) {
-            $errors[] = $exception->getMessage() === 'Deposit balance cannot be negative.'
-                ? '예치금 잔액은 음수가 될 수 없습니다.'
-                : '예치금 거래 저장 중 오류가 발생했습니다.';
+            if ($exception->getMessage() === 'Deposit balance cannot be negative.') {
+                $errors[] = '예치금 잔액은 음수가 될 수 없습니다.';
+            } elseif ($exception->getMessage() === 'Deposit transaction amount sign is invalid for type.') {
+                $errors[] = '거래 유형과 예치금 금액의 부호가 맞지 않습니다.';
+            } else {
+                $errors[] = '예치금 거래 저장 중 오류가 발생했습니다.';
+            }
         }
     }
 }

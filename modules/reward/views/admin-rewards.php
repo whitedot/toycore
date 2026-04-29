@@ -58,6 +58,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <label>금액<br>
                 <input type="number" name="amount" step="1" required>
             </label>
+            <br>
+            지급/환불은 양수, 사용/만료는 음수, 조정은 양수 또는 음수로 입력합니다.
         </p>
         <p>
             <label>사유<br>

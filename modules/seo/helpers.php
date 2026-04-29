@@ -16,16 +16,7 @@ function toy_seo_sitemap_entries(PDO $pdo, ?array $site): array
         }
     }
 
-    foreach (toy_enabled_module_keys($pdo) as $moduleKey) {
-        if ($moduleKey === 'seo' || preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
-            continue;
-        }
-
-        $sitemapFile = TOY_ROOT . '/modules/' . $moduleKey . '/sitemap.php';
-        if (!is_file($sitemapFile)) {
-            continue;
-        }
-
+    foreach (toy_enabled_module_contract_files($pdo, 'sitemap.php', ['seo']) as $sitemapFile) {
         $moduleEntries = include $sitemapFile;
         if (is_callable($moduleEntries)) {
             $moduleEntries = $moduleEntries($pdo, $site);

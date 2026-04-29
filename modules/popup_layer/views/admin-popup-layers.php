@@ -4,7 +4,7 @@ $adminPageTitle = '팝업레이어';
 $editing = is_array($editPopup);
 $selectedTargetOption = '';
 if ($editing) {
-    $selectedTargetOption = (string) ($editPopup['module_key'] ?? '') . '|' . (string) ($editPopup['point_key'] ?? '');
+    $selectedTargetOption = (string) ($editPopup['module_key'] ?? '') . '|' . (string) ($editPopup['point_key'] ?? '') . '|' . (string) ($editPopup['slot_key'] ?? '');
 }
 
 include TOY_ROOT . '/modules/admin/views/layout-header.php';
@@ -129,7 +129,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $popup['title']); ?></td>
                         <td><?php echo toy_e((string) $popup['status']); ?></td>
                         <td>
-                            <?php echo toy_e((string) $popup['module_key'] . ' / ' . (string) $popup['point_key']); ?><br>
+                            <?php echo toy_e((string) $popup['module_key'] . ' / ' . (string) $popup['point_key'] . ' / ' . (string) $popup['slot_key']); ?><br>
                             <?php echo toy_e((string) $popup['match_type'] . ((string) ($popup['subject_id'] ?? '') !== '' ? ': ' . (string) $popup['subject_id'] : '')); ?>
                         </td>
                         <td>

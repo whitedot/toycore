@@ -29,23 +29,35 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('DELETE FROM toy_popup_layer_targets WHERE popup_layer_id = :popup_layer_id');
-            $stmt->execute(['popup_layer_id' => $popupId]);
+            try {
+                $pdo->beginTransaction();
 
-            $stmt = $pdo->prepare('DELETE FROM toy_popup_layers WHERE id = :id');
-            $stmt->execute(['id' => $popupId]);
+                $stmt = $pdo->prepare('DELETE FROM toy_popup_layer_targets WHERE popup_layer_id = :popup_layer_id');
+                $stmt->execute(['popup_layer_id' => $popupId]);
 
-            toy_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'popup_layer.deleted',
-                'target_type' => 'popup_layer',
-                'target_id' => (string) $popupId,
-                'result' => 'success',
-                'message' => 'Popup layer deleted.',
-            ]);
+                $stmt = $pdo->prepare('DELETE FROM toy_popup_layers WHERE id = :id');
+                $stmt->execute(['id' => $popupId]);
 
-            $notice = '팝업을 삭제했습니다.';
+                $pdo->commit();
+
+                toy_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'popup_layer.deleted',
+                    'target_type' => 'popup_layer',
+                    'target_id' => (string) $popupId,
+                    'result' => 'success',
+                    'message' => 'Popup layer deleted.',
+                ]);
+
+                $notice = '팝업을 삭제했습니다.';
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+                $errors[] = '팝업 삭제 중 오류가 발생했습니다.';
+            }
         }
     } elseif ($intent === 'save') {
         $title = toy_popup_layer_clean_single_line(toy_post_string('title', 120), 120);
@@ -102,78 +114,91 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === [] && $target !== null) {
-            if ($popupId > 0) {
+            try {
+                $now = toy_now();
+                $pdo->beginTransaction();
+
+                if ($popupId > 0) {
+                    $stmt = $pdo->prepare(
+                        'UPDATE toy_popup_layers
+                         SET title = :title, body_text = :body_text, status = :status, starts_at = :starts_at, ends_at = :ends_at, dismiss_cookie_days = :dismiss_cookie_days, updated_at = :updated_at
+                         WHERE id = :id'
+                    );
+                    $stmt->execute([
+                        'title' => $title,
+                        'body_text' => $bodyText,
+                        'status' => $status,
+                        'starts_at' => $startsAt,
+                        'ends_at' => $endsAt,
+                        'dismiss_cookie_days' => $dismissCookieDays,
+                        'updated_at' => $now,
+                        'id' => $popupId,
+                    ]);
+                } else {
+                    $stmt = $pdo->prepare(
+                        'INSERT INTO toy_popup_layers
+                            (title, body_text, status, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
+                         VALUES
+                            (:title, :body_text, :status, :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
+                    );
+                    $stmt->execute([
+                        'title' => $title,
+                        'body_text' => $bodyText,
+                        'status' => $status,
+                        'starts_at' => $startsAt,
+                        'ends_at' => $endsAt,
+                        'dismiss_cookie_days' => $dismissCookieDays,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                    $popupId = (int) $pdo->lastInsertId();
+                }
+
+                $stmt = $pdo->prepare('DELETE FROM toy_popup_layer_targets WHERE popup_layer_id = :popup_layer_id');
+                $stmt->execute(['popup_layer_id' => $popupId]);
+
                 $stmt = $pdo->prepare(
-                    'UPDATE toy_popup_layers
-                     SET title = :title, body_text = :body_text, status = :status, starts_at = :starts_at, ends_at = :ends_at, dismiss_cookie_days = :dismiss_cookie_days, updated_at = :updated_at
-                     WHERE id = :id'
-                );
-                $stmt->execute([
-                    'title' => $title,
-                    'body_text' => $bodyText,
-                    'status' => $status,
-                    'starts_at' => $startsAt,
-                    'ends_at' => $endsAt,
-                    'dismiss_cookie_days' => $dismissCookieDays,
-                    'updated_at' => toy_now(),
-                    'id' => $popupId,
-                ]);
-            } else {
-                $stmt = $pdo->prepare(
-                    'INSERT INTO toy_popup_layers
-                        (title, body_text, status, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
+                    'INSERT INTO toy_popup_layer_targets
+                        (popup_layer_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
                      VALUES
-                        (:title, :body_text, :status, :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
+                        (:popup_layer_id, :module_key, :point_key, :slot_key, :subject_id, :match_type, :created_at)'
                 );
                 $stmt->execute([
-                    'title' => $title,
-                    'body_text' => $bodyText,
-                    'status' => $status,
-                    'starts_at' => $startsAt,
-                    'ends_at' => $endsAt,
-                    'dismiss_cookie_days' => $dismissCookieDays,
-                    'created_at' => toy_now(),
-                    'updated_at' => toy_now(),
-                ]);
-                $popupId = (int) $pdo->lastInsertId();
-            }
-
-            $stmt = $pdo->prepare('DELETE FROM toy_popup_layer_targets WHERE popup_layer_id = :popup_layer_id');
-            $stmt->execute(['popup_layer_id' => $popupId]);
-
-            $stmt = $pdo->prepare(
-                'INSERT INTO toy_popup_layer_targets
-                    (popup_layer_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
-                 VALUES
-                    (:popup_layer_id, :module_key, :point_key, :slot_key, :subject_id, :match_type, :created_at)'
-            );
-            $stmt->execute([
-                'popup_layer_id' => $popupId,
-                'module_key' => (string) $target['module_key'],
-                'point_key' => (string) $target['point_key'],
-                'slot_key' => (string) $target['slot_key'],
-                'subject_id' => $matchType === 'exact' ? $subjectId : '',
-                'match_type' => $matchType,
-                'created_at' => toy_now(),
-            ]);
-
-            toy_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'popup_layer.saved',
-                'target_type' => 'popup_layer',
-                'target_id' => (string) $popupId,
-                'result' => 'success',
-                'message' => 'Popup layer saved.',
-                'metadata' => [
+                    'popup_layer_id' => $popupId,
                     'module_key' => (string) $target['module_key'],
                     'point_key' => (string) $target['point_key'],
                     'slot_key' => (string) $target['slot_key'],
+                    'subject_id' => $matchType === 'exact' ? $subjectId : '',
                     'match_type' => $matchType,
-                ],
-            ]);
+                    'created_at' => $now,
+                ]);
 
-            $notice = '팝업을 저장했습니다.';
+                $pdo->commit();
+
+                toy_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'popup_layer.saved',
+                    'target_type' => 'popup_layer',
+                    'target_id' => (string) $popupId,
+                    'result' => 'success',
+                    'message' => 'Popup layer saved.',
+                    'metadata' => [
+                        'module_key' => (string) $target['module_key'],
+                        'point_key' => (string) $target['point_key'],
+                        'slot_key' => (string) $target['slot_key'],
+                        'match_type' => $matchType,
+                    ],
+                ]);
+
+                $notice = '팝업을 저장했습니다.';
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+                $errors[] = '팝업 저장 중 오류가 발생했습니다.';
+            }
         }
     } else {
         $errors[] = '요청한 작업을 처리할 수 없습니다.';

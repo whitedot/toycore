@@ -33,6 +33,10 @@ function toy_point_create_transaction(PDO $pdo, array $data): int
         throw new InvalidArgumentException('Amount must not be zero.');
     }
 
+    if (!toy_point_transaction_type_allows_amount($transactionType, $amount)) {
+        throw new InvalidArgumentException('Point transaction amount sign is invalid for type.');
+    }
+
     $now = toy_now();
     $pdo->beginTransaction();
 
@@ -99,6 +103,23 @@ function toy_point_create_transaction(PDO $pdo, array $data): int
 
         throw $exception;
     }
+}
+
+function toy_point_transaction_type_allows_amount(string $transactionType, int $amount): bool
+{
+    if ($amount === 0) {
+        return false;
+    }
+
+    if (in_array($transactionType, ['grant', 'refund'], true)) {
+        return $amount > 0;
+    }
+
+    if (in_array($transactionType, ['use', 'expire'], true)) {
+        return $amount < 0;
+    }
+
+    return $transactionType === 'adjustment';
 }
 
 function toy_point_clean_key(string $value, int $maxLength): string

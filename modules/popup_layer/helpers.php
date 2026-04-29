@@ -30,17 +30,53 @@ function toy_popup_layer_available_targets(PDO $pdo): array
             }
 
             $pointLabel = toy_popup_layer_clean_single_line((string) ($point['label'] ?? $pointKey), 120);
-            $targets[] = [
-                'module_key' => $moduleKey,
-                'module_label' => toy_popup_layer_module_label($moduleKey),
-                'point_key' => $pointKey,
-                'point_label' => $pointLabel,
-                'slot_key' => toy_popup_layer_default_slot_key(),
-            ];
+            $slots = toy_popup_layer_normalize_slots($point['slots'] ?? []);
+            foreach ($slots as $slot) {
+                $targets[] = [
+                    'module_key' => $moduleKey,
+                    'module_label' => toy_popup_layer_module_label($moduleKey),
+                    'point_key' => $pointKey,
+                    'point_label' => $pointLabel,
+                    'slot_key' => (string) $slot['slot_key'],
+                    'slot_label' => (string) $slot['slot_label'],
+                ];
+            }
         }
     }
 
     return $targets;
+}
+
+function toy_popup_layer_normalize_slots(mixed $slots): array
+{
+    if (!is_array($slots) || $slots === []) {
+        return [
+            [
+                'slot_key' => toy_popup_layer_default_slot_key(),
+                'slot_label' => '화면',
+            ],
+        ];
+    }
+
+    $normalized = [];
+    foreach ($slots as $slot) {
+        if (!is_array($slot)) {
+            continue;
+        }
+
+        $slotKey = (string) ($slot['slot_key'] ?? '');
+        if (!toy_popup_layer_is_safe_key($slotKey, 80)) {
+            continue;
+        }
+
+        $slotLabel = toy_popup_layer_clean_single_line((string) ($slot['label'] ?? $slotKey), 80);
+        $normalized[$slotKey] = [
+            'slot_key' => $slotKey,
+            'slot_label' => $slotLabel !== '' ? $slotLabel : $slotKey,
+        ];
+    }
+
+    return array_values($normalized);
 }
 
 function toy_popup_layer_module_label(string $moduleKey): string
@@ -53,12 +89,12 @@ function toy_popup_layer_module_label(string $moduleKey): string
 
 function toy_popup_layer_target_option_value(array $target): string
 {
-    return (string) $target['module_key'] . '|' . (string) $target['point_key'];
+    return (string) $target['module_key'] . '|' . (string) $target['point_key'] . '|' . (string) $target['slot_key'];
 }
 
 function toy_popup_layer_target_option_label(array $target): string
 {
-    return (string) $target['module_label'] . ' / ' . (string) $target['point_label'];
+    return (string) $target['module_label'] . ' / ' . (string) $target['point_label'] . ' / ' . (string) $target['slot_label'];
 }
 
 function toy_popup_layer_find_target(array $targets, string $optionValue): ?array
