@@ -127,3 +127,55 @@ function toy_record_schema_version(PDO $pdo, string $scope, string $moduleKey, s
         'applied_at' => toy_now(),
     ]);
 }
+
+function toy_schema_update_versions(string $directory): array
+{
+    if (!is_dir($directory)) {
+        return [];
+    }
+
+    $paths = glob($directory . '/*.sql');
+    if ($paths === false) {
+        return [];
+    }
+
+    $versions = [];
+    foreach ($paths as $path) {
+        $version = basename($path, '.sql');
+        if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $version) === 1) {
+            $versions[] = $version;
+        }
+    }
+
+    sort($versions, SORT_STRING);
+    return $versions;
+}
+
+function toy_record_installed_module_schema_versions(PDO $pdo, string $moduleKey, string $currentVersion): void
+{
+    if (!toy_is_safe_module_key($moduleKey)) {
+        throw new InvalidArgumentException('Module key is invalid.');
+    }
+
+    if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $currentVersion) !== 1) {
+        toy_record_schema_version($pdo, 'module', $moduleKey, $currentVersion);
+        return;
+    }
+
+    $baseVersion = substr($currentVersion, 0, 8) . '001';
+    $versions = [$currentVersion => true];
+    if (strcmp($baseVersion, $currentVersion) <= 0) {
+        $versions[$baseVersion] = true;
+    }
+
+    foreach (toy_schema_update_versions(TOY_ROOT . '/modules/' . $moduleKey . '/updates') as $version) {
+        if (strcmp($version, $currentVersion) <= 0) {
+            $versions[$version] = true;
+        }
+    }
+
+    ksort($versions, SORT_STRING);
+    foreach (array_keys($versions) as $version) {
+        toy_record_schema_version($pdo, 'module', $moduleKey, (string) $version);
+    }
+}

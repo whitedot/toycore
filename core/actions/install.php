@@ -363,28 +363,10 @@ if (toy_request_method() === 'POST') {
             toy_record_schema_version($pdo, 'core', '', '2026.04.003');
             toy_record_schema_version($pdo, 'core', '', '2026.04.004');
             toy_record_schema_version($pdo, 'core', '', '2026.04.005');
-            toy_record_schema_version($pdo, 'module', 'member', '2026.04.001');
-            toy_record_schema_version($pdo, 'module', 'member', '2026.04.002');
-            toy_record_schema_version($pdo, 'module', 'member', '2026.04.003');
-            toy_record_schema_version($pdo, 'module', 'member', '2026.04.004');
-            toy_record_schema_version($pdo, 'module', 'member', '2026.04.005');
-            toy_record_schema_version($pdo, 'module', 'member', '2026.04.006');
-            toy_record_schema_version($pdo, 'module', 'admin', '2026.04.001');
+            toy_record_installed_module_schema_versions($pdo, 'member', (string) $requiredModules['member']['version']);
+            toy_record_installed_module_schema_versions($pdo, 'admin', (string) $requiredModules['admin']['version']);
             foreach ($selectedOptionalModuleKeys as $moduleKey) {
-                if ($moduleKey === 'seo') {
-                    toy_record_schema_version($pdo, 'module', 'seo', '2026.04.001');
-                    toy_record_schema_version($pdo, 'module', 'seo', '2026.04.002');
-                    continue;
-                }
-
-                if ($moduleKey === 'site_menu') {
-                    toy_record_schema_version($pdo, 'module', 'site_menu', '2026.04.001');
-                    toy_record_schema_version($pdo, 'module', 'site_menu', '2026.04.002');
-                    toy_record_schema_version($pdo, 'module', 'site_menu', '2026.04.003');
-                    continue;
-                }
-
-                toy_record_schema_version($pdo, 'module', $moduleKey, (string) $optionalModules[$moduleKey]['version']);
+                toy_record_installed_module_schema_versions($pdo, $moduleKey, (string) $optionalModules[$moduleKey]['version']);
             }
 
             require_once TOY_ROOT . '/modules/member/helpers.php';
