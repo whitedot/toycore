@@ -17,7 +17,6 @@
 - 설치 시 seo/popup_layer/point/deposit/reward 설치 여부 선택
 - 선택한 기본 제공 모듈의 설치 SQL 실행
 - 스키마 버전 기록
-- Docker 기반 로컬 PHP 실행 래퍼
 
 ### 코어
 
@@ -185,6 +184,10 @@
 - 업데이트 실패 시 `storage/update-failed.json` 복구 marker 기록
 - 비활성 설치 모듈의 업데이트 파일 확인
 - 팝업레이어 대상 조회 인덱스
+
+### 개발 및 검증 도구
+
+- Docker 기반 로컬 PHP 실행 래퍼
 
 ## 남은 작업
 

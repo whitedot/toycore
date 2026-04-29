@@ -15,12 +15,15 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 설치 시 seo, popup_layer, point, deposit, reward 설치 여부 선택
 - 선택한 기본 제공 모듈의 설치 SQL 실행
 - 스키마 버전 기록
-- Docker 기반 로컬 PHP 실행 래퍼 제공
 - 설치 시 운영 URL의 HTTPS 여부 확인
 - 설치 시 내부 파일 직접 접근 노출 점검
 - 기본 홈 화면과 오류 화면 제공
 - 공통 CSS 파일 제공
 - 팝업레이어 닫기 동작용 정적 JavaScript 파일 제공
+
+## 개발 및 검증 도구
+
+- Docker 기반 로컬 PHP 실행 래퍼 제공
 
 ## 코어 기반
 
