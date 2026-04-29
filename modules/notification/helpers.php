@@ -24,6 +24,39 @@ function toy_notification_clean_link_url(string $value): string
     return '';
 }
 
+function toy_notification_allowed_channels(): array
+{
+    return ['site', 'email', 'sms', 'alimtalk'];
+}
+
+function toy_notification_normalize_channels(array $channels): array
+{
+    $allowedChannels = toy_notification_allowed_channels();
+    $normalized = [];
+
+    foreach ($channels as $channel) {
+        $channel = is_string($channel) ? $channel : '';
+        if (in_array($channel, $allowedChannels, true)) {
+            $normalized[$channel] = $channel;
+        }
+    }
+
+    return array_values($normalized);
+}
+
+function toy_notification_external_channels(array $channels): array
+{
+    $externalChannels = [];
+
+    foreach (toy_notification_normalize_channels($channels) as $channel) {
+        if ($channel !== 'site') {
+            $externalChannels[] = $channel;
+        }
+    }
+
+    return $externalChannels;
+}
+
 function toy_notification_create(PDO $pdo, array $data): int
 {
     $audience = (string) ($data['audience'] ?? 'account');
@@ -43,6 +76,17 @@ function toy_notification_create(PDO $pdo, array $data): int
 
     $bodyText = toy_notification_clean_text((string) ($data['body_text'] ?? ''), 5000);
     $linkUrl = toy_notification_clean_link_url((string) ($data['link_url'] ?? ''));
+    $channels = isset($data['channels']) && is_array($data['channels'])
+        ? toy_notification_normalize_channels($data['channels'])
+        : ['site'];
+    $recipient = toy_notification_clean_single_line((string) ($data['recipient'] ?? ''), 255);
+    if ($channels === []) {
+        throw new InvalidArgumentException('Notification requires at least one delivery channel.');
+    }
+    if (toy_notification_external_channels($channels) !== [] && $recipient === '') {
+        throw new InvalidArgumentException('External notification delivery requires recipient.');
+    }
+
     $createdByAccountId = isset($data['created_by_account_id']) && (int) $data['created_by_account_id'] > 0
         ? (int) $data['created_by_account_id']
         : null;
@@ -73,8 +117,7 @@ function toy_notification_create(PDO $pdo, array $data): int
         ]);
 
         $notificationId = (int) $pdo->lastInsertId();
-        $channels = isset($data['channels']) && is_array($data['channels']) ? $data['channels'] : ['site'];
-        toy_notification_queue_deliveries($pdo, $notificationId, $channels, (string) ($data['recipient'] ?? ''));
+        toy_notification_queue_deliveries($pdo, $notificationId, $channels, $recipient);
 
         if ($startedTransaction) {
             $pdo->commit();
@@ -92,7 +135,15 @@ function toy_notification_create(PDO $pdo, array $data): int
 
 function toy_notification_queue_deliveries(PDO $pdo, int $notificationId, array $channels, string $recipient): void
 {
-    $allowedChannels = ['site', 'email', 'sms', 'alimtalk'];
+    $channels = toy_notification_normalize_channels($channels);
+    $recipient = toy_notification_clean_single_line($recipient, 255);
+    if ($channels === []) {
+        throw new InvalidArgumentException('Notification requires at least one delivery channel.');
+    }
+    if (toy_notification_external_channels($channels) !== [] && $recipient === '') {
+        throw new InvalidArgumentException('External notification delivery requires recipient.');
+    }
+
     $now = toy_now();
     $stmt = $pdo->prepare(
         'INSERT INTO toy_notification_deliveries
@@ -102,11 +153,6 @@ function toy_notification_queue_deliveries(PDO $pdo, int $notificationId, array 
     );
 
     foreach ($channels as $channel) {
-        $channel = is_string($channel) ? $channel : '';
-        if (!in_array($channel, $allowedChannels, true)) {
-            continue;
-        }
-
         $stmt->execute([
             'notification_id' => $notificationId,
             'channel' => $channel,

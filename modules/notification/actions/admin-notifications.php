@@ -10,7 +10,7 @@ $account = toy_member_require_login($pdo);
 toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedAudiences = ['account', 'all'];
-$allowedChannels = ['site', 'email', 'sms', 'alimtalk'];
+$allowedChannels = toy_notification_allowed_channels();
 $allowedDeliveryStatuses = ['queued', 'ready', 'sent', 'failed', 'canceled'];
 $errors = [];
 $notice = '';
@@ -158,6 +158,13 @@ if (toy_request_method() === 'POST') {
         if ($audience === 'account' && $accountId <= 0) {
             $errors[] = '회원 ID를 입력하세요.';
         }
+        if ($audience === 'account' && $accountId > 0) {
+            $stmt = $pdo->prepare('SELECT id FROM toy_member_accounts WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $accountId]);
+            if (!is_array($stmt->fetch())) {
+                $errors[] = '대상 회원을 찾을 수 없습니다.';
+            }
+        }
         if ($title === '') {
             $errors[] = '제목을 입력하세요.';
         }
@@ -173,6 +180,9 @@ if (toy_request_method() === 'POST') {
         }
         if ($channels === []) {
             $errors[] = '발송 채널을 하나 이상 선택하세요.';
+        }
+        if (toy_notification_external_channels(array_values($channels)) !== [] && $recipient === '') {
+            $errors[] = '이메일, SMS, 알림톡 채널은 외부 수신자를 입력해야 합니다.';
         }
 
         if ($errors === []) {
