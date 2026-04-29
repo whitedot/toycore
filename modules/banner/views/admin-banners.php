@@ -142,10 +142,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </thead>
             <tbody>
                 <?php foreach ($banners as $banner) { ?>
+                    <?php
+                    $bannerTargetOption = (string) $banner['module_key'] . '|' . (string) $banner['point_key'] . '|' . (string) $banner['slot_key'];
+                    $bannerTargetLabel = (string) ($targetLabels[$bannerTargetOption] ?? ('선언이 사라진 출력 위치 / ' . (string) $banner['module_key'] . ' / ' . (string) $banner['point_key'] . ' / ' . (string) $banner['slot_key']));
+                    ?>
                     <tr>
                         <td><?php echo toy_e((string) $banner['title']); ?></td>
                         <td><?php echo toy_e((string) $banner['status']); ?></td>
-                        <td><?php echo toy_e((string) $banner['module_key'] . ' / ' . (string) $banner['point_key'] . ' / ' . (string) $banner['slot_key']); ?></td>
+                        <td><?php echo toy_e($bannerTargetLabel); ?></td>
                         <td>
                             <?php echo toy_e((string) ($banner['starts_at'] ?? '-')); ?><br>
                             <?php echo toy_e((string) ($banner['ends_at'] ?? '-')); ?>

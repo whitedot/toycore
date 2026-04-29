@@ -137,6 +137,40 @@ function toy_banner_find_target(array $targets, string $option): ?array
     return null;
 }
 
+function toy_banner_target_labels(array $targets): array
+{
+    $labels = [];
+
+    foreach ($targets as $target) {
+        $labels[toy_banner_target_option_value($target)] = (string) ($target['label'] ?? toy_banner_target_option_value($target));
+    }
+
+    return $labels;
+}
+
+function toy_banner_target_from_row(array $row, string $label = '저장된 출력 위치'): ?array
+{
+    $moduleKey = (string) ($row['module_key'] ?? '');
+    $pointKey = (string) ($row['point_key'] ?? '');
+    $slotKey = (string) ($row['slot_key'] ?? '');
+
+    if (
+        !toy_is_safe_module_key($moduleKey)
+        || preg_match('/\A[a-z0-9][a-z0-9_.-]{0,119}\z/', $pointKey) !== 1
+        || preg_match('/\A[a-z0-9][a-z0-9_.-]{0,79}\z/', $slotKey) !== 1
+    ) {
+        return null;
+    }
+
+    return [
+        'module_key' => $moduleKey,
+        'point_key' => $pointKey,
+        'slot_key' => $slotKey,
+        'label' => $label . ' / ' . $moduleKey . ' / ' . $pointKey . ' / ' . $slotKey,
+        'source' => 'stored',
+    ];
+}
+
 function toy_banner_render_slot(PDO $pdo, array $context): string
 {
     $moduleKey = (string) ($context['module_key'] ?? '');

@@ -71,7 +71,8 @@ if (toy_request_method() === 'POST') {
         $startsAt = toy_banner_clean_admin_datetime($startsAtInput);
         $endsAt = toy_banner_clean_admin_datetime($endsAtInput);
         $sortOrder = max(-100000, min(100000, (int) toy_post_string('sort_order', 20)));
-        $target = toy_banner_find_target($availableTargets, toy_post_string('target_option', 300));
+        $targetOption = toy_post_string('target_option', 300);
+        $target = toy_banner_find_target($availableTargets, $targetOption);
         $matchType = toy_post_string('match_type', 20);
         $subjectId = toy_banner_clean_single_line(toy_post_string('subject_id', 80), 80);
 
@@ -94,7 +95,26 @@ if (toy_request_method() === 'POST') {
             $errors[] = '종료 시각은 시작 시각 이후여야 합니다.';
         }
         if ($target === null) {
-            $errors[] = '노출 대상을 선택하세요.';
+            if ($bannerId > 0) {
+                $stmt = $pdo->prepare(
+                    'SELECT module_key, point_key, slot_key
+                     FROM toy_banner_targets
+                     WHERE banner_id = :banner_id
+                     LIMIT 1'
+                );
+                $stmt->execute(['banner_id' => $bannerId]);
+                $storedTarget = $stmt->fetch();
+                if (is_array($storedTarget)) {
+                    $storedTargetData = toy_banner_target_from_row($storedTarget);
+                    if ($storedTargetData !== null && toy_banner_target_option_value($storedTargetData) === $targetOption) {
+                        $target = $storedTargetData;
+                    }
+                }
+            }
+
+            if ($target === null) {
+                $errors[] = '모듈이 선언한 출력 위치를 선택하세요.';
+            }
         }
         if (!in_array($matchType, $allowedMatchTypes, true)) {
             $errors[] = '매칭 방식이 올바르지 않습니다.';
@@ -221,8 +241,14 @@ if ($editId > 0) {
     $row = $stmt->fetch();
     if (is_array($row)) {
         $editBanner = $row;
+        $editTarget = toy_banner_target_from_row($row, '선언이 사라진 저장 위치');
+        if ($editTarget !== null && toy_banner_find_target($availableTargets, toy_banner_target_option_value($editTarget)) === null) {
+            $availableTargets[] = $editTarget;
+        }
     }
 }
+
+$targetLabels = toy_banner_target_labels($availableTargets);
 
 $banners = [];
 $bannerSql = 'SELECT b.id, b.title, b.status, b.starts_at, b.ends_at, b.sort_order, b.updated_at,
