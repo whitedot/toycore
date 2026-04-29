@@ -16,10 +16,14 @@ $errors = [];
 $notice = '';
 $filters = [
     'audience' => toy_get_string('audience', 30),
+    'delivery_channel' => toy_get_string('delivery_channel', 30),
     'delivery_status' => toy_get_string('delivery_status', 30),
 ];
 if ($filters['audience'] !== '' && !in_array($filters['audience'], $allowedAudiences, true)) {
     $filters['audience'] = '';
+}
+if ($filters['delivery_channel'] !== '' && !in_array($filters['delivery_channel'], $allowedChannels, true)) {
+    $filters['delivery_channel'] = '';
 }
 if ($filters['delivery_status'] !== '' && !in_array($filters['delivery_status'], $allowedDeliveryStatuses, true)) {
     $filters['delivery_status'] = '';
@@ -239,9 +243,17 @@ $deliveries = [];
 $deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.provider_message_id, d.error_message, d.updated_at
                 FROM toy_notification_deliveries d';
 $deliveryParams = [];
+$deliveryWhere = [];
+if ($filters['delivery_channel'] !== '') {
+    $deliveryWhere[] = 'd.channel = :delivery_channel';
+    $deliveryParams['delivery_channel'] = $filters['delivery_channel'];
+}
 if ($filters['delivery_status'] !== '') {
-    $deliverySql .= ' WHERE d.status = :delivery_status';
+    $deliveryWhere[] = 'd.status = :delivery_status';
     $deliveryParams['delivery_status'] = $filters['delivery_status'];
+}
+if ($deliveryWhere !== []) {
+    $deliverySql .= ' WHERE ' . implode(' AND ', $deliveryWhere);
 }
 $deliverySql .= ' ORDER BY d.id DESC LIMIT 100';
 $stmt = $pdo->prepare($deliverySql);

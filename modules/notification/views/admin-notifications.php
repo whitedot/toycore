@@ -82,6 +82,18 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <p>
+            <label>발송 채널<br>
+                <select name="delivery_channel">
+                    <option value=""<?php echo $filters['delivery_channel'] === '' ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($allowedChannels as $channel) { ?>
+                        <option value="<?php echo toy_e($channel); ?>"<?php echo $filters['delivery_channel'] === $channel ? ' selected' : ''; ?>>
+                            <?php echo toy_e($channel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </label>
+        </p>
+        <p>
             <label>발송 상태<br>
                 <select name="delivery_status">
                     <option value=""<?php echo $filters['delivery_status'] === '' ? ' selected' : ''; ?>>전체</option>
