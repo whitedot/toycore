@@ -192,7 +192,21 @@ function toy_prefix_sql_identifiers(string $sql, string $prefix): string
         $prefix = 'toy_';
     }
 
-    $rewritten = preg_replace('/\btoy_([A-Za-z0-9_]+)\b/', $prefix . '$1', $sql);
+    $rewritten = preg_replace_callback(
+        '/(?<![@])\btoy_([A-Za-z0-9_]+)\b/',
+        static function (array $matches) use ($sql, $prefix): string {
+            $before = substr($sql, 0, (int) $matches[0][1]);
+            if (preg_match('/(?:\bPREPARE|\bEXECUTE)\s+$/i', $before) === 1) {
+                return (string) $matches[0][0];
+            }
+
+            return $prefix . (string) $matches[1][0];
+        },
+        $sql,
+        -1,
+        $count,
+        PREG_OFFSET_CAPTURE
+    );
     return is_string($rewritten) ? $rewritten : $sql;
 }
 
