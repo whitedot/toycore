@@ -42,7 +42,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <p>
-            <label>이미지 URL<br>
+            <label>이미지 URL (/로 시작하는 내부 경로)<br>
                 <input type="text" name="image_url" value="<?php echo $editing ? toy_e((string) $editBanner['image_url']) : ''; ?>" maxlength="255">
             </label>
         </p>

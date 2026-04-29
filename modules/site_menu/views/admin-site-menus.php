@@ -2,6 +2,7 @@
 
 $adminPageTitle = '사이트 메뉴';
 $editingItem = is_array($editItem);
+$editingMenu = is_array($editMenu);
 include TOY_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -18,30 +19,37 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <section>
-    <h2>메뉴 추가/수정</h2>
+    <h2><?php echo $editingMenu ? '메뉴 수정' : '메뉴 추가'; ?></h2>
     <form method="post" action="<?php echo toy_e(toy_url('/admin/site-menus')); ?>">
         <?php echo toy_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_menu">
+        <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? toy_e((string) $editMenu['menu_key']) : ''; ?>">
         <p>
             <label>메뉴 key<br>
-                <input type="text" name="menu_key" value="header" maxlength="60" required>
+                <input type="text" name="menu_key" value="<?php echo $editingMenu ? toy_e((string) $editMenu['menu_key']) : 'header'; ?>" maxlength="60" required>
             </label>
         </p>
         <p>
             <label>메뉴 이름<br>
-                <input type="text" name="label" value="헤더 메뉴" maxlength="120" required>
+                <input type="text" name="label" value="<?php echo $editingMenu ? toy_e((string) $editMenu['label']) : '헤더 메뉴'; ?>" maxlength="120" required>
             </label>
         </p>
         <p>
             <label>상태<br>
                 <select name="status">
                     <?php foreach ($allowedStatuses as $status) { ?>
-                        <option value="<?php echo toy_e($status); ?>"><?php echo toy_e($status); ?></option>
+                        <?php $currentMenuStatus = $editingMenu ? (string) $editMenu['status'] : 'enabled'; ?>
+                        <option value="<?php echo toy_e($status); ?>"<?php echo $currentMenuStatus === $status ? ' selected' : ''; ?>>
+                            <?php echo toy_e($status); ?>
+                        </option>
                     <?php } ?>
                 </select>
             </label>
         </p>
         <button type="submit">메뉴 저장</button>
+        <?php if ($editingMenu) { ?>
+            <a href="<?php echo toy_e(toy_url('/admin/site-menus')); ?>">새 메뉴 추가</a>
+        <?php } ?>
     </form>
 </section>
 
@@ -136,6 +144,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $menu['status']); ?></td>
                         <td><?php echo toy_e((string) $menu['updated_at']); ?></td>
                         <td>
+                            <a href="<?php echo toy_e(toy_url('/admin/site-menus?edit_menu_id=' . (string) $menu['id'])); ?>">수정</a>
                             <form method="post" action="<?php echo toy_e(toy_url('/admin/site-menus')); ?>" style="display:inline">
                                 <?php echo toy_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="delete_menu">

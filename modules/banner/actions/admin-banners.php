@@ -57,7 +57,8 @@ if (toy_request_method() === 'POST') {
         $title = toy_banner_clean_single_line(toy_post_string('title', 120), 120);
         $bodyText = toy_banner_clean_text(toy_post_string('body_text', 3000), 3000);
         $linkUrl = toy_banner_clean_url(toy_post_string('link_url', 255));
-        $imageUrl = toy_banner_clean_url(toy_post_string('image_url', 255));
+        $rawImageUrl = toy_post_string('image_url', 255);
+        $imageUrl = toy_banner_clean_image_url($rawImageUrl);
         $status = toy_post_string('status', 30);
         $startsAtInput = toy_post_string('starts_at', 30);
         $endsAtInput = toy_post_string('ends_at', 30);
@@ -70,6 +71,9 @@ if (toy_request_method() === 'POST') {
 
         if ($title === '') {
             $errors[] = '제목을 입력하세요.';
+        }
+        if ($rawImageUrl !== '' && $imageUrl === '') {
+            $errors[] = '이미지 URL은 /로 시작하는 내부 경로여야 합니다.';
         }
         if (!in_array($status, $allowedStatuses, true)) {
             $errors[] = '상태 값이 올바르지 않습니다.';

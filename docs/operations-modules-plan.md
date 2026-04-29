@@ -16,6 +16,7 @@
 - `toy_site_menus`에 메뉴 단위를 저장한다.
 - `toy_site_menu_items`에 메뉴 항목, URL, target, 상태, 정렬 순서를 저장한다.
 - 관리자 화면 `/admin/site-menus`에서 메뉴와 항목을 관리한다.
+- 메뉴 key 변경 시 중복 key를 검증한다.
 - 메뉴 삭제 시 하위 메뉴 항목을 같은 트랜잭션에서 삭제한다.
 - 기본 홈 화면의 `core/site.home/navigation` 출력 위치에 `header` 메뉴를 출력한다.
 
@@ -24,6 +25,7 @@
 - `toy_banners`에 배너 제목, 내용, 이미지 URL, 링크 URL, 상태, 기간, 정렬을 저장한다.
 - `toy_banner_targets`에 출력 대상 module/point/slot/subject 규칙을 저장한다.
 - 관리자 화면 `/admin/banners`에서 배너와 대상 규칙을 관리한다.
+- 기본 CSP와 맞추기 위해 이미지 URL은 `/assets/...` 같은 내부 경로만 허용한다.
 - 기본 홈 화면의 `core/site.home/before_content`, `core/site.home/after_content` 위치에 배너를 출력할 수 있다.
 
 ### 알림

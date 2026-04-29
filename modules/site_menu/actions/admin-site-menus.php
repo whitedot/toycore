@@ -23,6 +23,7 @@ if (toy_request_method() === 'POST') {
 
     if ($intent === 'save_menu') {
         $menuKey = toy_site_menu_clean_key(toy_post_string('menu_key', 60));
+        $originalMenuKey = toy_site_menu_clean_key(toy_post_string('original_menu_key', 60));
         $label = toy_site_menu_clean_label(toy_post_string('label', 120));
         $status = toy_post_string('status', 30);
 
@@ -38,30 +39,64 @@ if (toy_request_method() === 'POST') {
 
         if ($errors === []) {
             $now = toy_now();
-            $stmt = $pdo->prepare(
-                'INSERT INTO toy_site_menus (menu_key, label, status, created_at, updated_at)
-                 VALUES (:menu_key, :label, :status, :created_at, :updated_at)
-                 ON DUPLICATE KEY UPDATE label = VALUES(label), status = VALUES(status), updated_at = VALUES(updated_at)'
-            );
-            $stmt->execute([
-                'menu_key' => $menuKey,
-                'label' => $label,
-                'status' => $status,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
+            if ($originalMenuKey !== '') {
+                $stmt = $pdo->prepare('SELECT id FROM toy_site_menus WHERE menu_key = :menu_key LIMIT 1');
+                $stmt->execute(['menu_key' => $originalMenuKey]);
+                if (!is_array($stmt->fetch())) {
+                    $errors[] = '수정할 메뉴를 찾을 수 없습니다.';
+                }
 
-            toy_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'site_menu.saved',
-                'target_type' => 'site_menu',
-                'target_id' => $menuKey,
-                'result' => 'success',
-                'message' => 'Site menu saved.',
-            ]);
+                if ($originalMenuKey !== $menuKey) {
+                    $stmt = $pdo->prepare('SELECT id FROM toy_site_menus WHERE menu_key = :menu_key LIMIT 1');
+                    $stmt->execute(['menu_key' => $menuKey]);
+                    if (is_array($stmt->fetch())) {
+                        $errors[] = '변경하려는 메뉴 key가 이미 사용 중입니다.';
+                    }
+                }
 
-            $notice = '메뉴를 저장했습니다.';
+                if ($errors === []) {
+                    $stmt = $pdo->prepare(
+                        'UPDATE toy_site_menus
+                         SET menu_key = :menu_key, label = :label, status = :status, updated_at = :updated_at
+                         WHERE menu_key = :original_menu_key'
+                    );
+                    $stmt->execute([
+                        'menu_key' => $menuKey,
+                        'label' => $label,
+                        'status' => $status,
+                        'updated_at' => $now,
+                        'original_menu_key' => $originalMenuKey,
+                    ]);
+                }
+            } else {
+                $stmt = $pdo->prepare(
+                    'INSERT INTO toy_site_menus (menu_key, label, status, created_at, updated_at)
+                     VALUES (:menu_key, :label, :status, :created_at, :updated_at)
+                     ON DUPLICATE KEY UPDATE label = VALUES(label), status = VALUES(status), updated_at = VALUES(updated_at)'
+                );
+                $stmt->execute([
+                    'menu_key' => $menuKey,
+                    'label' => $label,
+                    'status' => $status,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+
+            if ($errors === []) {
+                toy_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'site_menu.saved',
+                    'target_type' => 'site_menu',
+                    'target_id' => $menuKey,
+                    'result' => 'success',
+                    'message' => 'Site menu saved.',
+                    'metadata' => ['original_menu_key' => $originalMenuKey],
+                ]);
+
+                $notice = '메뉴를 저장했습니다.';
+            }
         }
     } elseif ($intent === 'save_item') {
         $label = toy_site_menu_clean_label(toy_post_string('label', 120));
@@ -224,6 +259,17 @@ if ($editItemId > 0) {
     $row = $stmt->fetch();
     if (is_array($row)) {
         $editItem = $row;
+    }
+}
+
+$editMenu = null;
+$editMenuId = (int) toy_get_string('edit_menu_id', 20);
+if ($editMenuId > 0) {
+    $stmt = $pdo->prepare('SELECT id, menu_key, label, status FROM toy_site_menus WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $editMenuId]);
+    $row = $stmt->fetch();
+    if (is_array($row)) {
+        $editMenu = $row;
     }
 }
 

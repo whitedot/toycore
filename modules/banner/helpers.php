@@ -24,6 +24,16 @@ function toy_banner_clean_url(string $value): string
     return '';
 }
 
+function toy_banner_clean_image_url(string $value): string
+{
+    $value = trim($value);
+    if ($value === '' || toy_is_safe_relative_url($value)) {
+        return $value;
+    }
+
+    return '';
+}
+
 function toy_banner_clean_admin_datetime(string $value): ?string
 {
     $value = trim($value);
