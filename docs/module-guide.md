@@ -144,8 +144,8 @@ return [
 - `label`은 관리자 화면에 표시할 짧은 이름입니다.
 - `url`은 `/`로 시작하는 내부 URL 또는 `http/https` URL만 사용합니다.
 - 후보 제공은 메뉴 항목을 자동 생성하지 않습니다. 최종 메뉴 구성은 `site_menu` 관리자 화면에서 운영자가 결정합니다.
-- 화면 레이아웃은 필요한 `menu_key`를 직접 참조해 `toy_site_menu_render($pdo, 'header')`처럼 출력합니다.
-- 메뉴는 배너처럼 각 화면의 `output slot`에 붙는 콘텐츠가 아니라 사이트 구조입니다. 메뉴 위치를 `extension-points.php`로 선언하지 않습니다.
+- 메뉴 출력은 `site_menu` 모듈이 제공하는 `output-slots.php`에서 담당합니다. 코어 화면은 `toy_render_output_slot()`으로 위치만 열어 둡니다.
+- 메뉴는 사이트 구조에 가까우므로 메뉴 후보 위치를 `extension-points.php`로 선언하지 않습니다.
 
 ## Admin Menu
 

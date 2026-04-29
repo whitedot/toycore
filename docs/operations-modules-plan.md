@@ -7,7 +7,7 @@
 - `site_menu`, `banner`, `notification`은 독립 모듈로 둔다.
 - 관리자 작업 로그는 이미 core 운영 helper와 `toy_audit_logs` 테이블이 제공하므로 별도 도메인 테이블을 만들지 않고 admin 화면을 강화한다.
 - 배너처럼 화면 안에 붙는 콘텐츠는 `toy_render_output_slot()`을 사용하고, 각 화면 소유 모듈이 자기 출력 위치를 선언한다.
-- 메뉴는 화면 삽입 확장보다 사이트 구조에 가까우므로 `site_menu`가 메뉴 그룹을 소유하고 레이아웃이 필요한 `menu_key`를 직접 참조한다.
+- 메뉴는 사이트 구조에 가까우므로 `site_menu`가 메뉴 그룹을 소유하고, 코어 화면은 출력 슬롯만 열어 둔다.
 - 이메일, SMS, 알림톡은 실제 provider 연동을 바로 넣지 않고 `toy_notification_deliveries` 발송 대기열에 쌓는 단계부터 시작한다.
 
 ## 1차 구현 범위
@@ -20,7 +20,7 @@
 - 관리자 화면 `/admin/site-menus`에서 메뉴와 항목을 관리한다.
 - 메뉴 key 변경 시 중복 key를 검증한다.
 - 메뉴 삭제 시 하위 메뉴 항목을 같은 트랜잭션에서 삭제한다.
-- 기본 홈 화면은 `header` 메뉴를 직접 참조해 출력한다.
+- 기본 홈 화면은 `site.header` 출력 슬롯을 열고, `site_menu` 모듈이 `header` 메뉴를 렌더링한다.
 - 활성 모듈은 `menu-links.php`로 운영자가 선택할 수 있는 메뉴 후보 URL을 제공한다.
 
 ### 배너

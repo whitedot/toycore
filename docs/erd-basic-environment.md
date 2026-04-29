@@ -638,7 +638,7 @@ hash_hmac('sha256', normalized_identifier, app_key)
 
 ### `toy_site_menus`
 
-사이트 공통 메뉴 단위를 저장합니다. 현재 기본 홈 화면은 `header` 메뉴를 직접 참조해 출력합니다.
+사이트 공통 메뉴 단위를 저장합니다. 현재 기본 홈 화면은 `site.header` 출력 슬롯을 열고, `site_menu` 모듈이 `header` 메뉴를 렌더링합니다.
 
 권장 인덱스:
 

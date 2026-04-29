@@ -52,7 +52,7 @@ $optionalModules = [
     ],
     'site_menu' => [
         'name' => 'Site Menu',
-        'version' => '2026.04.002',
+        'version' => '2026.04.003',
         'label' => '사이트 메뉴',
         'description' => '헤더 등 사이트 공통 메뉴를 관리하는 관리자 화면을 설치합니다.',
     ],
