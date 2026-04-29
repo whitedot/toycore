@@ -26,6 +26,19 @@
 - `reward`
 - 향후 게시판, 쇼핑몰, 예약, 쿠폰, 마케팅, 분석 모듈
 
+현재 1차 분리 리포지토리:
+
+```text
+git@github.com:whitedot/toycore-module-banner.git
+git@github.com:whitedot/toycore-module-popup-layer.git
+git@github.com:whitedot/toycore-module-site-menu.git
+git@github.com:whitedot/toycore-module-notification.git
+git@github.com:whitedot/toycore-module-seo.git
+git@github.com:whitedot/toycore-module-point.git
+git@github.com:whitedot/toycore-module-deposit.git
+git@github.com:whitedot/toycore-module-reward.git
+```
+
 분리 우선순위가 높다:
 
 - 특정 사이트에서만 필요한 도메인 기능
