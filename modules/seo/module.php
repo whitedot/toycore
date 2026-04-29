@@ -5,6 +5,10 @@ return [
     'version' => '2026.04.002',
     'type' => 'module',
     'description' => 'SEO output helpers and sitemap endpoint.',
+    'toycore' => [
+        'min_version' => '2026.04.005',
+        'tested_with' => ['2026.04.005'],
+    ],
     'requires' => [
         'modules' => ['admin'],
     ],

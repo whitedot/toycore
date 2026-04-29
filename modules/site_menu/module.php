@@ -5,6 +5,10 @@ return [
     'version' => '2026.04.003',
     'type' => 'module',
     'description' => 'Site-wide navigation menu management module.',
+    'toycore' => [
+        'min_version' => '2026.04.005',
+        'tested_with' => ['2026.04.005'],
+    ],
     'requires' => [
         'modules' => ['member', 'admin'],
     ],
