@@ -28,7 +28,7 @@ $adminModuleMenuItems = isset($pdo) && $pdo instanceof PDO ? toy_admin_module_me
             <a href="<?php echo toy_e(toy_url('/admin/updates')); ?>">업데이트</a>
             <a href="<?php echo toy_e(toy_url('/admin/members')); ?>">회원</a>
             <a href="<?php echo toy_e(toy_url('/admin/roles')); ?>">권한</a>
-            <a href="<?php echo toy_e(toy_url('/admin/audit-logs')); ?>">감사 로그</a>
+            <a href="<?php echo toy_e(toy_url('/admin/audit-logs')); ?>">관리자 작업 로그</a>
             <a href="<?php echo toy_e(toy_url('/admin/privacy-requests')); ?>">개인정보 요청</a>
             <a href="<?php echo toy_e(toy_url('/admin/retention')); ?>">보관 정리</a>
             <form method="post" action="<?php echo toy_e(toy_url('/logout')); ?>" style="display:inline">
