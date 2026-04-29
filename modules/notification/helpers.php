@@ -75,7 +75,12 @@ function toy_notification_create(PDO $pdo, array $data): int
     }
 
     $bodyText = toy_notification_clean_text((string) ($data['body_text'] ?? ''), 5000);
-    $linkUrl = toy_notification_clean_link_url((string) ($data['link_url'] ?? ''));
+    $rawLinkUrl = (string) ($data['link_url'] ?? '');
+    $linkUrl = toy_notification_clean_link_url($rawLinkUrl);
+    if (trim($rawLinkUrl) !== '' && $linkUrl === '') {
+        throw new InvalidArgumentException('Notification link URL is invalid.');
+    }
+
     $channels = isset($data['channels']) && is_array($data['channels'])
         ? toy_notification_normalize_channels($data['channels'])
         : ['site'];

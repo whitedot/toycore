@@ -151,7 +151,8 @@ if (toy_request_method() === 'POST') {
         $accountId = (int) toy_post_string('account_id', 20);
         $title = toy_notification_clean_single_line(toy_post_string('title', 160), 160);
         $bodyText = toy_notification_clean_text(toy_post_string('body_text', 5000), 5000);
-        $linkUrl = toy_notification_clean_link_url(toy_post_string('link_url', 255));
+        $rawLinkUrl = toy_post_string('link_url', 255);
+        $linkUrl = toy_notification_clean_link_url($rawLinkUrl);
         $recipient = toy_notification_clean_single_line(toy_post_string('recipient', 255), 255);
         $postedChannels = $_POST['channels'] ?? [];
         $channels = [];
@@ -171,6 +172,9 @@ if (toy_request_method() === 'POST') {
         }
         if ($title === '') {
             $errors[] = '제목을 입력하세요.';
+        }
+        if ($rawLinkUrl !== '' && $linkUrl === '') {
+            $errors[] = '링크 URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다.';
         }
         if (!is_array($postedChannels)) {
             $errors[] = '발송 채널 값이 올바르지 않습니다.';

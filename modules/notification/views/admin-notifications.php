@@ -46,7 +46,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <p>
-            <label>링크 URL<br>
+            <label>링크 URL (/로 시작하는 내부 URL 또는 http/https URL)<br>
                 <input type="text" name="link_url" value="" maxlength="255">
             </label>
         </p>
