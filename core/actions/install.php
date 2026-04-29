@@ -377,6 +377,13 @@ if (toy_request_method() === 'POST') {
                     continue;
                 }
 
+                if ($moduleKey === 'site_menu') {
+                    toy_record_schema_version($pdo, 'module', 'site_menu', '2026.04.001');
+                    toy_record_schema_version($pdo, 'module', 'site_menu', '2026.04.002');
+                    toy_record_schema_version($pdo, 'module', 'site_menu', '2026.04.003');
+                    continue;
+                }
+
                 toy_record_schema_version($pdo, 'module', $moduleKey, (string) $optionalModules[$moduleKey]['version']);
             }
 
