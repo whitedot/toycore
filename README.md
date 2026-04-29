@@ -86,6 +86,8 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 ./.tools/bin/check
 ```
 
+Docker 또는 OrbStack이 꺼져 있어도 공백, SQL 파일, 모듈 기본 구조 검사는 먼저 실행됩니다. PHP 문법 검사는 Docker 또는 OrbStack 실행 상태가 필요합니다.
+
 ## 모듈 구조
 
 Toycore의 모듈은 프레임워크 패키지가 아니라, 정해진 디렉터리에 놓인 절차형 PHP 파일과 DB에 저장된 설치/활성 상태로 동작합니다.
