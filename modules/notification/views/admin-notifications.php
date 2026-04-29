@@ -115,7 +115,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <th>ID</th>
                     <th>대상</th>
-                    <th>제목</th>
                     <th>상태</th>
                     <th>생성자</th>
                     <th>생성일</th>
@@ -127,7 +126,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td><?php echo toy_e((string) $notification['id']); ?></td>
                         <td><?php echo toy_e((string) $notification['audience'] . ':' . (string) ($notification['account_id'] ?? '')); ?></td>
-                        <td><?php echo toy_e((string) $notification['title']); ?></td>
                         <td><?php echo toy_e((string) $notification['status']); ?></td>
                         <td><?php echo toy_e((string) ($notification['created_by_account_id'] ?? '')); ?></td>
                         <td><?php echo toy_e((string) $notification['created_at']); ?></td>
@@ -157,7 +155,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>ID</th>
                     <th>알림</th>
                     <th>채널</th>
-                    <th>수신자</th>
                     <th>상태</th>
                     <th>오류</th>
                     <th>수정일</th>
@@ -170,7 +167,6 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $delivery['id']); ?></td>
                         <td><?php echo toy_e((string) $delivery['notification_id']); ?></td>
                         <td><?php echo toy_e((string) $delivery['channel']); ?></td>
-                        <td><?php echo toy_e((string) $delivery['recipient']); ?></td>
                         <td><?php echo toy_e((string) $delivery['status']); ?></td>
                         <td><?php echo toy_e((string) $delivery['error_message']); ?></td>
                         <td><?php echo toy_e((string) $delivery['updated_at']); ?></td>

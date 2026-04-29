@@ -229,7 +229,7 @@ if (toy_request_method() === 'POST') {
 }
 
 $notifications = [];
-$notificationSql = 'SELECT id, account_id, audience, title, status, read_at, created_by_account_id, created_at
+$notificationSql = 'SELECT id, account_id, audience, status, read_at, created_by_account_id, created_at
                     FROM toy_notifications';
 $notificationParams = [];
 if ($filters['audience'] !== '') {
@@ -244,7 +244,7 @@ foreach ($stmt->fetchAll() as $row) {
 }
 
 $deliveries = [];
-$deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.provider_message_id, d.error_message, d.updated_at
+$deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.status, d.provider_message_id, d.error_message, d.updated_at
                 FROM toy_notification_deliveries d';
 $deliveryParams = [];
 $deliveryWhere = [];
