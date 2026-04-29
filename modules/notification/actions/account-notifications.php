@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once TOY_ROOT . '/modules/notification/helpers.php';
 
 $account = toy_member_require_login($pdo);
 $errors = [];

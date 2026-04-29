@@ -69,10 +69,11 @@ $seo = [
                 </thead>
                 <tbody>
                     <?php foreach ($notifications as $notification) { ?>
+                        <?php $notificationLinkAttributes = toy_notification_link_attributes((string) ($notification['link_url'] ?? '')); ?>
                         <tr>
                             <td>
-                                <?php if ((string) $notification['link_url'] !== '') { ?>
-                                    <a href="<?php echo toy_e((string) $notification['link_url']); ?>"><?php echo toy_e((string) $notification['title']); ?></a>
+                                <?php if ($notificationLinkAttributes !== '') { ?>
+                                    <a<?php echo $notificationLinkAttributes; ?>><?php echo toy_e((string) $notification['title']); ?></a>
                                 <?php } else { ?>
                                     <?php echo toy_e((string) $notification['title']); ?>
                                 <?php } ?>

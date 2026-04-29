@@ -24,6 +24,21 @@ function toy_notification_clean_link_url(string $value): string
     return '';
 }
 
+function toy_notification_link_attributes(string $url): string
+{
+    $url = toy_notification_clean_link_url($url);
+    if ($url === '') {
+        return '';
+    }
+
+    $attributes = ' href="' . toy_e($url) . '"';
+    if (toy_is_http_url($url)) {
+        $attributes .= ' target="_blank" rel="noopener noreferrer"';
+    }
+
+    return $attributes;
+}
+
 function toy_notification_allowed_channels(): array
 {
     return ['site', 'email', 'sms', 'alimtalk'];
