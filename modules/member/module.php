@@ -5,6 +5,13 @@ return [
     'version' => '2026.04.006',
     'type' => 'module',
     'description' => 'Member account and authentication module.',
+    'contracts' => [
+        'provides' => [
+            'admin-menu.php',
+            'extension-points.php',
+            'menu-links.php',
+        ],
+    ],
     'settings' => [
         'allow_registration' => true,
         'email_verification_enabled' => true,

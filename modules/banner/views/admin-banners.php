@@ -47,7 +47,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <p>
-            <label>노출 대상<br>
+            <label>모듈이 선언한 출력 위치<br>
                 <select name="target_option">
                     <?php foreach ($availableTargets as $target) { ?>
                         <?php $optionValue = toy_banner_target_option_value($target); ?>
@@ -134,7 +134,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <th>제목</th>
                     <th>상태</th>
-                    <th>대상</th>
+                    <th>출력 위치</th>
                     <th>기간</th>
                     <th>정렬</th>
                     <th>관리</th>

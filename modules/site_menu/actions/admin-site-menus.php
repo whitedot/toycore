@@ -13,6 +13,7 @@ $allowedStatuses = ['enabled', 'disabled'];
 $allowedTargets = ['self', 'blank'];
 $errors = [];
 $notice = '';
+$menuLinkSuggestions = toy_site_menu_link_suggestions($pdo);
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
@@ -126,6 +127,22 @@ if (toy_request_method() === 'POST') {
             $stmt->execute(['id' => $menuId]);
             if (!is_array($stmt->fetch())) {
                 $errors[] = '메뉴를 찾을 수 없습니다.';
+            }
+        }
+
+        if ($errors === []) {
+            $stmt = $pdo->prepare(
+                'SELECT id FROM toy_site_menu_items
+                 WHERE menu_id = :menu_id AND url = :url AND id <> :id
+                 LIMIT 1'
+            );
+            $stmt->execute([
+                'menu_id' => $menuId,
+                'url' => $url,
+                'id' => $itemId > 0 ? $itemId : 0,
+            ]);
+            if (is_array($stmt->fetch())) {
+                $errors[] = '같은 메뉴에 동일한 URL 항목이 이미 있습니다.';
             }
         }
 

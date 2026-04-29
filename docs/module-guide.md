@@ -11,6 +11,7 @@ modules/{module_key}/
 - module.php
 - paths.php
 - admin-menu.php (optional)
+- menu-links.php (optional)
 - output-slots.php (optional)
 - extension-points.php (optional)
 - privacy-export.php (optional)
@@ -95,6 +96,7 @@ return [
 대표 계약 파일:
 
 - `admin-menu.php`: 관리자 메뉴 항목
+- `menu-links.php`: 사이트 메뉴 후보 링크
 - `output-slots.php`: 화면 출력 renderer
 - `extension-points.php`: 확장 가능한 화면/기능 위치
 - `privacy-export.php`: 회원 개인정보 내보내기 확장
@@ -121,6 +123,27 @@ return static function (PDO $pdo, array $context): string {
 ```
 
 renderer는 현재 요청에서 즉시 출력할 HTML 문자열을 반환합니다. 아무것도 출력하지 않을 때는 빈 문자열을 반환합니다.
+
+## 사이트 메뉴 후보
+
+사이트 전체 header/footer/account 같은 메뉴 그룹은 `site_menu` 모듈이 소유합니다. 각 도메인 모듈은 메뉴 구조를 직접 바꾸지 않고, 운영자가 선택할 수 있는 링크 후보만 `menu-links.php`로 제공합니다.
+
+```php
+<?php
+
+return [
+    [
+        'label' => '내 계정',
+        'url' => '/account',
+    ],
+];
+```
+
+규칙:
+
+- `label`은 관리자 화면에 표시할 짧은 이름입니다.
+- `url`은 `/`로 시작하는 내부 URL 또는 `http/https` URL만 사용합니다.
+- 후보 제공은 메뉴 항목을 자동 생성하지 않습니다. 최종 메뉴 구성은 `site_menu` 관리자 화면에서 운영자가 결정합니다.
 
 ## Admin Menu
 

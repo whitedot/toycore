@@ -122,6 +122,55 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 </section>
 
 <section>
+    <h2>메뉴 후보</h2>
+    <?php if ($menus === []) { ?>
+        <p>먼저 메뉴를 추가하세요.</p>
+    <?php } elseif ($menuLinkSuggestions === []) { ?>
+        <p>활성 모듈이 제공한 메뉴 후보가 없습니다.</p>
+    <?php } else { ?>
+        <table>
+            <thead>
+                <tr>
+                    <th>모듈</th>
+                    <th>항목</th>
+                    <th>URL</th>
+                    <th>추가</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($menuLinkSuggestions as $suggestion) { ?>
+                    <tr>
+                        <td><?php echo toy_e((string) $suggestion['module_key']); ?></td>
+                        <td><?php echo toy_e((string) $suggestion['label']); ?></td>
+                        <td><?php echo toy_e((string) $suggestion['url']); ?></td>
+                        <td>
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/site-menus')); ?>">
+                                <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="save_item">
+                                <input type="hidden" name="item_id" value="0">
+                                <input type="hidden" name="label" value="<?php echo toy_e((string) $suggestion['label']); ?>">
+                                <input type="hidden" name="url" value="<?php echo toy_e((string) $suggestion['url']); ?>">
+                                <input type="hidden" name="target" value="self">
+                                <input type="hidden" name="status" value="enabled">
+                                <input type="hidden" name="sort_order" value="100">
+                                <select name="menu_id">
+                                    <?php foreach ($menus as $menu) { ?>
+                                        <option value="<?php echo toy_e((string) $menu['id']); ?>">
+                                            <?php echo toy_e((string) $menu['label']); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                                <button type="submit">항목 추가</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    <?php } ?>
+</section>
+
+<section>
     <h2>메뉴 목록</h2>
     <?php if ($menus === []) { ?>
         <p>등록된 메뉴가 없습니다.</p>

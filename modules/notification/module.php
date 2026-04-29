@@ -8,4 +8,11 @@ return [
     'requires' => [
         'modules' => ['member', 'admin'],
     ],
+    'contracts' => [
+        'provides' => [
+            'admin-menu.php',
+            'menu-links.php',
+            'privacy-export.php',
+        ],
+    ],
 ];

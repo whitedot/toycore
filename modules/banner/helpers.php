@@ -55,22 +55,29 @@ function toy_banner_admin_datetime_value(mixed $value): string
     return $date instanceof DateTimeImmutable ? $date->format('Y-m-d\TH:i') : '';
 }
 
-function toy_banner_available_targets(PDO $pdo): array
+function toy_banner_builtin_targets(): array
 {
-    $targets = [
+    return [
         [
             'module_key' => 'core',
             'point_key' => 'site.home',
             'slot_key' => 'before_content',
-            'label' => '홈 / 본문 위',
+            'label' => 'core / 홈 / 본문 위',
+            'source' => 'core',
         ],
         [
             'module_key' => 'core',
             'point_key' => 'site.home',
             'slot_key' => 'after_content',
-            'label' => '홈 / 본문 아래',
+            'label' => 'core / 홈 / 본문 아래',
+            'source' => 'core',
         ],
     ];
+}
+
+function toy_banner_available_targets(PDO $pdo): array
+{
+    $targets = toy_banner_builtin_targets();
 
     foreach (toy_enabled_module_contract_files($pdo, 'extension-points.php', []) as $moduleKey => $file) {
         $points = include $file;
@@ -105,6 +112,7 @@ function toy_banner_available_targets(PDO $pdo): array
                     'point_key' => $pointKey,
                     'slot_key' => $slotKey,
                     'label' => $moduleKey . ' / ' . $pointLabel . ' / ' . (string) ($slot['label'] ?? $slotKey),
+                    'source' => 'extension-points.php',
                 ];
             }
         }

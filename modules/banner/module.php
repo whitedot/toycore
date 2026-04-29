@@ -8,4 +8,12 @@ return [
     'requires' => [
         'modules' => ['member', 'admin'],
     ],
+    'contracts' => [
+        'provides' => [
+            'output-slots.php',
+        ],
+        'consumes' => [
+            'extension-points.php',
+        ],
+    ],
 ];

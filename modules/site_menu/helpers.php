@@ -24,6 +24,38 @@ function toy_site_menu_clean_url(string $value): string
     return '';
 }
 
+function toy_site_menu_link_suggestions(PDO $pdo): array
+{
+    $suggestions = [];
+
+    foreach (toy_enabled_module_contract_files($pdo, 'menu-links.php', ['site_menu']) as $moduleKey => $file) {
+        $links = include $file;
+        if (!is_array($links)) {
+            continue;
+        }
+
+        foreach ($links as $link) {
+            if (!is_array($link)) {
+                continue;
+            }
+
+            $label = toy_site_menu_clean_label((string) ($link['label'] ?? ''));
+            $url = toy_site_menu_clean_url((string) ($link['url'] ?? ''));
+            if ($label === '' || $url === '') {
+                continue;
+            }
+
+            $suggestions[] = [
+                'module_key' => $moduleKey,
+                'label' => $label,
+                'url' => $url,
+            ];
+        }
+    }
+
+    return $suggestions;
+}
+
 function toy_site_menu_render(PDO $pdo, string $menuKey): string
 {
     $menuKey = toy_site_menu_clean_key($menuKey);
