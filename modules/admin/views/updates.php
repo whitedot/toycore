@@ -59,7 +59,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td><?php echo toy_e((string) $update['label']); ?></td>
                         <td><?php echo toy_e((string) $update['version']); ?></td>
-                        <td><?php echo toy_e((string) ($update['statements'] ?? 0)); ?></td>
+                        <td>
+                            <?php echo ((int) ($update['statements'] ?? 0) > 0)
+                                ? toy_e((string) $update['statements'])
+                                : '기록만'; ?>
+                        </td>
                         <td><?php echo toy_e(str_replace(TOY_ROOT . '/', '', (string) $update['path'])); ?></td>
                         <td><code><?php echo toy_e(substr((string) ($update['checksum'] ?? ''), 0, 16)); ?></code></td>
                     </tr>
