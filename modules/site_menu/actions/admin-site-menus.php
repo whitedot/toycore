@@ -297,6 +297,8 @@ foreach ($stmt->fetchAll() as $row) {
 }
 
 $items = [];
+$menuItemUrls = [];
+$menuNextSortOrders = [];
 $stmt = $pdo->query(
     'SELECT i.id, i.menu_id, m.menu_key, i.label, i.url, i.target, i.status, i.sort_order, i.updated_at
      FROM toy_site_menu_items i
@@ -305,6 +307,18 @@ $stmt = $pdo->query(
 );
 foreach ($stmt->fetchAll() as $row) {
     $items[] = $row;
+    $rowMenuId = (int) $row['menu_id'];
+    $rowUrl = (string) $row['url'];
+    $rowSortOrder = (int) $row['sort_order'];
+    $menuItemUrls[$rowMenuId][$rowUrl] = true;
+    $menuNextSortOrders[$rowMenuId] = max((int) ($menuNextSortOrders[$rowMenuId] ?? 0), $rowSortOrder + 10);
+}
+
+foreach ($menus as $menu) {
+    $rowMenuId = (int) $menu['id'];
+    if (!isset($menuNextSortOrders[$rowMenuId])) {
+        $menuNextSortOrders[$rowMenuId] = 100;
+    }
 }
 
 include TOY_ROOT . '/modules/site_menu/views/admin-site-menus.php';

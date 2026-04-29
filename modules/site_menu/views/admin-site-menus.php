@@ -144,24 +144,29 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $suggestion['label']); ?></td>
                         <td><?php echo toy_e((string) $suggestion['url']); ?></td>
                         <td>
-                            <form method="post" action="<?php echo toy_e(toy_url('/admin/site-menus')); ?>">
-                                <?php echo toy_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="save_item">
-                                <input type="hidden" name="item_id" value="0">
-                                <input type="hidden" name="label" value="<?php echo toy_e((string) $suggestion['label']); ?>">
-                                <input type="hidden" name="url" value="<?php echo toy_e((string) $suggestion['url']); ?>">
-                                <input type="hidden" name="target" value="self">
-                                <input type="hidden" name="status" value="enabled">
-                                <input type="hidden" name="sort_order" value="100">
-                                <select name="menu_id">
-                                    <?php foreach ($menus as $menu) { ?>
-                                        <option value="<?php echo toy_e((string) $menu['id']); ?>">
-                                            <?php echo toy_e((string) $menu['label']); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                                <button type="submit">항목 추가</button>
-                            </form>
+                            <?php foreach ($menus as $menu) { ?>
+                                <?php
+                                $suggestionMenuId = (int) $menu['id'];
+                                $suggestionUrl = (string) $suggestion['url'];
+                                $alreadyAdded = isset($menuItemUrls[$suggestionMenuId][$suggestionUrl]);
+                                ?>
+                                <?php if ($alreadyAdded) { ?>
+                                    <span><?php echo toy_e((string) $menu['label']); ?> 추가됨</span><br>
+                                <?php } else { ?>
+                                    <form method="post" action="<?php echo toy_e(toy_url('/admin/site-menus')); ?>" style="display:inline">
+                                        <?php echo toy_csrf_field(); ?>
+                                        <input type="hidden" name="intent" value="save_item">
+                                        <input type="hidden" name="item_id" value="0">
+                                        <input type="hidden" name="menu_id" value="<?php echo toy_e((string) $suggestionMenuId); ?>">
+                                        <input type="hidden" name="label" value="<?php echo toy_e((string) $suggestion['label']); ?>">
+                                        <input type="hidden" name="url" value="<?php echo toy_e($suggestionUrl); ?>">
+                                        <input type="hidden" name="target" value="self">
+                                        <input type="hidden" name="status" value="enabled">
+                                        <input type="hidden" name="sort_order" value="<?php echo toy_e((string) ($menuNextSortOrders[$suggestionMenuId] ?? 100)); ?>">
+                                        <button type="submit"><?php echo toy_e((string) $menu['label']); ?>에 추가</button>
+                                    </form><br>
+                                <?php } ?>
+                            <?php } ?>
                         </td>
                     </tr>
                 <?php } ?>
