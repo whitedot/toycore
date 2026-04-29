@@ -25,6 +25,7 @@ copy_base() {
         README.md \
         index.php \
         assets \
+        config/.gitignore \
         core \
         database \
         lang \
