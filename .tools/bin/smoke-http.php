@@ -71,9 +71,19 @@ $checks = [
         'must_not_expose' => ['# 배포 보호 기준'],
     ],
     [
+        'label' => 'examples protection',
+        'path' => '/examples/sample_module/module.php',
+        'must_not_expose' => ['Minimal sample module for Toycore extension contracts.'],
+    ],
+    [
         'label' => 'agent instructions protection',
         'path' => '/AGENTS.md',
         'must_not_expose' => ['# AGENTS.md'],
+    ],
+    [
+        'label' => 'readme protection',
+        'path' => '/README.md',
+        'must_not_expose' => ['# Toycore'],
     ],
     [
         'label' => 'tooling protection',
