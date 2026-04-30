@@ -47,7 +47,10 @@ router 없이 프로젝트 루트를 문서 루트로 내장 서버를 실행하
 /assets/toycore.css 정적 파일 응답 확인
 /database/core/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/member/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
+/core/helpers.php 직접 접근에서 PHP 코드가 노출되지 않는지 확인
 /docs/deployment-protection.md 직접 접근에서 문서 내용이 노출되지 않는지 확인
+/AGENTS.md 직접 접근에서 프로젝트 지침이 노출되지 않는지 확인
+/.tools/bin/check.php 직접 접근에서 도구 코드가 노출되지 않는지 확인
 /.git/HEAD 직접 접근에서 저장소 메타데이터가 노출되지 않는지 확인
 ```
 

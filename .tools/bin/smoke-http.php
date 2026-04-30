@@ -43,22 +43,37 @@ $checks = [
     [
         'label' => 'database SQL protection',
         'path' => '/database/core/install.sql',
-        'must_not_match' => ['CREATE TABLE IF NOT EXISTS toy_site_settings'],
+        'must_not_expose' => ['CREATE TABLE IF NOT EXISTS toy_site_settings'],
     ],
     [
         'label' => 'module SQL protection',
         'path' => '/modules/member/install.sql',
-        'must_not_match' => ['CREATE TABLE IF NOT EXISTS toy_member_accounts'],
+        'must_not_expose' => ['CREATE TABLE IF NOT EXISTS toy_member_accounts'],
+    ],
+    [
+        'label' => 'core PHP protection',
+        'path' => '/core/helpers.php',
+        'must_not_expose' => ['require_once TOY_ROOT'],
     ],
     [
         'label' => 'docs protection',
         'path' => '/docs/deployment-protection.md',
-        'must_not_match' => ['# 배포 보호 기준'],
+        'must_not_expose' => ['# 배포 보호 기준'],
+    ],
+    [
+        'label' => 'agent instructions protection',
+        'path' => '/AGENTS.md',
+        'must_not_expose' => ['# AGENTS.md'],
+    ],
+    [
+        'label' => 'tooling protection',
+        'path' => '/.tools/bin/check.php',
+        'must_not_expose' => ['toy_check_run'],
     ],
     [
         'label' => 'repository metadata protection',
         'path' => '/.git/HEAD',
-        'must_not_match' => ['ref: refs/'],
+        'must_not_expose' => ['ref: refs/'],
     ],
 ];
 
@@ -95,31 +110,38 @@ foreach ($checks as $check) {
     $status = (int) $response['status'];
     $body = (string) $response['body'];
     $label = (string) $check['label'];
+    $checkErrors = [];
 
     if (isset($check['allowed_statuses']) && !in_array($status, $check['allowed_statuses'], true)) {
-        $errors[] = $label . ' returned unexpected status ' . $status . ' for ' . $url;
-        continue;
+        $checkErrors[] = $label . ' returned unexpected status ' . $status . ' for ' . $url;
     }
 
     foreach ($check['must_contain'] ?? [] as $needle) {
         if (!str_contains($body, (string) $needle)) {
-            $errors[] = $label . ' did not contain expected text "' . (string) $needle . '" for ' . $url;
+            $checkErrors[] = $label . ' did not contain expected text "' . (string) $needle . '" for ' . $url;
         }
     }
 
     foreach ($check['must_not_contain'] ?? [] as $needle) {
         if (str_contains($body, (string) $needle)) {
-            $errors[] = $label . ' contained forbidden text "' . (string) $needle . '" for ' . $url;
+            $checkErrors[] = $label . ' contained forbidden text "' . (string) $needle . '" for ' . $url;
         }
     }
 
-    foreach ($check['must_not_match'] ?? [] as $pattern) {
+    foreach ($check['must_not_expose'] ?? [] as $pattern) {
         if (preg_match('/' . preg_quote((string) $pattern, '/') . '/', $body) === 1) {
-            $errors[] = $label . ' exposed internal file content for ' . $url;
+            $checkErrors[] = $label . ' exposed internal file content for ' . $url;
         }
     }
 
-    echo '[ok] ' . $label . ' ' . $status . "\n";
+    if ($checkErrors === []) {
+        echo '[ok] ' . $label . ' ' . $status . "\n";
+    } else {
+        echo '[fail] ' . $label . ' ' . $status . "\n";
+        foreach ($checkErrors as $error) {
+            $errors[] = $error;
+        }
+    }
 }
 
 if ($errors !== []) {

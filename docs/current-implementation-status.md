@@ -283,7 +283,7 @@ DB 세션 기록/폐기 검증
 공통 CSS 정적 파일 응답 검증
 SEO meta tag 출력 검증
 번역 fallback 검증
-내부 파일 직접 접근 차단 HTTP 스모크 검증
+내부 SQL/PHP/문서/도구/저장소 파일 직접 접근 차단 HTTP 스모크 검증
 ```
 
 최근 로컬 실행에서는 전체 PHP 파일 `php -l`, `git diff --check`, SQL 파일 비어 있음 여부 검증, 모듈 기본 계약 파일 구성 검증, 관리자 메뉴 path와 모듈 GET route 일치 검증까지 통과했다. 현재 Windows 환경에 WSL이 없어 `bash ./.tools/bin/check` 자체 실행은 수행하지 못했다.
