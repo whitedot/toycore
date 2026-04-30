@@ -406,6 +406,21 @@ function toy_admin_module_upload_version_errors(PDO $pdo, string $moduleKey, arr
     ];
 }
 
+function toy_admin_module_replace_errors(string $moduleKey, bool $replaceConfirmed): array
+{
+    if (!toy_is_safe_module_key($moduleKey)) {
+        return ['모듈 키가 올바르지 않습니다.'];
+    }
+
+    if (!is_dir(TOY_ROOT . '/modules/' . $moduleKey) || $replaceConfirmed) {
+        return [];
+    }
+
+    return [
+        '기존 모듈 파일을 교체하려면 백업과 파일 교체 확인을 명시해야 합니다.',
+    ];
+}
+
 function toy_admin_extract_module_upload(array $file, string $requestedModuleKey): array
 {
     if (!class_exists('ZipArchive')) {

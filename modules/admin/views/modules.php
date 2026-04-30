@@ -127,6 +127,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </p>
             <p>
                 <label>
+                    <input type="checkbox" name="confirm_file_replace" value="1">
+                    기존 모듈 파일 백업과 교체 확인
+                </label>
+            </p>
+            <p>
+                <label>
                     <input type="checkbox" name="allow_downgrade" value="1">
                     낮은 버전 덮어쓰기 허용
                 </label>
