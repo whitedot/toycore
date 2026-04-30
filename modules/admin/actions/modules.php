@@ -143,6 +143,11 @@ if (toy_request_method() === 'POST') {
             $moduleKey = (string) $source['module_key'];
             $metadata = is_array($source['metadata']) ? $source['metadata'] : [];
             $moduleVersion = (string) ($metadata['version'] ?? '');
+            $allowDowngrade = ($_POST['allow_downgrade'] ?? '') === '1';
+            foreach (toy_admin_module_upload_version_errors($pdo, $moduleKey, $metadata, $allowDowngrade) as $versionError) {
+                throw new RuntimeException($versionError);
+            }
+
             $result = toy_admin_install_module_source_files($moduleKey, (string) $source['source_dir']);
 
             toy_audit_log($pdo, [
@@ -155,6 +160,7 @@ if (toy_request_method() === 'POST') {
                 'message' => 'Module source zip uploaded.',
                 'metadata' => [
                     'version' => $moduleVersion,
+                    'allow_downgrade' => $allowDowngrade,
                     'backup_dir' => str_replace(TOY_ROOT . '/', '', (string) ($result['backup_dir'] ?? '')),
                 ],
             ]);

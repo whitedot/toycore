@@ -150,7 +150,7 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 
 `banner`, `popup_layer`, `site_menu`, `notification`, `seo`, `point`, `deposit`, `reward`는 별도 모듈 리포지토리에서 관리합니다. toycore.git 본체에는 선택 모듈 복사본을 두지 않고, `standard`와 `ops` 배포 패키지를 만들 때 외부 모듈 리포지토리에서 조립합니다. 자세한 기준과 리포지토리 목록은 [모듈 별도 리포지토리 관리 방안](docs/module-repository-strategy.md)을 따릅니다.
 
-설치 후에는 owner가 `/admin/modules`에서 모듈 zip을 업로드할 수 있습니다. 업로드 zip은 `{module_key}/module.php` 구조를 권장하며, 기존 모듈 파일을 교체할 때는 이전 디렉터리를 `storage/module-backups`에 보관합니다. 파일 교체와 DB 업데이트는 분리되어 있으므로, 기존 모듈을 교체한 뒤에는 `/admin/updates`에서 미적용 SQL을 확인합니다.
+설치 후에는 owner가 `/admin/modules`에서 모듈 zip을 업로드할 수 있습니다. 업로드 zip은 `{module_key}/module.php` 구조를 권장하며, `module/module.php` 구조도 module key를 입력하면 사용할 수 있습니다. 기존 모듈 파일을 교체할 때는 이전 디렉터리를 `storage/module-backups`에 보관합니다. 설치 버전보다 낮은 코드 버전은 기본 차단되며, 파일 교체와 DB 업데이트는 분리되어 있으므로 기존 모듈을 교체한 뒤에는 `/admin/updates`에서 미적용 SQL을 확인합니다.
 
 ## Extension Points
 

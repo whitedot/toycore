@@ -166,6 +166,17 @@ function toy_admin_zip_entry_is_safe(string $name): bool
     return true;
 }
 
+function toy_admin_path_is_inside(string $path, string $root): bool
+{
+    $realPath = realpath($path);
+    $realRoot = realpath($root);
+    if ($realPath === false || $realRoot === false) {
+        return false;
+    }
+
+    return $realPath === $realRoot || strpos($realPath, $realRoot . DIRECTORY_SEPARATOR) === 0;
+}
+
 function toy_admin_infer_module_key_from_filename(string $filename): string
 {
     $name = strtolower(pathinfo($filename, PATHINFO_FILENAME));
@@ -228,6 +239,13 @@ function toy_admin_find_module_source(string $extractDir, string $requestedModul
         sort($directories, SORT_STRING);
         foreach ($directories as $directory) {
             $basename = basename($directory);
+            if (is_dir($directory . '/module') && $inferredModuleKey !== '') {
+                $candidates[] = [
+                    'module_key' => $inferredModuleKey,
+                    'source_dir' => $directory . '/module',
+                ];
+            }
+
             if ($basename === 'module') {
                 if ($inferredModuleKey !== '') {
                     $candidates[] = [
@@ -292,6 +310,32 @@ function toy_admin_validate_module_source(string $moduleKey, string $sourceDir, 
     return $errors;
 }
 
+function toy_admin_module_upload_version_errors(PDO $pdo, string $moduleKey, array $metadata, bool $allowDowngrade): array
+{
+    $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
+    if ($codeVersion === '' || preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $codeVersion) !== 1) {
+        return [];
+    }
+
+    $module = toy_module_registry_entry($pdo, $moduleKey);
+    if (!is_array($module)) {
+        return [];
+    }
+
+    $installedVersion = (string) ($module['version'] ?? '');
+    if ($installedVersion === '' || preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $installedVersion) !== 1) {
+        return [];
+    }
+
+    if (strcmp($codeVersion, $installedVersion) >= 0 || $allowDowngrade) {
+        return [];
+    }
+
+    return [
+        '업로드한 코드 버전이 현재 설치 버전보다 낮습니다. 낮은 버전 덮어쓰기를 명시적으로 허용해야 합니다.',
+    ];
+}
+
 function toy_admin_extract_module_upload(array $file, string $requestedModuleKey): array
 {
     if (!class_exists('ZipArchive')) {
@@ -352,6 +396,10 @@ function toy_admin_extract_module_upload(array $file, string $requestedModuleKey
 
     try {
         $source = toy_admin_find_module_source($extractDir, $requestedModuleKey, $filename);
+        if (!toy_admin_path_is_inside((string) $source['source_dir'], $extractDir)) {
+            throw new RuntimeException('zip 안의 모듈 경로가 올바르지 않습니다.');
+        }
+
         $errors = toy_admin_validate_module_source(
             (string) $source['module_key'],
             (string) $source['source_dir'],

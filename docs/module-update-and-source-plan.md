@@ -83,7 +83,8 @@ module.zip
 - `module.php.version`이 `YYYY.MM.NNN` 형식인지 확인
 - `install.sql` 존재 확인
 - `module_key`가 안전한 형식인지 확인
-- 기존 설치 모듈이면 현재 코드 버전보다 낮은 버전으로 덮어쓰지 않도록 경고
+- 기존 설치 모듈이면 현재 코드 버전보다 낮은 버전으로 기본 덮어쓰기를 차단
+- 낮은 버전 덮어쓰기는 owner가 명시적으로 허용한 경우에만 진행
 
 ### 2순위: 공식 registry 또는 release zip 다운로드
 
@@ -213,6 +214,8 @@ Toycore 검증 버전
 - `/admin/modules`에서 owner가 모듈 zip을 업로드해 `modules/{module_key}` 파일을 반영할 수 있다.
 - 기존 모듈 파일을 교체할 때는 `storage/module-backups`에 이전 디렉터리를 보관한다.
 - 코드 버전이 설치 버전보다 높고 미적용 SQL이 없으면 파일 전용 업데이트 버전을 관리자 화면에서 반영할 수 있다.
+- 업로드 zip은 `{module_key}/module.php`, `module/module.php`, 한 단계 아래 `module/` 디렉터리를 둔 리포지토리 zip 구조를 인식한다.
+- 설치 버전보다 낮은 코드 버전은 기본적으로 차단하고, owner의 명시적 허용이 있을 때만 덮어쓴다.
 
 다음 작업:
 
