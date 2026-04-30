@@ -80,12 +80,20 @@ function toy_admin_retention_target_definitions(bool $hasNotificationTables, boo
             'count_params' => [
                 'cutoff' => 'auth_logs',
             ],
+            'delete_sql' => 'DELETE FROM toy_member_auth_logs WHERE created_at < :cutoff',
+            'delete_params' => [
+                'cutoff' => 'auth_logs',
+            ],
         ],
         'audit_logs' => [
             'enabled' => true,
             'cutoff_key' => 'audit_logs',
             'count_sql' => 'SELECT COUNT(*) AS count_value FROM toy_audit_logs WHERE created_at < :cutoff',
             'count_params' => [
+                'cutoff' => 'audit_logs',
+            ],
+            'delete_sql' => 'DELETE FROM toy_audit_logs WHERE created_at < :cutoff',
+            'delete_params' => [
                 'cutoff' => 'audit_logs',
             ],
         ],
@@ -96,12 +104,20 @@ function toy_admin_retention_target_definitions(bool $hasNotificationTables, boo
             'count_params' => [
                 'cutoff' => 'used_tokens',
             ],
+            'delete_sql' => 'DELETE FROM toy_member_password_resets WHERE used_at IS NOT NULL AND used_at < :cutoff',
+            'delete_params' => [
+                'cutoff' => 'used_tokens',
+            ],
         ],
         'email_verifications' => [
             'enabled' => true,
             'cutoff_key' => 'used_tokens',
             'count_sql' => 'SELECT COUNT(*) AS count_value FROM toy_member_email_verifications WHERE verified_at IS NOT NULL AND verified_at < :cutoff',
             'count_params' => [
+                'cutoff' => 'used_tokens',
+            ],
+            'delete_sql' => 'DELETE FROM toy_member_email_verifications WHERE verified_at IS NOT NULL AND verified_at < :cutoff',
+            'delete_params' => [
                 'cutoff' => 'used_tokens',
             ],
         ],
@@ -116,12 +132,23 @@ function toy_admin_retention_target_definitions(bool $hasNotificationTables, boo
                 'revoked_cutoff' => 'sessions',
                 'expired_cutoff' => 'sessions',
             ],
+            'delete_sql' => 'DELETE FROM toy_member_sessions
+             WHERE (revoked_at IS NOT NULL AND revoked_at < :revoked_cutoff)
+                OR expires_at < :expired_cutoff',
+            'delete_params' => [
+                'revoked_cutoff' => 'sessions',
+                'expired_cutoff' => 'sessions',
+            ],
         ],
         'notifications' => [
             'enabled' => $hasNotificationTables,
             'cutoff_key' => 'notifications',
             'count_sql' => 'SELECT COUNT(*) AS count_value FROM toy_notifications WHERE created_at < :cutoff',
             'count_params' => [
+                'cutoff' => 'notifications',
+            ],
+            'delete_sql' => 'DELETE FROM toy_notifications WHERE created_at < :cutoff',
+            'delete_params' => [
                 'cutoff' => 'notifications',
             ],
         ],
@@ -135,6 +162,13 @@ function toy_admin_retention_target_definitions(bool $hasNotificationTables, boo
             'count_params' => [
                 'cutoff' => 'notifications',
             ],
+            'delete_sql' => 'DELETE d
+             FROM toy_notification_deliveries d
+             INNER JOIN toy_notifications n ON n.id = d.notification_id
+             WHERE n.created_at < :cutoff',
+            'delete_params' => [
+                'cutoff' => 'notifications',
+            ],
         ],
         'notification_reads' => [
             'enabled' => $hasNotificationTables,
@@ -146,12 +180,35 @@ function toy_admin_retention_target_definitions(bool $hasNotificationTables, boo
             'count_params' => [
                 'cutoff' => 'notifications',
             ],
+            'delete_sql' => 'DELETE r
+             FROM toy_notification_reads r
+             INNER JOIN toy_notifications n ON n.id = r.notification_id
+             WHERE n.created_at < :cutoff',
+            'delete_params' => [
+                'cutoff' => 'notifications',
+            ],
         ],
         'module_backups' => [
             'enabled' => true,
             'cutoff_key' => 'module_backups',
             'count_callback' => 'toy_admin_retention_module_backup_count',
+            'delete_callback' => 'toy_admin_retention_delete_module_backups',
         ],
+    ];
+}
+
+function toy_admin_retention_cleanup_target_keys(): array
+{
+    return [
+        'auth_logs',
+        'audit_logs',
+        'password_resets',
+        'email_verifications',
+        'sessions',
+        'notification_deliveries',
+        'notification_reads',
+        'notifications',
+        'module_backups',
     ];
 }
 
@@ -217,6 +274,20 @@ function toy_admin_retention_delete_count(PDO $pdo, string $sql, array $params):
     return $stmt->rowCount();
 }
 
+function toy_admin_retention_delete_target(PDO $pdo, array $target, array $cutoffs): int
+{
+    $deleteCallback = (string) ($target['delete_callback'] ?? '');
+    if ($deleteCallback !== '') {
+        return $deleteCallback($cutoffs[$target['cutoff_key']]);
+    }
+
+    return toy_admin_retention_delete_count(
+        $pdo,
+        (string) $target['delete_sql'],
+        toy_admin_retention_query_params($target['delete_params'], $cutoffs)
+    );
+}
+
 function toy_admin_retention_preview_cutoffs(array $values): array
 {
     return [
@@ -259,68 +330,17 @@ function toy_admin_retention_preview_counts(PDO $pdo, array $previewCutoffs, boo
 function toy_admin_retention_execute_cleanup(PDO $pdo, array $values, bool $hasNotificationTables): array
 {
     $cutoffs = toy_admin_retention_preview_cutoffs($values);
+    $targets = toy_admin_retention_target_definitions($hasNotificationTables, toy_member_sessions_table_exists($pdo));
+    $deletedCounts = [];
+    foreach (toy_admin_retention_cleanup_target_keys() as $key) {
+        $target = $targets[$key];
+        if (!$target['enabled']) {
+            continue;
+        }
 
-    $deletedCounts = [
-        'auth_logs' => toy_admin_retention_delete_count(
-            $pdo,
-            'DELETE FROM toy_member_auth_logs WHERE created_at < :cutoff',
-            ['cutoff' => $cutoffs['auth_logs']]
-        ),
-        'audit_logs' => toy_admin_retention_delete_count(
-            $pdo,
-            'DELETE FROM toy_audit_logs WHERE created_at < :cutoff',
-            ['cutoff' => $cutoffs['audit_logs']]
-        ),
-        'password_resets' => toy_admin_retention_delete_count(
-            $pdo,
-            'DELETE FROM toy_member_password_resets WHERE used_at IS NOT NULL AND used_at < :cutoff',
-            ['cutoff' => $cutoffs['used_tokens']]
-        ),
-        'email_verifications' => toy_admin_retention_delete_count(
-            $pdo,
-            'DELETE FROM toy_member_email_verifications WHERE verified_at IS NOT NULL AND verified_at < :cutoff',
-            ['cutoff' => $cutoffs['used_tokens']]
-        ),
-    ];
-
-    if (toy_member_sessions_table_exists($pdo)) {
-        $deletedCounts['sessions'] = toy_admin_retention_delete_count(
-            $pdo,
-            'DELETE FROM toy_member_sessions
-             WHERE (revoked_at IS NOT NULL AND revoked_at < :revoked_cutoff)
-                OR expires_at < :expired_cutoff',
-            [
-                'revoked_cutoff' => $cutoffs['sessions'],
-                'expired_cutoff' => $cutoffs['sessions'],
-            ]
-        );
+        $deletedCounts[$key] = toy_admin_retention_delete_target($pdo, $target, $cutoffs);
     }
 
-    if ($hasNotificationTables) {
-        $deletedCounts['notification_deliveries'] = toy_admin_retention_delete_count(
-            $pdo,
-            'DELETE d
-             FROM toy_notification_deliveries d
-             INNER JOIN toy_notifications n ON n.id = d.notification_id
-             WHERE n.created_at < :cutoff',
-            ['cutoff' => $cutoffs['notifications']]
-        );
-        $deletedCounts['notification_reads'] = toy_admin_retention_delete_count(
-            $pdo,
-            'DELETE r
-             FROM toy_notification_reads r
-             INNER JOIN toy_notifications n ON n.id = r.notification_id
-             WHERE n.created_at < :cutoff',
-            ['cutoff' => $cutoffs['notifications']]
-        );
-        $deletedCounts['notifications'] = toy_admin_retention_delete_count(
-            $pdo,
-            'DELETE FROM toy_notifications WHERE created_at < :cutoff',
-            ['cutoff' => $cutoffs['notifications']]
-        );
-    }
-
-    $deletedCounts['module_backups'] = toy_admin_retention_delete_module_backups($cutoffs['module_backups']);
     return $deletedCounts;
 }
 
