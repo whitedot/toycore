@@ -110,6 +110,13 @@ php .tools/bin/check.php
 php .tools/bin/check-module-index.php
 ```
 
+로컬 서버나 스테이징 서버가 떠 있으면 최소 HTTP 스모크 점검을 실행할 수 있습니다.
+
+```sh
+php -S 127.0.0.1:8080 -t .tools/public .tools/bin/dev-router.php
+php .tools/bin/smoke-http.php http://127.0.0.1:8080
+```
+
 배포 패키지는 다음 명령으로 만들 수 있습니다.
 
 ```sh

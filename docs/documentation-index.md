@@ -46,6 +46,7 @@
 | 문서 | 종류 | 용도 |
 | --- | --- | --- |
 | `local-development.md` | 로컬 개발 | PHP 내장 서버, 기본 점검 스크립트, 문법 검사 명령 |
+| `smoke-test.md` | 스모크 테스트 | 배포 전 최소 HTTP 점검과 수동 검증 시나리오 |
 | `release-process.md` | 릴리스 절차 | 배포 zip 생성, 모듈 checksum, registry 갱신 기준 |
 | `deployment-protection.md` | 배포 보호 | 내부 디렉터리 직접 접근 차단 기준 |
 | `deployment-examples.md` | 배포 예시 | PHP 내장 서버, Apache, Nginx, 공유호스팅 예시 |

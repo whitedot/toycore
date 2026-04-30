@@ -15,10 +15,12 @@
 ## 내장 서버
 
 ```sh
-./.tools/bin/php -S 127.0.0.1:8080 index.php
+./.tools/bin/php -S 127.0.0.1:8080 -t .tools/public .tools/bin/dev-router.php
 ```
 
 브라우저에서 `http://127.0.0.1:8080/`로 접속한다.
+
+개발용 router는 빈 문서 루트인 `.tools/public`에서 실행한다. `/assets/`와 모듈 assets만 router가 직접 읽어 응답하고, `config/`, `database/`, `modules/`, `storage/` 같은 내부 경로 요청은 `index.php` 요청 흐름으로 보낸다. PHP 내장 서버를 프로젝트 루트 문서 루트로 실행하면 기존 파일을 직접 응답할 수 있으므로 배포 보호 검증에 사용하지 않는다.
 
 Docker 래퍼로 실행하는 PHP는 컨테이너 안에서 동작한다. 호스트에서 실행 중인 MySQL에 연결할 때는 설치 화면의 DB host에 `host.docker.internal`을 입력한다.
 
@@ -51,3 +53,13 @@ php .tools/bin/check.php
 ```sh
 php .tools/bin/check-module-index.php
 ```
+
+## HTTP 스모크 점검
+
+내장 서버를 실행한 뒤 최소 HTTP 점검을 실행할 수 있다.
+
+```sh
+php .tools/bin/smoke-http.php http://127.0.0.1:8080
+```
+
+이 점검은 홈, 로그인, 관리자 진입, 관리자 업데이트 진입, 공통 CSS 응답과 내부 파일 직접 접근 차단 여부를 확인한다. 자세한 기준은 [스모크 테스트 기준](smoke-test.md)을 따른다.
