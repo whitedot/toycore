@@ -58,6 +58,51 @@ function toy_distribution_module_version(string $moduleDir): string
     return (string) ($metadata['version'] ?? '');
 }
 
+function toy_distribution_install_array_block(string $content, string $variableName): string
+{
+    $start = strpos($content, '$' . $variableName . ' = [');
+    if ($start === false) {
+        toy_distribution_error('Install array is missing: ' . $variableName);
+        return '';
+    }
+
+    $end = strpos($content, "];", $start);
+    if ($end === false) {
+        toy_distribution_error('Install array is not closed: ' . $variableName);
+        return '';
+    }
+
+    return substr($content, $start, $end - $start);
+}
+
+function toy_distribution_install_optional_modules(string $root): array
+{
+    $installAction = $root . '/core/actions/install.php';
+    $content = file_get_contents($installAction);
+    if (!is_string($content)) {
+        toy_distribution_error('Install action cannot be read: ' . $installAction);
+        return [];
+    }
+
+    $block = toy_distribution_install_array_block($content, 'optionalModules');
+    preg_match_all("/'([a-z0-9_]+)'\\s*=>\\s*\\[/", $block, $matches);
+    return $matches[1] ?? [];
+}
+
+function toy_distribution_install_default_optional_modules(string $root): array
+{
+    $installAction = $root . '/core/actions/install.php';
+    $content = file_get_contents($installAction);
+    if (!is_string($content)) {
+        toy_distribution_error('Install action cannot be read: ' . $installAction);
+        return [];
+    }
+
+    $block = toy_distribution_install_array_block($content, 'selectedOptionalModuleKeys');
+    preg_match_all("/'([a-z0-9_]+)'/", $block, $matches);
+    return $matches[1] ?? [];
+}
+
 function toy_distribution_validate_common_files(string $packageRoot): void
 {
     foreach ([
@@ -130,12 +175,47 @@ function toy_distribution_validate_manifest(string $packageName, string $package
             toy_distribution_error('Distribution manifest module version mismatch: ' . $moduleDir);
         }
     }
+
+    $moduleRoot = $packageRoot . '/modules';
+    $actualModuleDirs = [];
+    foreach (new DirectoryIterator($moduleRoot) as $entry) {
+        if ($entry->isDot() || !$entry->isDir()) {
+            continue;
+        }
+
+        $actualModuleDirs[] = $entry->getFilename();
+    }
+    sort($actualModuleDirs, SORT_STRING);
+
+    $sortedExpectedModules = $expectedModules;
+    sort($sortedExpectedModules, SORT_STRING);
+    if ($actualModuleDirs !== $sortedExpectedModules) {
+        toy_distribution_error('Distribution modules directory list mismatch: ' . $packageRoot);
+    }
+}
+
+function toy_distribution_validate_install_sets(array $packages, array $installOptionalModules, array $installDefaultOptionalModules): void
+{
+    $standardOptionalModules = array_values(array_diff($packages['toycore-standard'], ['member', 'admin']));
+    $opsOptionalModules = array_values(array_diff($packages['toycore-ops'], ['member', 'admin']));
+
+    if ($standardOptionalModules !== $installDefaultOptionalModules) {
+        toy_distribution_error('Standard package modules must match default optional install modules.');
+    }
+
+    if ($opsOptionalModules !== $installOptionalModules) {
+        toy_distribution_error('Ops package modules must match all optional install modules.');
+    }
 }
 
 if (!is_dir($distRoot)) {
     fwrite(STDERR, "dist directory does not exist. Run ./.tools/bin/package-distributions first.\n");
     exit(1);
 }
+
+$installOptionalModules = toy_distribution_install_optional_modules($root);
+$installDefaultOptionalModules = toy_distribution_install_default_optional_modules($root);
+toy_distribution_validate_install_sets($packages, $installOptionalModules, $installDefaultOptionalModules);
 
 foreach ($packages as $packageName => $expectedModules) {
     $packageRoot = $distRoot . '/' . $packageName;

@@ -119,7 +119,7 @@ php .tools/bin/check-module-index.php
 결과는 `dist/toycore-minimal`, `dist/toycore-standard`, `dist/toycore-ops` 디렉터리와, `zip` 명령이 있는 경우 같은 이름의 zip 파일로 생성됩니다.
 각 배포 디렉터리에는 포함 모듈과 버전을 확인할 수 있는 `distribution-manifest.json`이 함께 생성됩니다.
 
-생성된 배포 디렉터리와 manifest는 다음 명령으로 확인할 수 있습니다.
+생성된 배포 디렉터리, manifest, 설치 화면 선택 모듈 구성은 다음 명령으로 확인할 수 있습니다.
 
 ```sh
 php .tools/bin/check-distributions.php 2026.05.001
