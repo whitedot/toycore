@@ -225,6 +225,24 @@ Toycore 검증 버전
 - 코드 버전이 설치 버전보다 높고 미적용 SQL이 없으면 파일 전용 업데이트 버전을 관리자 화면에서 반영할 수 있다.
 - 업로드 zip은 `{module_key}/module.php`, `module/module.php`, 한 단계 아래 `module/` 디렉터리를 둔 리포지토리 zip 구조를 인식한다.
 - 설치 버전보다 낮은 코드 버전은 기본적으로 차단하고, owner의 명시적 허용이 있을 때만 덮어쓴다.
+- `/admin/modules` action은 권한 확인과 view 연결만 담당하고, POST 처리와 목록 데이터 조립은 관리자 helper로 분리되어 있다.
+
+## 9. 실패 후 운영자가 확인할 순서
+
+모듈 파일 반영 또는 설치가 실패하면 다음 순서로 확인한다.
+
+```text
+1. 관리자 화면의 오류 메시지
+2. storage/logs/error.log
+3. toy_audit_logs의 module.source.* 또는 module.installed 이벤트
+4. storage/module-upload 아래 남은 임시 작업 디렉터리 여부
+5. storage/module-backups 아래 백업 디렉터리 여부
+6. toy_modules.status가 failed 또는 installing으로 남았는지 확인
+```
+
+파일 교체 중 실패한 경우 기존 모듈 디렉터리는 가능한 한 백업에서 되돌린다. 백업 디렉터리가 남아 있고 `modules/{module_key}`가 비어 있거나 손상된 상태라면, 백업을 복구한 뒤 같은 zip을 재시도하지 말고 실패 원인을 먼저 확인한다.
+
+모듈 설치 SQL 실행 중 실패한 경우 `toy_modules.status`는 `failed`로 남을 수 있다. 이 상태에서는 재설치를 먼저 실행하고, 운영자가 임의로 `enabled`로 바꾸지 않는다. DDL 일부가 이미 적용되었을 수 있으므로 실패 SQL을 그대로 재실행하기 전에 DB 상태를 확인한다.
 
 다음 작업:
 

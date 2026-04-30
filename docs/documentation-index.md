@@ -13,6 +13,7 @@
 | `module-index.json` | 모듈 registry | 공식 모듈 release zip과 checksum 등록용 JSON |
 | `module-repository-strategy.md` | 배포 전략 | 모듈을 별도 리포지토리에서 관리할 때의 구조와 전환 기준 |
 | `module-update-and-source-plan.md` | 모듈 운영 | 모듈 설치 소스, zip 업로드, repository 가져오기, 업데이트 보완 계획 |
+| `legacy-maintainer-improvement-plan.md` | 운영 개선 | 레거시 운영자 관점의 개선 순서와 완료 기준 |
 | `database-access-policy.md` | DB 접근 규약 | PDO 사용, prepared statement, raw SQL 허용 범위 |
 
 ## 설계 문서
