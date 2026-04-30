@@ -1,0 +1,92 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__, 2);
+$version = (string) ($argv[1] ?? '');
+$releaseBaseUrl = rtrim((string) ($argv[2] ?? ''), '/');
+$zipDirectory = (string) ($argv[3] ?? ($root . '/dist/modules'));
+if ($zipDirectory !== '' && !str_starts_with($zipDirectory, '/') && preg_match('/\A[A-Za-z]:[\/\\\\]/', $zipDirectory) !== 1) {
+    $zipDirectory = $root . '/' . $zipDirectory;
+}
+
+if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $version) !== 1) {
+    fwrite(STDERR, "Usage: ./.tools/bin/update-module-index YYYY.MM.NNN https://release-base-url [zip-dir]\n");
+    exit(1);
+}
+
+if (!filter_var($releaseBaseUrl, FILTER_VALIDATE_URL) || !in_array((string) parse_url($releaseBaseUrl, PHP_URL_SCHEME), ['http', 'https'], true)) {
+    fwrite(STDERR, "release-base-url must be an http(s) URL.\n");
+    exit(1);
+}
+
+if (!is_dir($zipDirectory)) {
+    fwrite(STDERR, "zip directory does not exist: " . $zipDirectory . "\n");
+    exit(1);
+}
+
+$indexPath = $root . '/docs/module-index.json';
+$content = file_get_contents($indexPath);
+if (!is_string($content)) {
+    fwrite(STDERR, "module index cannot be read.\n");
+    exit(1);
+}
+
+$index = json_decode($content, true);
+if (!is_array($index) || !is_array($index['modules'] ?? null)) {
+    fwrite(STDERR, "module index JSON is invalid.\n");
+    exit(1);
+}
+
+$updated = [];
+$missing = [];
+foreach ($index['modules'] as $position => $module) {
+    if (!is_array($module)) {
+        continue;
+    }
+
+    $moduleKey = (string) ($module['module_key'] ?? '');
+    if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+        continue;
+    }
+
+    $zipName = $moduleKey . '-' . $version . '.zip';
+    $zipPath = $zipDirectory . '/' . $zipName;
+    if (!is_file($zipPath)) {
+        $missing[] = $zipName;
+        continue;
+    }
+
+    $checksum = hash_file('sha256', $zipPath);
+    if (!is_string($checksum)) {
+        fwrite(STDERR, "checksum cannot be calculated: " . $zipPath . "\n");
+        exit(1);
+    }
+
+    $index['modules'][$position]['latest_version'] = $version;
+    $index['modules'][$position]['zip_url'] = $releaseBaseUrl . '/' . rawurlencode($zipName);
+    $index['modules'][$position]['checksum'] = $checksum;
+    $updated[] = $moduleKey;
+}
+
+if ($missing !== []) {
+    fwrite(STDERR, "missing module zip files:\n");
+    foreach ($missing as $zipName) {
+        fwrite(STDERR, "- " . $zipName . "\n");
+    }
+    exit(1);
+}
+
+$encoded = json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+if (!is_string($encoded)) {
+    fwrite(STDERR, "module index JSON cannot be encoded.\n");
+    exit(1);
+}
+
+file_put_contents($indexPath, $encoded . "\n", LOCK_EX);
+
+echo "Updated module index for version " . $version . "\n";
+foreach ($updated as $moduleKey) {
+    echo "- " . $moduleKey . "\n";
+}

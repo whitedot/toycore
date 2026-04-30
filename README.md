@@ -154,6 +154,12 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 
 공식 모듈 release zip은 [module-index.json](docs/module-index.json)에 URL과 sha256 checksum을 등록하면 `/admin/modules`에서 다운로드해 같은 검증 흐름으로 반영할 수 있습니다. URL과 checksum이 비어 있는 registry 항목은 안내용으로만 표시됩니다.
 
+릴리스 담당자는 모듈 zip을 모은 뒤 다음 명령으로 registry URL과 checksum을 갱신할 수 있습니다.
+
+```sh
+./.tools/bin/update-module-index 2026.05.001 https://example.com/releases/v2026.05.001 dist/modules
+```
+
 ## Extension Points
 
 Toycore는 전역 hook/event dispatcher를 기본 구조로 두지 않습니다. 모듈 간 영향이 필요하면 각 모듈이 명시적 계약 파일을 제공하고, 소비 모듈이 필요한 시점에 그 파일을 읽습니다.

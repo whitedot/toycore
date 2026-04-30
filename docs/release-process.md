@@ -51,7 +51,13 @@ dist/toycore-ops-2026.05.001.zip
 sha256sum module-name.zip
 ```
 
-`docs/module-index.json`에 다음 값을 갱신한다.
+모듈 zip 파일이 한 디렉터리에 모여 있다면 다음 명령으로 `docs/module-index.json`을 갱신한다.
+
+```sh
+./.tools/bin/update-module-index 2026.05.001 https://github.com/whitedot/toycore-module-releases/releases/download/v2026.05.001 dist/modules
+```
+
+이 명령은 `{module_key}-2026.05.001.zip` 파일을 찾고 sha256 checksum을 계산해 다음 값을 갱신한다.
 
 ```json
 {
