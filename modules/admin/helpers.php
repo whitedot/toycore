@@ -8,4 +8,5 @@ require_once TOY_ROOT . '/modules/admin/helpers/updates.php';
 require_once TOY_ROOT . '/modules/admin/helpers/module-sources.php';
 require_once TOY_ROOT . '/modules/admin/helpers/module-actions.php';
 require_once TOY_ROOT . '/modules/admin/helpers/retention.php';
+require_once TOY_ROOT . '/modules/admin/helpers/dashboard.php';
 require_once TOY_ROOT . '/modules/admin/helpers/navigation.php';
