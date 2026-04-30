@@ -50,6 +50,7 @@
 | `release-process.md` | 릴리스 절차 | 배포 zip 생성, 모듈 checksum, registry 갱신 기준 |
 | `deployment-protection.md` | 배포 보호 | 내부 디렉터리 직접 접근 차단 기준 |
 | `deployment-examples.md` | 배포 예시 | PHP 내장 서버, Apache, Nginx, 공유호스팅 예시 |
+| `shared-hosting-install.md` | 저가형 호스팅 설치 | FTP/SFTP 기반 호스팅 설치 순서와 설치 전후 검증 기준 |
 
 ## 제거된 문서
 
