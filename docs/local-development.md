@@ -37,3 +37,11 @@ find . -path './.git' -prune -o -path './.tools' -prune -o -name '*.php' -print0
 이 명령은 `git diff --check`, 전체 PHP 문법 검사, SQL 파일 비어 있음 여부, 모듈 기본 계약 파일 구성을 함께 확인한다. PHP 문법 검사는 Docker 또는 OrbStack 실행 상태가 필요하다.
 
 Docker 또는 OrbStack이 꺼져 있어도 `git diff --check`, SQL 파일 비어 있음 여부, 모듈 기본 계약 파일 구성 검사는 먼저 실행된다. 이 단계가 통과하면 `toycore non-Docker checks completed.` 메시지가 출력되고, 이후 PHP 문법 검사 단계에서 Docker 실행 상태를 확인한다.
+
+Windows처럼 sh 또는 WSL이 없는 환경에서 로컬 PHP를 사용할 수 있다면 다음 명령으로 같은 기본 검사를 실행한다.
+
+```sh
+php .tools/bin/check.php
+```
+
+이 PHP 점검 도구는 `git diff --check`, 전체 PHP 문법 검사, SQL 파일 비어 있음 여부, 모듈 기본 계약 파일 구성, 관리자 메뉴 path와 모듈 `paths.php` GET route 일치 여부를 확인한다.

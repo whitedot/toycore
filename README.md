@@ -98,6 +98,12 @@ ops: standard + site_menu + banner + notification
 
 Docker 또는 OrbStack이 꺼져 있어도 공백, SQL 파일, 모듈 기본 구조 검사는 먼저 실행됩니다. PHP 문법 검사는 Docker 또는 OrbStack 실행 상태가 필요합니다.
 
+Windows처럼 sh/WSL이 없는 환경에서 로컬 PHP가 있다면 같은 기본 검사를 PHP 도구로 실행할 수 있습니다.
+
+```sh
+php .tools/bin/check.php
+```
+
 배포 패키지는 다음 명령으로 만들 수 있습니다.
 
 ```sh

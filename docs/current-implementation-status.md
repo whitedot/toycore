@@ -245,6 +245,7 @@
 
 - Docker 기반 로컬 PHP 실행 래퍼
 - 기본 점검 스크립트
+- 로컬 PHP 기반 크로스플랫폼 기본 점검 스크립트
 - Docker 없이 실행 가능한 공백, SQL 파일, 모듈 기본 구조 검사 선행
 - 관리자 메뉴 path와 모듈 `paths.php` GET route 일치 검사
 - Docker 실행 시 전체 PHP 문법 검사
