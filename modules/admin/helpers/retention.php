@@ -70,6 +70,101 @@ function toy_admin_retention_notification_tables_exist(PDO $pdo): bool
     }
 }
 
+function toy_admin_retention_target_definitions(bool $hasNotificationTables, bool $hasSessionsTable): array
+{
+    return [
+        'auth_logs' => [
+            'enabled' => true,
+            'cutoff_key' => 'auth_logs',
+            'count_sql' => 'SELECT COUNT(*) AS count_value FROM toy_member_auth_logs WHERE created_at < :cutoff',
+            'count_params' => [
+                'cutoff' => 'auth_logs',
+            ],
+        ],
+        'audit_logs' => [
+            'enabled' => true,
+            'cutoff_key' => 'audit_logs',
+            'count_sql' => 'SELECT COUNT(*) AS count_value FROM toy_audit_logs WHERE created_at < :cutoff',
+            'count_params' => [
+                'cutoff' => 'audit_logs',
+            ],
+        ],
+        'password_resets' => [
+            'enabled' => true,
+            'cutoff_key' => 'used_tokens',
+            'count_sql' => 'SELECT COUNT(*) AS count_value FROM toy_member_password_resets WHERE used_at IS NOT NULL AND used_at < :cutoff',
+            'count_params' => [
+                'cutoff' => 'used_tokens',
+            ],
+        ],
+        'email_verifications' => [
+            'enabled' => true,
+            'cutoff_key' => 'used_tokens',
+            'count_sql' => 'SELECT COUNT(*) AS count_value FROM toy_member_email_verifications WHERE verified_at IS NOT NULL AND verified_at < :cutoff',
+            'count_params' => [
+                'cutoff' => 'used_tokens',
+            ],
+        ],
+        'sessions' => [
+            'enabled' => $hasSessionsTable,
+            'cutoff_key' => 'sessions',
+            'count_sql' => 'SELECT COUNT(*) AS count_value
+             FROM toy_member_sessions
+             WHERE (revoked_at IS NOT NULL AND revoked_at < :revoked_cutoff)
+                OR expires_at < :expired_cutoff',
+            'count_params' => [
+                'revoked_cutoff' => 'sessions',
+                'expired_cutoff' => 'sessions',
+            ],
+        ],
+        'notifications' => [
+            'enabled' => $hasNotificationTables,
+            'cutoff_key' => 'notifications',
+            'count_sql' => 'SELECT COUNT(*) AS count_value FROM toy_notifications WHERE created_at < :cutoff',
+            'count_params' => [
+                'cutoff' => 'notifications',
+            ],
+        ],
+        'notification_deliveries' => [
+            'enabled' => $hasNotificationTables,
+            'cutoff_key' => 'notifications',
+            'count_sql' => 'SELECT COUNT(*) AS count_value
+             FROM toy_notification_deliveries d
+             INNER JOIN toy_notifications n ON n.id = d.notification_id
+             WHERE n.created_at < :cutoff',
+            'count_params' => [
+                'cutoff' => 'notifications',
+            ],
+        ],
+        'notification_reads' => [
+            'enabled' => $hasNotificationTables,
+            'cutoff_key' => 'notifications',
+            'count_sql' => 'SELECT COUNT(*) AS count_value
+             FROM toy_notification_reads r
+             INNER JOIN toy_notifications n ON n.id = r.notification_id
+             WHERE n.created_at < :cutoff',
+            'count_params' => [
+                'cutoff' => 'notifications',
+            ],
+        ],
+        'module_backups' => [
+            'enabled' => true,
+            'cutoff_key' => 'module_backups',
+            'count_callback' => 'toy_admin_retention_module_backup_count',
+        ],
+    ];
+}
+
+function toy_admin_retention_query_params(array $paramCutoffKeys, array $cutoffs): array
+{
+    $params = [];
+    foreach ($paramCutoffKeys as $paramName => $cutoffKey) {
+        $params[$paramName] = $cutoffs[$cutoffKey];
+    }
+
+    return $params;
+}
+
 function toy_admin_retention_module_backup_dirs(string $cutoff): array
 {
     $backupRoot = TOY_ROOT . '/storage/module-backups';
@@ -136,61 +231,29 @@ function toy_admin_retention_preview_cutoffs(array $values): array
 
 function toy_admin_retention_preview_counts(PDO $pdo, array $previewCutoffs, bool $hasNotificationTables): array
 {
-    return [
-        'auth_logs' => toy_admin_retention_count(
+    $previewCounts = [];
+    $targets = toy_admin_retention_target_definitions($hasNotificationTables, toy_member_sessions_table_exists($pdo));
+
+    foreach ($targets as $key => $target) {
+        if (!$target['enabled']) {
+            $previewCounts[$key] = 0;
+            continue;
+        }
+
+        $countCallback = (string) ($target['count_callback'] ?? '');
+        if ($countCallback !== '') {
+            $previewCounts[$key] = $countCallback($previewCutoffs[$target['cutoff_key']]);
+            continue;
+        }
+
+        $previewCounts[$key] = toy_admin_retention_count(
             $pdo,
-            'SELECT COUNT(*) AS count_value FROM toy_member_auth_logs WHERE created_at < :cutoff',
-            ['cutoff' => $previewCutoffs['auth_logs']]
-        ),
-        'audit_logs' => toy_admin_retention_count(
-            $pdo,
-            'SELECT COUNT(*) AS count_value FROM toy_audit_logs WHERE created_at < :cutoff',
-            ['cutoff' => $previewCutoffs['audit_logs']]
-        ),
-        'password_resets' => toy_admin_retention_count(
-            $pdo,
-            'SELECT COUNT(*) AS count_value FROM toy_member_password_resets WHERE used_at IS NOT NULL AND used_at < :cutoff',
-            ['cutoff' => $previewCutoffs['used_tokens']]
-        ),
-        'email_verifications' => toy_admin_retention_count(
-            $pdo,
-            'SELECT COUNT(*) AS count_value FROM toy_member_email_verifications WHERE verified_at IS NOT NULL AND verified_at < :cutoff',
-            ['cutoff' => $previewCutoffs['used_tokens']]
-        ),
-        'sessions' => toy_member_sessions_table_exists($pdo) ? toy_admin_retention_count(
-            $pdo,
-            'SELECT COUNT(*) AS count_value
-             FROM toy_member_sessions
-             WHERE (revoked_at IS NOT NULL AND revoked_at < :revoked_cutoff)
-                OR expires_at < :expired_cutoff',
-            [
-                'revoked_cutoff' => $previewCutoffs['sessions'],
-                'expired_cutoff' => $previewCutoffs['sessions'],
-            ]
-        ) : 0,
-        'notifications' => $hasNotificationTables ? toy_admin_retention_count(
-            $pdo,
-            'SELECT COUNT(*) AS count_value FROM toy_notifications WHERE created_at < :cutoff',
-            ['cutoff' => $previewCutoffs['notifications']]
-        ) : 0,
-        'notification_deliveries' => $hasNotificationTables ? toy_admin_retention_count(
-            $pdo,
-            'SELECT COUNT(*) AS count_value
-             FROM toy_notification_deliveries d
-             INNER JOIN toy_notifications n ON n.id = d.notification_id
-             WHERE n.created_at < :cutoff',
-            ['cutoff' => $previewCutoffs['notifications']]
-        ) : 0,
-        'notification_reads' => $hasNotificationTables ? toy_admin_retention_count(
-            $pdo,
-            'SELECT COUNT(*) AS count_value
-             FROM toy_notification_reads r
-             INNER JOIN toy_notifications n ON n.id = r.notification_id
-             WHERE n.created_at < :cutoff',
-            ['cutoff' => $previewCutoffs['notifications']]
-        ) : 0,
-        'module_backups' => toy_admin_retention_module_backup_count($previewCutoffs['module_backups']),
-    ];
+            (string) $target['count_sql'],
+            toy_admin_retention_query_params($target['count_params'], $previewCutoffs)
+        );
+    }
+
+    return $previewCounts;
 }
 
 function toy_admin_retention_execute_cleanup(PDO $pdo, array $values, bool $hasNotificationTables): array
