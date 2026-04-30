@@ -200,25 +200,28 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                         <td>
                             <?php if ($canManageModuleSources && $moduleUploadAvailable && !empty($module['repository_ready'])) { ?>
-                                <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
-                                    <?php echo toy_csrf_field(); ?>
-                                    <input type="hidden" name="intent" value="download_repository_archive">
-                                    <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
-                                    <label>Ref<br>
-                                        <input type="text" name="repository_ref" value="<?php echo toy_e((string) $module['default_ref']); ?>" maxlength="120" required>
-                                    </label>
-                                    <?php if (!empty($module['installed'])) { ?>
-                                        <label>
-                                            <input type="checkbox" name="confirm_file_replace" value="1">
-                                            교체 확인
+                                <details>
+                                    <summary>고급</summary>
+                                    <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
+                                        <?php echo toy_csrf_field(); ?>
+                                        <input type="hidden" name="intent" value="download_repository_archive">
+                                        <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
+                                        <label>Ref<br>
+                                            <input type="text" name="repository_ref" value="<?php echo toy_e((string) $module['default_ref']); ?>" maxlength="120" required>
                                         </label>
-                                    <?php } ?>
-                                    <label>
-                                        <input type="checkbox" name="allow_downgrade" value="1">
-                                        낮은 버전 허용
-                                    </label>
-                                    <button type="submit">archive 반영</button>
-                                </form>
+                                        <?php if (!empty($module['installed'])) { ?>
+                                            <label>
+                                                <input type="checkbox" name="confirm_file_replace" value="1">
+                                                교체 확인
+                                            </label>
+                                        <?php } ?>
+                                        <label>
+                                            <input type="checkbox" name="allow_downgrade" value="1">
+                                            낮은 버전 허용
+                                        </label>
+                                        <button type="submit">archive 반영</button>
+                                    </form>
+                                </details>
                             <?php } else { ?>
                                 -
                             <?php } ?>

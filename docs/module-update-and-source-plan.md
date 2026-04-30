@@ -217,7 +217,7 @@ Toycore 검증 버전
 - 관리자 모듈 화면은 설치 버전, 코드 버전, Toycore 호환 정보를 표시한다.
 - `/admin/modules`에서 owner가 모듈 zip을 업로드해 `modules/{module_key}` 파일을 반영할 수 있다.
 - `/admin/modules`에서 registry에 URL과 checksum이 등록된 공식 release zip을 다운로드해 같은 검증 흐름으로 반영할 수 있다.
-- `/admin/modules`에서 registry에 등록된 공식 GitHub repository의 archive zip을 ref 기준으로 다운로드해 같은 검증 흐름으로 반영할 수 있다.
+- `/admin/modules`에서 registry에 등록된 공식 GitHub repository의 archive zip을 ref 기준으로 다운로드해 같은 검증 흐름으로 반영할 수 있으며, 이 경로는 고급 UI로 접어 둔다.
 - `.tools/bin/update-module-index`로 모듈 zip 디렉터리의 sha256 checksum을 계산해 `docs/module-index.json`을 갱신할 수 있다.
 - `.tools/bin/publish-module-release`로 공식 모듈 zip 수집, registry checksum 갱신, GitHub Release 업로드를 한 흐름으로 처리할 수 있다.
 - 기존 모듈 파일을 교체할 때는 `storage/module-backups`에 이전 디렉터리를 보관한다.
