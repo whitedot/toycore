@@ -254,6 +254,8 @@ toy_admin_log()
 
 권한 확인은 view가 아니라 action 파일 초기에 수행합니다.
 
+관리자 POST action의 공통 작성 순서, `$errors`/`$notice` 전달 방식, intent 검증, 감사 로그 기준은 [관리자 POST action 작성 규칙](admin-post-action-rules.md)을 따른다.
+
 ## 감사 로그 기준
 
 반드시 기록할 이벤트:

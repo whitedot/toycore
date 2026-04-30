@@ -441,10 +441,7 @@ function toy_admin_handle_modules_post(
         $errors[] = '요청한 작업을 처리할 수 없습니다.';
     }
 
-    return [
-        'errors' => $errors,
-        'notice' => $notice,
-    ];
+    return toy_admin_action_result($errors, $notice);
 }
 
 function toy_admin_load_module_management_view_data(PDO $pdo): array

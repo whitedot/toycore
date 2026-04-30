@@ -27,6 +27,7 @@
 | `operations-modules-plan.md` | 운영 모듈 | 메뉴, 배너, 알림, 관리자 작업 로그의 모듈화 기준 |
 | `audit-log-plan.md` | 감사 로그 | 감사 로그 기록 대상과 보관 기준 |
 | `security-checklist.md` | 보안 점검 | 기능 추가와 리뷰 시 확인할 보안 항목 |
+| `admin-post-action-rules.md` | 관리자 작성 규칙 | 관리자 POST action의 권한, 검증, 메시지, 감사 로그 기준 |
 
 ## 도메인 계획
 
