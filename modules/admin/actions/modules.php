@@ -140,6 +140,7 @@ if (toy_request_method() === 'POST') {
 
             $source = toy_admin_extract_module_upload($upload, $moduleKey);
             $extractDir = (string) ($source['extract_dir'] ?? '');
+            $uploadStats = is_array($source['upload'] ?? null) ? $source['upload'] : [];
             $moduleKey = (string) $source['module_key'];
             $metadata = is_array($source['metadata']) ? $source['metadata'] : [];
             $moduleVersion = (string) ($metadata['version'] ?? '');
@@ -161,6 +162,11 @@ if (toy_request_method() === 'POST') {
                 'metadata' => [
                     'version' => $moduleVersion,
                     'allow_downgrade' => $allowDowngrade,
+                    'upload_filename' => (string) ($uploadStats['filename'] ?? ''),
+                    'upload_size' => (int) ($uploadStats['size'] ?? 0),
+                    'upload_checksum' => (string) ($uploadStats['checksum'] ?? ''),
+                    'zip_entry_count' => (int) ($uploadStats['entry_count'] ?? 0),
+                    'zip_uncompressed_bytes' => (int) ($uploadStats['uncompressed_bytes'] ?? 0),
                     'backup_dir' => str_replace(TOY_ROOT . '/', '', (string) ($result['backup_dir'] ?? '')),
                 ],
             ]);

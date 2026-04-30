@@ -83,6 +83,8 @@ module.zip
 - `module.php.version`이 `YYYY.MM.NNN` 형식인지 확인
 - `install.sql` 존재 확인
 - `module_key`가 안전한 형식인지 확인
+- zip 항목 수와 압축 해제 후 총 크기가 허용 범위 안인지 확인
+- 업로드 zip의 sha256 checksum을 감사 로그에 기록
 - 기존 설치 모듈이면 현재 코드 버전보다 낮은 버전으로 기본 덮어쓰기를 차단
 - 낮은 버전 덮어쓰기는 owner가 명시적으로 허용한 경우에만 진행
 

@@ -44,6 +44,11 @@ function toy_admin_module_upload_limit_bytes(): int
     return min($defaultLimit, ...$limits);
 }
 
+function toy_admin_module_uncompressed_limit_bytes(): int
+{
+    return 25 * 1024 * 1024;
+}
+
 function toy_admin_format_bytes(int $bytes): string
 {
     if ($bytes >= 1024 * 1024) {
@@ -164,6 +169,45 @@ function toy_admin_zip_entry_is_safe(string $name): bool
     }
 
     return true;
+}
+
+function toy_admin_zip_upload_stats(ZipArchive $zip): array
+{
+    $entryCount = $zip->numFiles;
+    $uncompressedBytes = 0;
+    $maxEntries = 1000;
+    $maxUncompressedBytes = toy_admin_module_uncompressed_limit_bytes();
+
+    if ($entryCount < 1 || $entryCount > $maxEntries) {
+        throw new RuntimeException('zip 파일 항목 수가 허용 범위를 벗어났습니다.');
+    }
+
+    for ($i = 0; $i < $entryCount; $i++) {
+        $entry = $zip->getNameIndex($i);
+        if (!is_string($entry) || !toy_admin_zip_entry_is_safe($entry)) {
+            throw new RuntimeException('zip 안에 안전하지 않은 경로가 있습니다.');
+        }
+
+        $stats = $zip->statIndex($i);
+        if (!is_array($stats)) {
+            throw new RuntimeException('zip 항목 정보를 읽을 수 없습니다.');
+        }
+
+        $size = (int) ($stats['size'] ?? 0);
+        if ($size < 0) {
+            throw new RuntimeException('zip 항목 크기가 올바르지 않습니다.');
+        }
+
+        $uncompressedBytes += $size;
+        if ($uncompressedBytes > $maxUncompressedBytes) {
+            throw new RuntimeException('압축 해제 후 모듈 크기는 ' . toy_admin_format_bytes($maxUncompressedBytes) . ' 이하여야 합니다.');
+        }
+    }
+
+    return [
+        'entry_count' => $entryCount,
+        'uncompressed_bytes' => $uncompressedBytes,
+    ];
 }
 
 function toy_admin_path_is_inside(string $path, string $root): bool
@@ -384,13 +428,18 @@ function toy_admin_extract_module_upload(array $file, string $requestedModuleKey
         throw new RuntimeException('업로드 파일 크기는 ' . toy_admin_format_bytes($limit) . ' 이하여야 합니다.');
     }
 
-    if ($requestedModuleKey !== '' && !toy_is_safe_module_key($requestedModuleKey)) {
-        throw new RuntimeException('입력한 모듈 키가 올바르지 않습니다.');
-    }
-
     $tmpName = (string) ($file['tmp_name'] ?? '');
     if ($tmpName === '' || !is_file($tmpName)) {
         throw new RuntimeException('업로드된 임시 파일을 찾을 수 없습니다.');
+    }
+
+    $checksum = hash_file('sha256', $tmpName);
+    if (!is_string($checksum)) {
+        throw new RuntimeException('업로드 파일 checksum을 계산할 수 없습니다.');
+    }
+
+    if ($requestedModuleKey !== '' && !toy_is_safe_module_key($requestedModuleKey)) {
+        throw new RuntimeException('입력한 모듈 키가 올바르지 않습니다.');
     }
 
     $workRoot = toy_admin_module_work_dir('module-upload');
@@ -406,12 +455,7 @@ function toy_admin_extract_module_upload(array $file, string $requestedModuleKey
     }
 
     try {
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $entry = $zip->getNameIndex($i);
-            if (!is_string($entry) || !toy_admin_zip_entry_is_safe($entry)) {
-                throw new RuntimeException('zip 안에 안전하지 않은 경로가 있습니다.');
-            }
-        }
+        $uploadStats = toy_admin_zip_upload_stats($zip);
 
         if (!$zip->extractTo($extractDir)) {
             throw new RuntimeException('zip 파일을 압축 해제할 수 없습니다.');
@@ -436,6 +480,13 @@ function toy_admin_extract_module_upload(array $file, string $requestedModuleKey
         }
 
         $source['extract_dir'] = $extractDir;
+        $source['upload'] = [
+            'filename' => $filename,
+            'size' => $size,
+            'checksum' => $checksum,
+            'entry_count' => (int) $uploadStats['entry_count'],
+            'uncompressed_bytes' => (int) $uploadStats['uncompressed_bytes'],
+        ];
         return $source;
     } catch (Throwable $exception) {
         toy_admin_remove_directory($extractDir);
