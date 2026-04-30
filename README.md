@@ -113,6 +113,12 @@ php .tools/bin/check.php
 결과는 `dist/toycore-minimal`, `dist/toycore-standard`, `dist/toycore-ops` 디렉터리와, `zip` 명령이 있는 경우 같은 이름의 zip 파일로 생성됩니다.
 각 배포 디렉터리에는 포함 모듈과 버전을 확인할 수 있는 `distribution-manifest.json`이 함께 생성됩니다.
 
+생성된 배포 디렉터리와 manifest는 다음 명령으로 확인할 수 있습니다.
+
+```sh
+php .tools/bin/check-distributions.php 2026.05.001
+```
+
 `standard`와 `ops` 패키지를 만들 때 선택 모듈이 본체 `modules/{module_key}`에 없으면, 패키징 스크립트는 기본적으로 toycore.git과 같은 상위 디렉터리에 있는 `toycore-module-{module-key}/module`을 사용합니다. 다른 위치를 쓰려면 `TOYCORE_MODULE_REPO_ROOT` 환경변수로 모듈 리포지토리 상위 디렉터리를 지정합니다.
 
 ## 모듈 구조

@@ -133,7 +133,7 @@ function toy_check_admin_menu_paths(): void
 
 function toy_check_php_lint(): void
 {
-    $phpFiles = toy_check_files('.', 'php', ['.git', '.tools', 'dist']);
+    $phpFiles = toy_check_files('.', 'php', ['.git', 'dist']);
     foreach ($phpFiles as $file) {
         $command = escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($file);
         $output = [];

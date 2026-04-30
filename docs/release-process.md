@@ -28,6 +28,12 @@ dist/toycore-ops-2026.05.001.zip
 
 각 배포 디렉터리의 `distribution-manifest.json`에서 포함 모듈과 버전을 확인한다.
 
+배포 디렉터리와 manifest의 기본 구조는 다음 명령으로 검증한다.
+
+```sh
+php .tools/bin/check-distributions.php 2026.05.001
+```
+
 ## 3. 공식 모듈 zip 확인
 
 각 모듈 리포지토리에서 설치용 zip을 만든다.
@@ -97,6 +103,7 @@ URL과 checksum이 모두 채워진 항목만 `/admin/modules`의 공식 registr
 ## 6. 배포 후 확인
 
 - `toycore-standard.zip`으로 신규 설치가 가능한지 확인한다.
+- `php .tools/bin/check-distributions.php 2026.05.001`로 `minimal`, `standard`, `ops` manifest와 포함 모듈 버전을 확인한다.
 - `/admin/modules`에서 설치 버전과 코드 버전이 일치하는지 확인한다.
 - `/admin/updates`에 미적용 SQL이 남아 있지 않은지 확인한다.
 - 공식 registry 항목의 checksum 불일치가 없는지 확인한다.

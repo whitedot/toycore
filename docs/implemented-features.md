@@ -21,6 +21,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 기본 홈 화면과 오류 화면 제공
 - 공통 CSS 파일 제공
 - standard/ops 패키지 조립 시 선택 모듈 정적 자산 포함
+- 배포 패키지 manifest와 포함 모듈 버전 검증 도구
 - 관리자 모듈 화면에서 owner 전용 모듈 zip 업로드
 - 공식 registry에 URL과 checksum이 등록된 모듈 release zip 다운로드
 - 공식 registry에 등록된 GitHub repository의 고급 ref archive zip 다운로드
