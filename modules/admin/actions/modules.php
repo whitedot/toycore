@@ -34,13 +34,13 @@ if (toy_request_method() === 'POST') {
         $errors[] = '모듈 키가 올바르지 않습니다.';
     }
 
-    if ($intent === 'upload_module_zip') {
+    if ($intent === 'upload_module_zip' || $intent === 'download_registry_module') {
         if (!$canManageModuleSources) {
-            $errors[] = '모듈 zip 업로드는 owner 권한이 필요합니다.';
+            $errors[] = '모듈 소스 반영은 owner 권한이 필요합니다.';
         }
 
         if (!$moduleUploadAvailable) {
-            $errors[] = 'PHP ZipArchive 확장이 없어 모듈 zip을 업로드할 수 없습니다.';
+            $errors[] = 'PHP ZipArchive 확장이 없어 모듈 zip을 처리할 수 없습니다.';
         }
     } elseif ($intent === 'sync_module_version') {
         if (!$canManageModuleSources) {
@@ -130,12 +130,23 @@ if (toy_request_method() === 'POST') {
         }
     }
 
-    if ($errors === [] && $intent === 'upload_module_zip') {
+    if ($errors === [] && in_array($intent, ['upload_module_zip', 'download_registry_module'], true)) {
         $extractDir = '';
+        $downloadedZip = '';
         try {
-            $upload = $_FILES['module_zip'] ?? null;
-            if (!is_array($upload)) {
-                throw new RuntimeException('업로드할 zip 파일을 선택하세요.');
+            if ($intent === 'download_registry_module') {
+                $registryEntry = toy_admin_module_registry_entry($moduleKey);
+                if (!is_array($registryEntry)) {
+                    throw new RuntimeException('registry에서 모듈을 찾을 수 없습니다.');
+                }
+
+                $upload = toy_admin_download_registry_module_zip($registryEntry);
+                $downloadedZip = (string) ($upload['tmp_name'] ?? '');
+            } else {
+                $upload = $_FILES['module_zip'] ?? null;
+                if (!is_array($upload)) {
+                    throw new RuntimeException('업로드할 zip 파일을 선택하세요.');
+                }
             }
 
             $source = toy_admin_extract_module_upload($upload, $moduleKey);
@@ -159,18 +170,20 @@ if (toy_request_method() === 'POST') {
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
-                'event_type' => 'module.source.uploaded',
+                'event_type' => $intent === 'download_registry_module' ? 'module.source.downloaded' : 'module.source.uploaded',
                 'target_type' => 'module',
                 'target_id' => $moduleKey,
                 'result' => 'success',
-                'message' => 'Module source zip uploaded.',
+                'message' => $intent === 'download_registry_module' ? 'Module source zip downloaded from registry.' : 'Module source zip uploaded.',
                 'metadata' => [
                     'version' => $moduleVersion,
+                    'source' => $intent === 'download_registry_module' ? 'registry' : 'upload',
                     'replace_confirmed' => $replaceConfirmed,
                     'allow_downgrade' => $allowDowngrade,
                     'upload_filename' => (string) ($uploadStats['filename'] ?? ''),
                     'upload_size' => (int) ($uploadStats['size'] ?? 0),
                     'upload_checksum' => (string) ($uploadStats['checksum'] ?? ''),
+                    'registry_zip_url' => (string) ($upload['registry_zip_url'] ?? ''),
                     'zip_entry_count' => (int) ($uploadStats['entry_count'] ?? 0),
                     'zip_uncompressed_bytes' => (int) ($uploadStats['uncompressed_bytes'] ?? 0),
                     'backup_dir' => str_replace(TOY_ROOT . '/', '', (string) ($result['backup_dir'] ?? '')),
@@ -187,6 +200,9 @@ if (toy_request_method() === 'POST') {
                     toy_admin_remove_directory($extractDir);
                 } catch (Throwable $ignored) {
                 }
+            }
+            if ($downloadedZip !== '' && is_file($downloadedZip)) {
+                unlink($downloadedZip);
             }
         }
     } elseif ($errors === [] && $intent === 'install') {
@@ -482,6 +498,14 @@ if (is_array($moduleDirectories)) {
                 : (is_string($toycoreTestedWith) ? $toycoreTestedWith : ''),
         ];
     }
+}
+
+$registryModules = [];
+foreach (toy_admin_module_registry_entries() as $entry) {
+    $moduleKey = (string) $entry['module_key'];
+    $entry['installed'] = isset($installedModuleKeys[$moduleKey]);
+    $entry['download_ready'] = toy_admin_registry_entry_download_ready($entry);
+    $registryModules[] = $entry;
 }
 
 $moduleSettings = [];

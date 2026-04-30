@@ -83,6 +83,7 @@ module.zip
 - `module.php.version`이 `YYYY.MM.NNN` 형식인지 확인
 - `install.sql` 존재 확인
 - `module_key`가 안전한 형식인지 확인
+- 요청한 module key와 zip 내부 모듈 key가 다르면 중단
 - zip 항목 수와 압축 해제 후 총 크기가 허용 범위 안인지 확인
 - 업로드 zip의 sha256 checksum을 감사 로그에 기록
 - 기존 `modules/{module_key}` 디렉터리가 있으면 owner가 백업과 파일 교체를 명시적으로 확인한 경우에만 교체
@@ -213,8 +214,10 @@ Toycore 검증 버전
 - 각 모듈 리포지토리는 `module/` 구조와 `package-module` 스크립트를 가진다.
 - toycore 배포 패키지는 `minimal`, `standard`, `ops`로 나눌 수 있다.
 - 배포 패키지는 포함 모듈과 버전을 `distribution-manifest.json`에 남긴다.
+- 공식 모듈 registry는 `docs/module-index.json`에 둔다.
 - 관리자 모듈 화면은 설치 버전, 코드 버전, Toycore 호환 정보를 표시한다.
 - `/admin/modules`에서 owner가 모듈 zip을 업로드해 `modules/{module_key}` 파일을 반영할 수 있다.
+- `/admin/modules`에서 registry에 URL과 checksum이 등록된 공식 release zip을 다운로드해 같은 검증 흐름으로 반영할 수 있다.
 - 기존 모듈 파일을 교체할 때는 `storage/module-backups`에 이전 디렉터리를 보관한다.
 - 코드 버전이 설치 버전보다 높고 미적용 SQL이 없으면 파일 전용 업데이트 버전을 관리자 화면에서 반영할 수 있다.
 - 업로드 zip은 `{module_key}/module.php`, `module/module.php`, 한 단계 아래 `module/` 디렉터리를 둔 리포지토리 zip 구조를 인식한다.
@@ -223,9 +226,6 @@ Toycore 검증 버전
 다음 작업:
 
 ```text
-1. 최초 설치용 standard/ops release zip 제공 절차 정리
-2. 모듈 zip 업로드 검증 기준 보강
-3. 공식 registry/release zip 다운로드 설계
-4. registry checksum 검증과 감사 로그 보강
-5. public repository 가져오기는 owner 전용 고급 기능으로 후순위 검토
+1. module-index.json의 release zip URL과 checksum을 릴리스 때 자동 갱신
+2. public repository 가져오기는 owner 전용 고급 기능으로 후순위 검토
 ```

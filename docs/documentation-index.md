@@ -10,6 +10,7 @@
 | `current-implementation-status.md` | 현재 상태 | 코드 기준 구현 범위와 검증 기준 |
 | `implemented-features.md` | 기능 목록 | 사용자 관점에서 확인 가능한 구현 기능 |
 | `module-guide.md` | 작성 규칙 | 모듈/플러그인 작성 방식과 파일 역할 |
+| `module-index.json` | 모듈 registry | 공식 모듈 release zip과 checksum 등록용 JSON |
 | `module-repository-strategy.md` | 배포 전략 | 모듈을 별도 리포지토리에서 관리할 때의 구조와 전환 기준 |
 | `module-update-and-source-plan.md` | 모듈 운영 | 모듈 설치 소스, zip 업로드, repository 가져오기, 업데이트 보완 계획 |
 | `database-access-policy.md` | DB 접근 규약 | PDO 사용, prepared statement, raw SQL 허용 범위 |
@@ -43,6 +44,7 @@
 | 문서 | 종류 | 용도 |
 | --- | --- | --- |
 | `local-development.md` | 로컬 개발 | PHP 내장 서버, 기본 점검 스크립트, 문법 검사 명령 |
+| `release-process.md` | 릴리스 절차 | 배포 zip 생성, 모듈 checksum, registry 갱신 기준 |
 | `deployment-protection.md` | 배포 보호 | 내부 디렉터리 직접 접근 차단 기준 |
 | `deployment-examples.md` | 배포 예시 | PHP 내장 서버, Apache, Nginx, 공유호스팅 예시 |
 

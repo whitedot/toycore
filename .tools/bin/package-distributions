@@ -34,8 +34,10 @@ copy_base() {
         docs/deployment-examples.md \
         docs/deployment-protection.md \
         docs/install-plan.md \
+        docs/module-index.json \
         docs/module-guide.md \
         docs/module-repository-strategy.md \
+        docs/release-process.md \
         docs/security-checklist.md \
         docs/update-plan.md \
         modules/member \

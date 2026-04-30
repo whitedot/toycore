@@ -81,6 +81,89 @@ function toy_admin_module_work_dir(string $type): string
     return $directory;
 }
 
+function toy_admin_module_registry_path(): string
+{
+    return TOY_ROOT . '/docs/module-index.json';
+}
+
+function toy_admin_normalize_registry_entry(array $entry): ?array
+{
+    $moduleKey = (string) ($entry['module_key'] ?? '');
+    if (!toy_is_safe_module_key($moduleKey)) {
+        return null;
+    }
+
+    $checksum = strtolower((string) ($entry['checksum'] ?? ''));
+    if ($checksum !== '' && preg_match('/\A[a-f0-9]{64}\z/', $checksum) !== 1) {
+        $checksum = '';
+    }
+
+    return [
+        'module_key' => $moduleKey,
+        'name' => (string) ($entry['name'] ?? $moduleKey),
+        'repository' => (string) ($entry['repository'] ?? ''),
+        'latest_version' => (string) ($entry['latest_version'] ?? ''),
+        'min_toycore_version' => (string) ($entry['min_toycore_version'] ?? ''),
+        'category' => (string) ($entry['category'] ?? ''),
+        'zip_url' => (string) ($entry['zip_url'] ?? ''),
+        'checksum' => $checksum,
+    ];
+}
+
+function toy_admin_module_registry_entries(): array
+{
+    $path = toy_admin_module_registry_path();
+    if (!is_file($path) || !is_readable($path)) {
+        return [];
+    }
+
+    $content = file_get_contents($path);
+    if (!is_string($content)) {
+        return [];
+    }
+
+    $decoded = json_decode($content, true);
+    if (!is_array($decoded) || !is_array($decoded['modules'] ?? null)) {
+        return [];
+    }
+
+    $entries = [];
+    foreach ($decoded['modules'] as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+
+        $normalized = toy_admin_normalize_registry_entry($entry);
+        if ($normalized !== null) {
+            $entries[(string) $normalized['module_key']] = $normalized;
+        }
+    }
+
+    ksort($entries, SORT_STRING);
+    return array_values($entries);
+}
+
+function toy_admin_module_registry_entry(string $moduleKey): ?array
+{
+    if (!toy_is_safe_module_key($moduleKey)) {
+        return null;
+    }
+
+    foreach (toy_admin_module_registry_entries() as $entry) {
+        if ((string) $entry['module_key'] === $moduleKey) {
+            return $entry;
+        }
+    }
+
+    return null;
+}
+
+function toy_admin_registry_entry_download_ready(array $entry): bool
+{
+    return toy_is_public_http_url((string) ($entry['zip_url'] ?? ''))
+        && preg_match('/\A[a-f0-9]{64}\z/', (string) ($entry['checksum'] ?? '')) === 1;
+}
+
 function toy_admin_random_suffix(): string
 {
     try {
@@ -481,6 +564,10 @@ function toy_admin_extract_module_upload(array $file, string $requestedModuleKey
 
     try {
         $source = toy_admin_find_module_source($extractDir, $requestedModuleKey, $filename);
+        if ($requestedModuleKey !== '' && (string) $source['module_key'] !== $requestedModuleKey) {
+            throw new RuntimeException('zip 내부 모듈 키가 요청한 모듈 키와 일치하지 않습니다.');
+        }
+
         if (!toy_admin_path_is_inside((string) $source['source_dir'], $extractDir)) {
             throw new RuntimeException('zip 안의 모듈 경로가 올바르지 않습니다.');
         }
@@ -507,6 +594,94 @@ function toy_admin_extract_module_upload(array $file, string $requestedModuleKey
         toy_admin_remove_directory($extractDir);
         throw $exception;
     }
+}
+
+function toy_admin_download_registry_module_zip(array $entry): array
+{
+    if (!toy_admin_registry_entry_download_ready($entry)) {
+        throw new RuntimeException('registry에 유효한 release zip URL과 checksum이 등록되어 있지 않습니다.');
+    }
+
+    $moduleKey = (string) $entry['module_key'];
+    $version = (string) ($entry['latest_version'] !== '' ? $entry['latest_version'] : 'registry');
+    $zipUrl = (string) $entry['zip_url'];
+    $expectedChecksum = (string) $entry['checksum'];
+    $limit = toy_admin_module_upload_limit_bytes();
+    $downloadDir = toy_admin_module_work_dir('module-upload');
+    $target = $downloadDir . '/registry-' . $moduleKey . '-' . date('YmdHis') . '-' . toy_admin_random_suffix() . '.zip';
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 20,
+            'ignore_errors' => true,
+            'header' => "User-Agent: Toycore-Module-Registry\r\n",
+        ],
+    ]);
+
+    $source = fopen($zipUrl, 'rb', false, $context);
+    if (!is_resource($source)) {
+        throw new RuntimeException('registry release zip을 다운로드할 수 없습니다.');
+    }
+
+    $targetHandle = fopen($target, 'wb');
+    if (!is_resource($targetHandle)) {
+        fclose($source);
+        throw new RuntimeException('registry release zip 임시 파일을 만들 수 없습니다.');
+    }
+
+    $hash = hash_init('sha256');
+    $bytes = 0;
+    try {
+        while (!feof($source)) {
+            $chunk = fread($source, 8192);
+            if (!is_string($chunk)) {
+                throw new RuntimeException('registry release zip을 읽을 수 없습니다.');
+            }
+
+            if ($chunk === '') {
+                continue;
+            }
+
+            $bytes += strlen($chunk);
+            if ($bytes > $limit) {
+                throw new RuntimeException('다운로드 파일 크기는 ' . toy_admin_format_bytes($limit) . ' 이하여야 합니다.');
+            }
+
+            hash_update($hash, $chunk);
+            if (fwrite($targetHandle, $chunk) === false) {
+                throw new RuntimeException('registry release zip 임시 파일을 쓸 수 없습니다.');
+            }
+        }
+    } catch (Throwable $exception) {
+        fclose($source);
+        fclose($targetHandle);
+        if (is_file($target)) {
+            unlink($target);
+        }
+        throw $exception;
+    }
+
+    fclose($source);
+    fclose($targetHandle);
+
+    $actualChecksum = hash_final($hash);
+    if (!hash_equals($expectedChecksum, $actualChecksum)) {
+        if (is_file($target)) {
+            unlink($target);
+        }
+        throw new RuntimeException('registry release zip checksum이 일치하지 않습니다.');
+    }
+
+    return [
+        'error' => UPLOAD_ERR_OK,
+        'name' => $moduleKey . '-' . $version . '.zip',
+        'size' => $bytes,
+        'tmp_name' => $target,
+        'registry_module_key' => $moduleKey,
+        'registry_zip_url' => $zipUrl,
+        'registry_checksum' => $actualChecksum,
+    ];
 }
 
 function toy_admin_install_module_source_files(string $moduleKey, string $sourceDir): array

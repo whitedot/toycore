@@ -152,6 +152,8 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 
 설치 후에는 owner가 `/admin/modules`에서 모듈 zip을 업로드할 수 있습니다. 업로드 zip은 `{module_key}/module.php` 구조를 권장하며, `module/module.php` 구조도 module key를 입력하면 사용할 수 있습니다. 기존 모듈 파일을 교체할 때는 owner가 파일 교체를 명시적으로 확인해야 하고, 이전 디렉터리는 `storage/module-backups`에 보관합니다. 설치 버전보다 낮은 코드 버전은 기본 차단되며, 파일 교체와 DB 업데이트는 분리되어 있으므로 기존 모듈을 교체한 뒤에는 `/admin/updates`에서 미적용 SQL을 확인합니다.
 
+공식 모듈 release zip은 [module-index.json](docs/module-index.json)에 URL과 sha256 checksum을 등록하면 `/admin/modules`에서 다운로드해 같은 검증 흐름으로 반영할 수 있습니다. URL과 checksum이 비어 있는 registry 항목은 안내용으로만 표시됩니다.
+
 ## Extension Points
 
 Toycore는 전역 hook/event dispatcher를 기본 구조로 두지 않습니다. 모듈 간 영향이 필요하면 각 모듈이 명시적 계약 파일을 제공하고, 소비 모듈이 필요한 시점에 그 파일을 읽습니다.
@@ -207,6 +209,7 @@ module -> point -> slot -> subject
 - [보안 체크리스트](docs/security-checklist.md)
 - [배포 보호 기준](docs/deployment-protection.md)
 - [서버별 배포 예시](docs/deployment-examples.md)
+- [릴리스 절차](docs/release-process.md)
 - [현재 구현 상태](docs/current-implementation-status.md)
 - [모듈 작성 가이드](docs/module-guide.md)
 - [모듈 별도 리포지토리 관리 방안](docs/module-repository-strategy.md)
