@@ -43,6 +43,20 @@ dist/toycore-ops-2026.05.001.zip
 - `install.sql`과 필요한 `updates/` 파일이 포함되어 있는가
 - 같은 버전의 update SQL을 이미 배포한 적이 있다면 내용이 바뀌지 않았는가
 
+모듈 zip 생성, `docs/module-index.json` 갱신, GitHub Release 업로드를 한 번에 처리하려면 릴리스 담당자 환경에서 다음 명령을 사용한다.
+
+```sh
+./.tools/bin/publish-module-release 2026.05.001
+```
+
+기본 업로드 대상은 `whitedot/toycore-module-releases`의 `v2026.05.001` release다. 다른 모듈 리포지토리 위치나 release 저장소를 쓰면 인자를 명시한다.
+
+```sh
+./.tools/bin/publish-module-release 2026.05.001 whitedot/toycore-module-releases /release/modules
+```
+
+이 도구는 `docs/module-index.json`에 등록된 모듈별 리포지토리에서 `.tools/bin/package-module`을 실행하고, 생성된 zip을 `dist/modules`에 모은 뒤 checksum을 계산한다. `gh` CLI가 있으면 release 생성과 asset upload까지 수행하고, 없으면 수동 업로드 명령을 출력한다.
+
 ## 4. Checksum 기록
 
 공식 모듈 release zip을 업로드한 뒤 sha256 checksum을 계산한다.

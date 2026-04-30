@@ -191,11 +191,10 @@ Toycore 검증 버전
 
 ### 5단계: public repository 가져오기
 
-- 서버 기능 점검: `git` 명령, `exec()` 가능 여부 확인
 - owner 전용 고급 UI로 제공
 - 허용 repository 패턴 또는 registry 등록 repository만 허용
 - tag/ref 선택 기능 제공
-- clone 후 zip 업로드와 같은 검증 함수 사용
+- GitHub archive zip 다운로드 후 zip 업로드와 같은 검증 함수 사용
 
 ## 7. 금지하는 방향
 
@@ -220,6 +219,7 @@ Toycore 검증 버전
 - `/admin/modules`에서 registry에 URL과 checksum이 등록된 공식 release zip을 다운로드해 같은 검증 흐름으로 반영할 수 있다.
 - `/admin/modules`에서 registry에 등록된 공식 GitHub repository의 archive zip을 ref 기준으로 다운로드해 같은 검증 흐름으로 반영할 수 있다.
 - `.tools/bin/update-module-index`로 모듈 zip 디렉터리의 sha256 checksum을 계산해 `docs/module-index.json`을 갱신할 수 있다.
+- `.tools/bin/publish-module-release`로 공식 모듈 zip 수집, registry checksum 갱신, GitHub Release 업로드를 한 흐름으로 처리할 수 있다.
 - 기존 모듈 파일을 교체할 때는 `storage/module-backups`에 이전 디렉터리를 보관한다.
 - 코드 버전이 설치 버전보다 높고 미적용 SQL이 없으면 파일 전용 업데이트 버전을 관리자 화면에서 반영할 수 있다.
 - 업로드 zip은 `{module_key}/module.php`, `module/module.php`, 한 단계 아래 `module/` 디렉터리를 둔 리포지토리 zip 구조를 인식한다.
@@ -228,5 +228,5 @@ Toycore 검증 버전
 다음 작업:
 
 ```text
-1. 실제 릴리스 때 module-index.json의 release zip URL과 checksum 채우기
+1. 실제 릴리스 태그에서 publish-module-release 실행 후 standard/ops 설치 검증
 ```

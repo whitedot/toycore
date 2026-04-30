@@ -160,6 +160,12 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 ./.tools/bin/update-module-index 2026.05.001 https://example.com/releases/v2026.05.001 dist/modules
 ```
 
+공식 모듈 릴리스 zip을 모듈 리포지토리에서 모아 GitHub Release에 올릴 때는 릴리스 담당자 환경에서 다음 도구를 사용할 수 있습니다.
+
+```sh
+./.tools/bin/publish-module-release 2026.05.001
+```
+
 owner는 registry에 등록된 공식 GitHub repository의 archive zip도 ref를 지정해 다운로드할 수 있습니다. 이 경로는 checksum이 고정된 release zip보다 낮은 수준의 고급 경로이며, 임의 repository URL 입력은 허용하지 않습니다.
 
 ## Extension Points

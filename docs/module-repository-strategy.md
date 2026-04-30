@@ -60,7 +60,7 @@ git@github.com:whitedot/toycore-module-reward.git
 - 각 모듈의 `module.php`에 `toycore.min_version`과 `toycore.tested_with` 메타데이터를 추가했다.
 - Toycore 본체의 선택 모듈 `modules/{module_key}` 복사본은 제거했다.
 - 각 모듈 리포지토리에 설치용 zip 산출물 생성 스크립트를 추가했다.
-- GitHub Releases 업로드 자동화는 아직 만들지 않았다.
+- Toycore 본체에 공식 모듈 release zip 수집, registry checksum 갱신, GitHub Releases 업로드 보조 스크립트를 추가했다.
 
 현재 상태에서의 원본 기준:
 
@@ -289,6 +289,12 @@ ops = standard + site_menu + banner + notification
 
 ```sh
 ./.tools/bin/package-distributions 2026.05.001
+```
+
+공식 모듈 zip을 모아 registry checksum을 갱신하고 GitHub Release에 업로드할 때:
+
+```sh
+./.tools/bin/publish-module-release 2026.05.001
 ```
 
 선택 모듈 리포지토리는 기본적으로 toycore.git과 같은 상위 디렉터리에 있어야 한다.
@@ -590,7 +596,7 @@ standard = minimal + 검증된 선택 모듈 묶음
 
 - 공식 모듈 목록을 문서 또는 JSON으로 제공한다.
 - 관리자 화면에서 설치된 모듈의 코드 버전, DB 버전, 호환 정보를 보여준다.
-- 자동 다운로드는 아직 하지 않는다.
+- checksum이 등록된 공식 release zip과 registry 등록 GitHub repository archive를 owner 전용으로 내려받을 수 있다.
 
 ### 5단계: 선택적 자동 설치 검토
 
