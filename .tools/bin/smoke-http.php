@@ -56,6 +56,16 @@ $checks = [
         'must_not_expose' => ['require_once TOY_ROOT'],
     ],
     [
+        'label' => 'config directory protection',
+        'path' => '/config/.gitignore',
+        'must_not_expose' => ['config.php.tmp'],
+    ],
+    [
+        'label' => 'storage directory protection',
+        'path' => '/storage/.gitignore',
+        'must_not_expose' => ['!.gitignore'],
+    ],
+    [
         'label' => 'docs protection',
         'path' => '/docs/deployment-protection.md',
         'must_not_expose' => ['# 배포 보호 기준'],
