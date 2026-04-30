@@ -164,6 +164,41 @@ function toy_admin_registry_entry_download_ready(array $entry): bool
         && preg_match('/\A[a-f0-9]{64}\z/', (string) ($entry['checksum'] ?? '')) === 1;
 }
 
+function toy_admin_registry_entry_repository_ready(array $entry): bool
+{
+    $repository = (string) ($entry['repository'] ?? '');
+    if (!toy_is_public_http_url($repository)) {
+        return false;
+    }
+
+    $host = strtolower((string) parse_url($repository, PHP_URL_HOST));
+    $path = trim((string) parse_url($repository, PHP_URL_PATH), '/');
+    return $host === 'github.com' && preg_match('/\Awhitedot\/toycore-module-[a-z0-9-]+\z/', $path) === 1;
+}
+
+function toy_admin_is_safe_repository_ref(string $ref): bool
+{
+    if ($ref === '' || strlen($ref) > 120 || str_contains($ref, '..')) {
+        return false;
+    }
+
+    if (str_starts_with($ref, '/') || str_ends_with($ref, '/') || str_contains($ref, '//')) {
+        return false;
+    }
+
+    return preg_match('/\A[A-Za-z0-9._\/-]+\z/', $ref) === 1;
+}
+
+function toy_admin_registry_repository_archive_url(array $entry, string $ref): string
+{
+    if (!toy_admin_registry_entry_repository_ready($entry) || !toy_admin_is_safe_repository_ref($ref)) {
+        return '';
+    }
+
+    $path = trim((string) parse_url((string) $entry['repository'], PHP_URL_PATH), '/');
+    return 'https://codeload.github.com/' . $path . '/zip/' . rawurlencode($ref);
+}
+
 function toy_admin_random_suffix(): string
 {
     try {
@@ -681,6 +716,95 @@ function toy_admin_download_registry_module_zip(array $entry): array
         'registry_module_key' => $moduleKey,
         'registry_zip_url' => $zipUrl,
         'registry_checksum' => $actualChecksum,
+    ];
+}
+
+function toy_admin_download_registry_repository_archive(array $entry, string $ref): array
+{
+    if (!toy_admin_registry_entry_repository_ready($entry)) {
+        throw new RuntimeException('registry에 허용된 GitHub repository가 등록되어 있지 않습니다.');
+    }
+
+    if (!toy_admin_is_safe_repository_ref($ref)) {
+        throw new RuntimeException('repository ref 형식이 올바르지 않습니다.');
+    }
+
+    $moduleKey = (string) $entry['module_key'];
+    $archiveUrl = toy_admin_registry_repository_archive_url($entry, $ref);
+    if ($archiveUrl === '') {
+        throw new RuntimeException('repository archive URL을 만들 수 없습니다.');
+    }
+
+    $limit = toy_admin_module_upload_limit_bytes();
+    $downloadDir = toy_admin_module_work_dir('module-upload');
+    $target = $downloadDir . '/repository-' . $moduleKey . '-' . date('YmdHis') . '-' . toy_admin_random_suffix() . '.zip';
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 20,
+            'ignore_errors' => true,
+            'header' => "User-Agent: Toycore-Module-Repository\r\n",
+        ],
+    ]);
+
+    $source = fopen($archiveUrl, 'rb', false, $context);
+    if (!is_resource($source)) {
+        throw new RuntimeException('repository archive zip을 다운로드할 수 없습니다.');
+    }
+
+    $targetHandle = fopen($target, 'wb');
+    if (!is_resource($targetHandle)) {
+        fclose($source);
+        throw new RuntimeException('repository archive zip 임시 파일을 만들 수 없습니다.');
+    }
+
+    $hash = hash_init('sha256');
+    $bytes = 0;
+    try {
+        while (!feof($source)) {
+            $chunk = fread($source, 8192);
+            if (!is_string($chunk)) {
+                throw new RuntimeException('repository archive zip을 읽을 수 없습니다.');
+            }
+
+            if ($chunk === '') {
+                continue;
+            }
+
+            $bytes += strlen($chunk);
+            if ($bytes > $limit) {
+                throw new RuntimeException('다운로드 파일 크기는 ' . toy_admin_format_bytes($limit) . ' 이하여야 합니다.');
+            }
+
+            hash_update($hash, $chunk);
+            if (fwrite($targetHandle, $chunk) === false) {
+                throw new RuntimeException('repository archive zip 임시 파일을 쓸 수 없습니다.');
+            }
+        }
+    } catch (Throwable $exception) {
+        fclose($source);
+        fclose($targetHandle);
+        if (is_file($target)) {
+            unlink($target);
+        }
+        throw $exception;
+    }
+
+    fclose($source);
+    fclose($targetHandle);
+
+    $checksum = hash_final($hash);
+    return [
+        'error' => UPLOAD_ERR_OK,
+        'name' => $moduleKey . '-' . str_replace(['/', '\\'], '-', $ref) . '.zip',
+        'size' => $bytes,
+        'tmp_name' => $target,
+        'registry_module_key' => $moduleKey,
+        'repository' => (string) $entry['repository'],
+        'repository_ref' => $ref,
+        'repository_archive_url' => $archiveUrl,
+        'repository_archive_checksum' => $checksum,
     ];
 }
 

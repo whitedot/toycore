@@ -34,7 +34,7 @@ if (toy_request_method() === 'POST') {
         $errors[] = '모듈 키가 올바르지 않습니다.';
     }
 
-    if ($intent === 'upload_module_zip' || $intent === 'download_registry_module') {
+    if (in_array($intent, ['upload_module_zip', 'download_registry_module', 'download_repository_archive'], true)) {
         if (!$canManageModuleSources) {
             $errors[] = '모듈 소스 반영은 owner 권한이 필요합니다.';
         }
@@ -130,17 +130,22 @@ if (toy_request_method() === 'POST') {
         }
     }
 
-    if ($errors === [] && in_array($intent, ['upload_module_zip', 'download_registry_module'], true)) {
+    if ($errors === [] && in_array($intent, ['upload_module_zip', 'download_registry_module', 'download_repository_archive'], true)) {
         $extractDir = '';
         $downloadedZip = '';
         try {
-            if ($intent === 'download_registry_module') {
+            if ($intent === 'download_registry_module' || $intent === 'download_repository_archive') {
                 $registryEntry = toy_admin_module_registry_entry($moduleKey);
                 if (!is_array($registryEntry)) {
                     throw new RuntimeException('registry에서 모듈을 찾을 수 없습니다.');
                 }
 
-                $upload = toy_admin_download_registry_module_zip($registryEntry);
+                if ($intent === 'download_repository_archive') {
+                    $repositoryRef = toy_post_string('repository_ref', 120);
+                    $upload = toy_admin_download_registry_repository_archive($registryEntry, $repositoryRef);
+                } else {
+                    $upload = toy_admin_download_registry_module_zip($registryEntry);
+                }
                 $downloadedZip = (string) ($upload['tmp_name'] ?? '');
             } else {
                 $upload = $_FILES['module_zip'] ?? null;
@@ -170,20 +175,24 @@ if (toy_request_method() === 'POST') {
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
-                'event_type' => $intent === 'download_registry_module' ? 'module.source.downloaded' : 'module.source.uploaded',
+                'event_type' => $intent === 'upload_module_zip' ? 'module.source.uploaded' : 'module.source.downloaded',
                 'target_type' => 'module',
                 'target_id' => $moduleKey,
                 'result' => 'success',
-                'message' => $intent === 'download_registry_module' ? 'Module source zip downloaded from registry.' : 'Module source zip uploaded.',
+                'message' => $intent === 'upload_module_zip' ? 'Module source zip uploaded.' : 'Module source zip downloaded.',
                 'metadata' => [
                     'version' => $moduleVersion,
-                    'source' => $intent === 'download_registry_module' ? 'registry' : 'upload',
+                    'source' => $intent === 'download_repository_archive' ? 'repository' : ($intent === 'download_registry_module' ? 'registry' : 'upload'),
                     'replace_confirmed' => $replaceConfirmed,
                     'allow_downgrade' => $allowDowngrade,
                     'upload_filename' => (string) ($uploadStats['filename'] ?? ''),
                     'upload_size' => (int) ($uploadStats['size'] ?? 0),
                     'upload_checksum' => (string) ($uploadStats['checksum'] ?? ''),
                     'registry_zip_url' => (string) ($upload['registry_zip_url'] ?? ''),
+                    'repository' => (string) ($upload['repository'] ?? ''),
+                    'repository_ref' => (string) ($upload['repository_ref'] ?? ''),
+                    'repository_archive_url' => (string) ($upload['repository_archive_url'] ?? ''),
+                    'repository_archive_checksum' => (string) ($upload['repository_archive_checksum'] ?? ''),
                     'zip_entry_count' => (int) ($uploadStats['entry_count'] ?? 0),
                     'zip_uncompressed_bytes' => (int) ($uploadStats['uncompressed_bytes'] ?? 0),
                     'backup_dir' => str_replace(TOY_ROOT . '/', '', (string) ($result['backup_dir'] ?? '')),
@@ -505,6 +514,8 @@ foreach (toy_admin_module_registry_entries() as $entry) {
     $moduleKey = (string) $entry['module_key'];
     $entry['installed'] = isset($installedModuleKeys[$moduleKey]);
     $entry['download_ready'] = toy_admin_registry_entry_download_ready($entry);
+    $entry['repository_ready'] = toy_admin_registry_entry_repository_ready($entry);
+    $entry['default_ref'] = (string) ($entry['latest_version'] !== '' ? 'v' . $entry['latest_version'] : 'main');
     $registryModules[] = $entry;
 }
 

@@ -111,8 +111,8 @@ Git 사용 가능 환경을 위한 owner 전용 고급 기능이다.
 - owner 권한에서만 실행한다.
 - 우선 `https://github.com/whitedot/toycore-module-*` 또는 공식 registry에 등록된 public repository만 허용한다.
 - `main` 브랜치 직접 설치보다 tag 또는 release 기준을 권장한다.
-- clone 결과를 바로 실행하지 않고 임시 디렉터리에서 구조 검증 후 복사한다.
-- Git 명령이 없거나 `exec()`가 막힌 환경에서는 기능을 비활성화한다.
+- repository archive 결과를 바로 실행하지 않고 임시 디렉터리에서 구조 검증 후 복사한다.
+- Git 명령이나 `exec()`에 의존하지 않고 GitHub archive zip 다운로드를 사용한다.
 
 ## 4. 업데이트 흐름
 
@@ -218,6 +218,7 @@ Toycore 검증 버전
 - 관리자 모듈 화면은 설치 버전, 코드 버전, Toycore 호환 정보를 표시한다.
 - `/admin/modules`에서 owner가 모듈 zip을 업로드해 `modules/{module_key}` 파일을 반영할 수 있다.
 - `/admin/modules`에서 registry에 URL과 checksum이 등록된 공식 release zip을 다운로드해 같은 검증 흐름으로 반영할 수 있다.
+- `/admin/modules`에서 registry에 등록된 공식 GitHub repository의 archive zip을 ref 기준으로 다운로드해 같은 검증 흐름으로 반영할 수 있다.
 - `.tools/bin/update-module-index`로 모듈 zip 디렉터리의 sha256 checksum을 계산해 `docs/module-index.json`을 갱신할 수 있다.
 - 기존 모듈 파일을 교체할 때는 `storage/module-backups`에 이전 디렉터리를 보관한다.
 - 코드 버전이 설치 버전보다 높고 미적용 SQL이 없으면 파일 전용 업데이트 버전을 관리자 화면에서 반영할 수 있다.
@@ -227,5 +228,5 @@ Toycore 검증 버전
 다음 작업:
 
 ```text
-1. public repository 가져오기는 owner 전용 고급 기능으로 후순위 검토
+1. 실제 릴리스 때 module-index.json의 release zip URL과 checksum 채우기
 ```

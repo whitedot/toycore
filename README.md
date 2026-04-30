@@ -160,6 +160,8 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 ./.tools/bin/update-module-index 2026.05.001 https://example.com/releases/v2026.05.001 dist/modules
 ```
 
+owner는 registry에 등록된 공식 GitHub repository의 archive zip도 ref를 지정해 다운로드할 수 있습니다. 이 경로는 checksum이 고정된 release zip보다 낮은 수준의 고급 경로이며, 임의 repository URL 입력은 허용하지 않습니다.
+
 ## Extension Points
 
 Toycore는 전역 hook/event dispatcher를 기본 구조로 두지 않습니다. 모듈 간 영향이 필요하면 각 모듈이 명시적 계약 파일을 제공하고, 소비 모듈이 필요한 시점에 그 파일을 읽습니다.
