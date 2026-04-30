@@ -48,6 +48,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <input type="hidden" name="notifications_days" value="<?php echo toy_e((string) $values['notifications_days']); ?>">
     <?php } ?>
     <p>
+        <label>모듈 백업 보관일<br>
+            <input type="number" name="module_backups_days" value="<?php echo toy_e((string) $values['module_backups_days']); ?>" min="1" max="3650" required>
+        </label>
+    </p>
+    <p>
         <label>
             <input type="checkbox" name="cleanup_confirmed" value="1" required>
             아래 삭제 후보 수를 확인했습니다.
@@ -121,6 +126,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) ($deletedCounts['notification_reads'] ?? '')); ?></td>
             </tr>
         <?php } ?>
+        <tr>
+            <td>모듈 파일 백업</td>
+            <td><?php echo toy_e($previewCutoffs['module_backups']); ?></td>
+            <td><?php echo toy_e((string) $previewCounts['module_backups']); ?></td>
+            <td><?php echo toy_e((string) ($deletedCounts['module_backups'] ?? '')); ?></td>
+        </tr>
     </tbody>
 </table>
 

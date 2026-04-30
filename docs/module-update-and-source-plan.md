@@ -246,6 +246,8 @@ Toycore 검증 버전
 
 관리자 대시보드는 `storage/update-failed.json`과 `storage/module-backups` 요약을 표시한다. `/admin/modules`에서 파일 교체를 수행한 뒤에는 `/admin`에서 최근 백업 존재 여부를 확인하고, `/admin/updates`에서 미적용 SQL을 확인한다.
 
+오래된 모듈 백업은 `/admin/retention`에서 보관 기간 기준으로 정리한다. 백업 정리 전에는 최근 파일 교체가 정상 동작하는지 확인하고, 복구가 필요한 백업은 별도 위치에 보관한 뒤 정리를 실행한다.
+
 다음 작업:
 
 ```text

@@ -14,6 +14,7 @@ $defaults = [
     'used_tokens_days' => 30,
     'sessions_days' => 30,
     'notifications_days' => 365,
+    'module_backups_days' => 180,
 ];
 $values = $defaults;
 $errors = [];
@@ -45,6 +46,51 @@ function toy_admin_retention_notification_tables_exist(PDO $pdo): bool
     }
 }
 
+function toy_admin_retention_module_backup_dirs(string $cutoff): array
+{
+    $backupRoot = TOY_ROOT . '/storage/module-backups';
+    if (!is_dir($backupRoot)) {
+        return [];
+    }
+
+    $cutoffTime = strtotime($cutoff);
+    if ($cutoffTime === false) {
+        return [];
+    }
+
+    $directories = glob($backupRoot . '/*', GLOB_ONLYDIR);
+    if (!is_array($directories)) {
+        return [];
+    }
+
+    $oldDirectories = [];
+    foreach ($directories as $directory) {
+        $modifiedAt = filemtime($directory);
+        if ($modifiedAt !== false && $modifiedAt < $cutoffTime) {
+            $oldDirectories[] = $directory;
+        }
+    }
+
+    sort($oldDirectories, SORT_STRING);
+    return $oldDirectories;
+}
+
+function toy_admin_retention_module_backup_count(string $cutoff): int
+{
+    return count(toy_admin_retention_module_backup_dirs($cutoff));
+}
+
+function toy_admin_retention_delete_module_backups(string $cutoff): int
+{
+    $deletedCount = 0;
+    foreach (toy_admin_retention_module_backup_dirs($cutoff) as $directory) {
+        toy_admin_remove_directory($directory);
+        $deletedCount++;
+    }
+
+    return $deletedCount;
+}
+
 $hasNotificationTables = toy_admin_retention_notification_tables_exist($pdo);
 
 if (toy_request_method() === 'POST') {
@@ -58,6 +104,7 @@ if (toy_request_method() === 'POST') {
         'used_tokens_days' => (int) toy_post_string('used_tokens_days', 5),
         'sessions_days' => (int) toy_post_string('sessions_days', 5),
         'notifications_days' => (int) toy_post_string('notifications_days', 5),
+        'module_backups_days' => (int) toy_post_string('module_backups_days', 5),
     ];
 
     foreach ($values as $key => $days) {
@@ -77,6 +124,7 @@ if (toy_request_method() === 'POST') {
         $tokenCutoff = toy_admin_retention_cutoff($values['used_tokens_days']);
         $sessionCutoff = toy_admin_retention_cutoff($values['sessions_days']);
         $notificationCutoff = toy_admin_retention_cutoff($values['notifications_days']);
+        $moduleBackupCutoff = toy_admin_retention_cutoff($values['module_backups_days']);
 
         $stmt = $pdo->prepare('DELETE FROM toy_member_auth_logs WHERE created_at < :cutoff');
         $stmt->execute(['cutoff' => $authCutoff]);
@@ -131,6 +179,8 @@ if (toy_request_method() === 'POST') {
             $deletedCounts['notifications'] = $stmt->rowCount();
         }
 
+        $deletedCounts['module_backups'] = toy_admin_retention_delete_module_backups($moduleBackupCutoff);
+
         toy_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'admin',
@@ -155,6 +205,7 @@ $previewCutoffs = [
     'used_tokens' => toy_admin_retention_cutoff($values['used_tokens_days']),
     'sessions' => toy_admin_retention_cutoff($values['sessions_days']),
     'notifications' => toy_admin_retention_cutoff($values['notifications_days']),
+    'module_backups' => toy_admin_retention_cutoff($values['module_backups_days']),
 ];
 
 $previewCounts = [
@@ -210,6 +261,7 @@ $previewCounts = [
          WHERE n.created_at < :cutoff',
         ['cutoff' => $previewCutoffs['notifications']]
     ) : 0,
+    'module_backups' => toy_admin_retention_module_backup_count($previewCutoffs['module_backups']),
 ];
 
 include TOY_ROOT . '/modules/admin/views/retention.php';
