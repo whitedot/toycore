@@ -11,162 +11,20 @@ toy_admin_require_role($pdo, (int) $account['id'], ['owner']);
 $errors = [];
 $notice = '';
 $appliedUpdates = [];
-$previousUpdateFailure = null;
-$previousUpdateFailurePath = TOY_ROOT . '/storage/update-failed.json';
-if (is_file($previousUpdateFailurePath) && is_readable($previousUpdateFailurePath)) {
-    $previousUpdateFailureJson = file_get_contents($previousUpdateFailurePath);
-    $decodedPreviousUpdateFailure = is_string($previousUpdateFailureJson) ? json_decode($previousUpdateFailureJson, true) : null;
-    if (is_array($decodedPreviousUpdateFailure)) {
-        $previousUpdateFailure = [
-            'recorded_at' => (string) ($decodedPreviousUpdateFailure['recorded_at'] ?? ''),
-            'stage' => (string) ($decodedPreviousUpdateFailure['stage'] ?? ''),
-            'scope' => (string) ($decodedPreviousUpdateFailure['scope'] ?? ''),
-            'module_key' => (string) ($decodedPreviousUpdateFailure['module_key'] ?? ''),
-            'version' => (string) ($decodedPreviousUpdateFailure['version'] ?? ''),
-            'checksum' => (string) ($decodedPreviousUpdateFailure['checksum'] ?? ''),
-            'message' => (string) ($decodedPreviousUpdateFailure['message'] ?? ''),
-        ];
-    }
-}
+$previousUpdateFailure = toy_admin_previous_update_failure();
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
 
-    $pendingUpdates = toy_admin_pending_updates($pdo);
-    $backupConfirmed = ($_POST['backup_confirmed'] ?? '') === '1';
-
-    if ($pendingUpdates !== [] && !$backupConfirmed) {
-        $errors[] = '업데이트 전 백업 확인이 필요합니다.';
-    }
-
-    if ($errors === [] && $pendingUpdates !== []) {
-        if (!toy_admin_acquire_update_lock($pdo)) {
-            $errors[] = '다른 업데이트가 실행 중입니다. 잠시 후 다시 시도하세요.';
-            toy_write_operational_marker('update-failed.json', [
-                'stage' => 'acquire_update_lock',
-                'message' => 'Schema update lock could not be acquired.',
-            ]);
-        } else {
-            try {
-                $pendingUpdates = toy_admin_pending_updates($pdo);
-                foreach ($pendingUpdates as $update) {
-                    try {
-                        toy_audit_log($pdo, [
-                            'actor_account_id' => (int) $account['id'],
-                            'actor_type' => 'admin',
-                            'event_type' => 'schema.update.started',
-                            'target_type' => (string) $update['scope'],
-                            'target_id' => (string) $update['label'] . ':' . (string) $update['version'],
-                            'result' => 'success',
-                            'message' => 'Schema update started.',
-                            'metadata' => [
-                                'checksum' => (string) ($update['checksum'] ?? ''),
-                            ],
-                        ]);
-
-                        toy_admin_apply_update($pdo, $update);
-                        $appliedUpdates[] = $update;
-
-                        toy_audit_log($pdo, [
-                            'actor_account_id' => (int) $account['id'],
-                            'actor_type' => 'admin',
-                            'event_type' => 'schema.update.completed',
-                            'target_type' => (string) $update['scope'],
-                            'target_id' => (string) $update['label'] . ':' . (string) $update['version'],
-                            'result' => 'success',
-                            'message' => 'Schema update completed.',
-                            'metadata' => [
-                                'checksum' => (string) ($update['checksum'] ?? ''),
-                            ],
-                        ]);
-                    } catch (Throwable $exception) {
-                        toy_audit_log($pdo, [
-                            'actor_account_id' => (int) $account['id'],
-                            'actor_type' => 'admin',
-                            'event_type' => 'schema.update.failed',
-                            'target_type' => (string) $update['scope'],
-                            'target_id' => (string) $update['label'] . ':' . (string) $update['version'],
-                            'result' => 'failure',
-                            'message' => 'Schema update failed.',
-                            'metadata' => [
-                                'checksum' => (string) ($update['checksum'] ?? ''),
-                                'error' => $exception->getMessage(),
-                            ],
-                        ]);
-                        $errors[] = (string) $update['label'] . ' ' . (string) $update['version'] . ' 업데이트 중 오류가 발생했습니다.';
-                        $failureMessage = $exception->getMessage();
-                        $failureMessage = function_exists('mb_substr') ? mb_substr($failureMessage, 0, 500) : substr($failureMessage, 0, 500);
-                        toy_write_operational_marker('update-failed.json', [
-                            'stage' => 'apply_update',
-                            'scope' => (string) $update['scope'],
-                            'module_key' => (string) $update['module_key'],
-                            'version' => (string) $update['version'],
-                            'checksum' => (string) ($update['checksum'] ?? ''),
-                            'message' => $failureMessage,
-                        ]);
-                        break;
-                    }
-                }
-            } finally {
-                toy_admin_release_update_lock($pdo);
-            }
-        }
-    }
-
-    if ($errors === []) {
-        toy_clear_operational_marker('update-failed.json');
-        $syncedModules = toy_admin_sync_file_only_module_versions(
-            $pdo,
-            toy_admin_module_pending_update_counts(toy_admin_pending_updates($pdo))
-        );
-        foreach ($syncedModules as $syncedModule) {
-            toy_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'module.version.synced',
-                'target_type' => 'module',
-                'target_id' => (string) $syncedModule['module_key'],
-                'result' => 'success',
-                'message' => 'Module installed version synced after schema updates.',
-                'metadata' => [
-                    'before_version' => (string) $syncedModule['before_version'],
-                    'after_version' => (string) $syncedModule['after_version'],
-                ],
-            ]);
-        }
-        if ($appliedUpdates === []) {
-            $notice = $syncedModules === [] ? '적용할 업데이트가 없습니다.' : '파일 전용 업데이트 버전을 반영했습니다.';
-        } else {
-            $notice = $syncedModules === [] ? '업데이트를 적용했습니다.' : '업데이트를 적용하고 모듈 설치 버전을 반영했습니다.';
-        }
-    }
+    $postResult = toy_admin_handle_updates_post($pdo, $account);
+    $errors = $postResult['errors'];
+    $notice = (string) $postResult['notice'];
+    $appliedUpdates = $postResult['applied_updates'];
 }
 
 $pendingUpdates = toy_admin_pending_updates($pdo);
 $schemaVersions = toy_admin_schema_versions($pdo);
 $pendingUpdateCounts = toy_admin_module_pending_update_counts($pendingUpdates);
-$moduleVersionDrifts = [];
-$stmt = $pdo->query('SELECT module_key, version FROM toy_modules ORDER BY module_key ASC');
-foreach ($stmt->fetchAll() as $module) {
-    $moduleKey = (string) ($module['module_key'] ?? '');
-    if (!toy_is_safe_module_key($moduleKey)) {
-        continue;
-    }
-
-    $metadata = toy_module_metadata($moduleKey);
-    $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
-    $installedVersion = (string) ($module['version'] ?? '');
-    if ($codeVersion === '' || $installedVersion === '' || $codeVersion === $installedVersion) {
-        continue;
-    }
-
-    $moduleVersionDrifts[] = [
-        'module_key' => $moduleKey,
-        'installed_version' => $installedVersion,
-        'code_version' => $codeVersion,
-        'pending_update_count' => (int) ($pendingUpdateCounts[$moduleKey] ?? 0),
-        'state' => strcmp($codeVersion, $installedVersion) > 0 ? 'code_newer' : 'code_older',
-    ];
-}
+$moduleVersionDrifts = toy_admin_module_version_drifts($pdo, $pendingUpdateCounts);
 
 include TOY_ROOT . '/modules/admin/views/updates.php';
