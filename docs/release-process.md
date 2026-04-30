@@ -8,6 +8,7 @@
 - 외부 모듈 리포지토리가 toycore.git과 같은 상위 디렉터리에 있는지 확인한다.
 - 다른 위치를 쓰면 `TOYCORE_MODULE_REPO_ROOT`에 모듈 리포지토리 상위 디렉터리를 지정한다.
 - 각 모듈의 `module/module.php` version과 `CHANGELOG.md`를 확인한다.
+- 공식 모듈 registry 구조는 `php .tools/bin/check-module-index.php`로 확인한다.
 
 ## 2. 본체 배포 패키지 생성
 

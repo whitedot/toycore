@@ -25,6 +25,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 관리자 모듈 화면에서 owner 전용 모듈 zip 업로드
 - 공식 registry에 URL과 checksum이 등록된 모듈 release zip 다운로드
 - 공식 registry에 등록된 GitHub repository의 고급 ref archive zip 다운로드
+- 공식 모듈 registry 구조와 release zip/checksum 쌍 검증 도구
 - 모듈 파일 교체 전 백업과 교체 확인, downgrade 차단, checksum/압축 크기 검증
 - 모듈 release zip checksum을 계산해 공식 registry를 갱신하는 도구
 - 공식 모듈 release zip 수집, registry 갱신, GitHub Release 업로드 보조 도구
@@ -34,6 +35,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - Docker 기반 로컬 PHP 실행 래퍼 제공
 - 기본 점검 스크립트 제공
 - 로컬 PHP 기반 크로스플랫폼 기본 점검 스크립트 제공
+- 공식 모듈 registry 구조 검사
 - Docker 없이 실행 가능한 공백, SQL 파일, 모듈 기본 구조 검사 선행
 - 관리자 메뉴 path와 모듈 `paths.php` GET route 일치 검사
 - Docker 실행 시 전체 PHP 문법 검사

@@ -32,6 +32,7 @@
 - 모듈 설치/관리 화면에서 owner 전용 zip 업로드와 공식 registry release zip 다운로드 지원
 - 모듈 zip은 checksum, 항목 수, 압축 해제 크기, module key, version, downgrade, 교체 확인을 검증
 - 공식 모듈 registry는 `docs/module-index.json`에 두고 release zip URL과 checksum이 등록된 항목만 다운로드 가능
+- `.tools/bin/check-module-index.php`로 공식 모듈 registry 구조와 release zip/checksum 쌍 검증 가능
 - registry에 등록된 공식 GitHub repository는 owner가 고급 UI에서 ref를 지정해 archive zip으로 다운로드 가능
 - `.tools/bin/update-module-index`로 release zip checksum을 계산해 공식 모듈 registry를 갱신 가능
 - `.tools/bin/publish-module-release`로 공식 모듈 zip 수집, registry 갱신, GitHub Release 업로드 보조 가능
@@ -247,6 +248,7 @@
 - Docker 기반 로컬 PHP 실행 래퍼
 - 기본 점검 스크립트
 - 로컬 PHP 기반 크로스플랫폼 기본 점검 스크립트
+- 공식 모듈 registry 구조 검사
 - Docker 없이 실행 가능한 공백, SQL 파일, 모듈 기본 구조 검사 선행
 - 관리자 메뉴 path와 모듈 `paths.php` GET route 일치 검사
 - Docker 실행 시 전체 PHP 문법 검사
