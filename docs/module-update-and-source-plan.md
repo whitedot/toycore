@@ -79,7 +79,7 @@ module.zip
 필수 검증:
 
 - 압축 해제 후 최상위에 `{module_key}/module.php` 또는 `module/module.php`가 있는지 확인
-- `module.php`가 배열을 반환하는지 확인
+- 업로드 검증 단계에서는 `module.php`를 실행하지 않고 정적으로 읽어 배열 반환 형태인지 확인
 - `module.php.version`이 `YYYY.MM.NNN` 형식인지 확인
 - `install.sql` 존재 확인
 - `module_key`가 안전한 형식인지 확인

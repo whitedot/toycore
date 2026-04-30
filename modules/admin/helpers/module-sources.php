@@ -192,14 +192,40 @@ function toy_admin_infer_module_key_from_filename(string $filename): string
     return toy_is_safe_module_key($moduleKey) ? $moduleKey : '';
 }
 
+function toy_admin_php_string_array_value(string $content, string $key): string
+{
+    foreach (['\'', '"'] as $quote) {
+        $quotedKey = preg_quote($key, '/');
+        $quotedQuote = preg_quote($quote, '/');
+        $pattern = '/' . $quotedQuote . $quotedKey . $quotedQuote . '\s*=>\s*' . $quotedQuote . '((?:\\\\.|[^' . $quotedQuote . '\\\\])*)' . $quotedQuote . '/';
+        if (preg_match($pattern, $content, $matches) === 1) {
+            return stripcslashes((string) $matches[1]);
+        }
+    }
+
+    return '';
+}
+
 function toy_admin_load_module_metadata_from_file(string $file): array
 {
     if (!is_file($file)) {
         return [];
     }
 
-    $metadata = include $file;
-    return is_array($metadata) ? $metadata : [];
+    $content = file_get_contents($file);
+    if (!is_string($content) || preg_match('/\breturn\s+(?:\[|array\s*\()/i', $content) !== 1) {
+        return [];
+    }
+
+    $metadata = [];
+    foreach (['name', 'version', 'type', 'description'] as $key) {
+        $value = toy_admin_php_string_array_value($content, $key);
+        if ($value !== '') {
+            $metadata[$key] = $value;
+        }
+    }
+
+    return $metadata;
 }
 
 function toy_admin_module_source_candidate(array $candidate): ?array
