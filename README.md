@@ -105,6 +105,7 @@ Docker 또는 OrbStack이 꺼져 있어도 공백, SQL 파일, 모듈 기본 구
 ```
 
 결과는 `dist/toycore-minimal`, `dist/toycore-standard`, `dist/toycore-ops` 디렉터리와, `zip` 명령이 있는 경우 같은 이름의 zip 파일로 생성됩니다.
+각 배포 디렉터리에는 포함 모듈과 버전을 확인할 수 있는 `distribution-manifest.json`이 함께 생성됩니다.
 
 `standard`와 `ops` 패키지를 만들 때 선택 모듈이 본체 `modules/{module_key}`에 없으면, 패키징 스크립트는 기본적으로 toycore.git과 같은 상위 디렉터리에 있는 `toycore-module-{module-key}/module`을 사용합니다. 다른 위치를 쓰려면 `TOYCORE_MODULE_REPO_ROOT` 환경변수로 모듈 리포지토리 상위 디렉터리를 지정합니다.
 
@@ -148,6 +149,8 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 최소 모듈 구조 예시는 [sample_module](examples/sample_module/README.md)에서 확인할 수 있습니다.
 
 `banner`, `popup_layer`, `site_menu`, `notification`, `seo`, `point`, `deposit`, `reward`는 별도 모듈 리포지토리에서 관리합니다. toycore.git 본체에는 선택 모듈 복사본을 두지 않고, `standard`와 `ops` 배포 패키지를 만들 때 외부 모듈 리포지토리에서 조립합니다. 자세한 기준과 리포지토리 목록은 [모듈 별도 리포지토리 관리 방안](docs/module-repository-strategy.md)을 따릅니다.
+
+설치 후에는 owner가 `/admin/modules`에서 모듈 zip을 업로드할 수 있습니다. 업로드 zip은 `{module_key}/module.php` 구조를 권장하며, 기존 모듈 파일을 교체할 때는 이전 디렉터리를 `storage/module-backups`에 보관합니다. 파일 교체와 DB 업데이트는 분리되어 있으므로, 기존 모듈을 교체한 뒤에는 `/admin/updates`에서 미적용 SQL을 확인합니다.
 
 ## Extension Points
 

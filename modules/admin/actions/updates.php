@@ -115,11 +115,58 @@ if (toy_request_method() === 'POST') {
 
     if ($errors === []) {
         toy_clear_operational_marker('update-failed.json');
-        $notice = $appliedUpdates === [] ? '적용할 업데이트가 없습니다.' : '업데이트를 적용했습니다.';
+        $syncedModules = toy_admin_sync_file_only_module_versions(
+            $pdo,
+            toy_admin_module_pending_update_counts(toy_admin_pending_updates($pdo))
+        );
+        foreach ($syncedModules as $syncedModule) {
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'module.version.synced',
+                'target_type' => 'module',
+                'target_id' => (string) $syncedModule['module_key'],
+                'result' => 'success',
+                'message' => 'Module installed version synced after schema updates.',
+                'metadata' => [
+                    'before_version' => (string) $syncedModule['before_version'],
+                    'after_version' => (string) $syncedModule['after_version'],
+                ],
+            ]);
+        }
+        if ($appliedUpdates === []) {
+            $notice = $syncedModules === [] ? '적용할 업데이트가 없습니다.' : '파일 전용 업데이트 버전을 반영했습니다.';
+        } else {
+            $notice = $syncedModules === [] ? '업데이트를 적용했습니다.' : '업데이트를 적용하고 모듈 설치 버전을 반영했습니다.';
+        }
     }
 }
 
 $pendingUpdates = toy_admin_pending_updates($pdo);
 $schemaVersions = toy_admin_schema_versions($pdo);
+$pendingUpdateCounts = toy_admin_module_pending_update_counts($pendingUpdates);
+$moduleVersionDrifts = [];
+$stmt = $pdo->query('SELECT module_key, version FROM toy_modules ORDER BY module_key ASC');
+foreach ($stmt->fetchAll() as $module) {
+    $moduleKey = (string) ($module['module_key'] ?? '');
+    if (!toy_is_safe_module_key($moduleKey)) {
+        continue;
+    }
+
+    $metadata = toy_module_metadata($moduleKey);
+    $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
+    $installedVersion = (string) ($module['version'] ?? '');
+    if ($codeVersion === '' || $installedVersion === '' || $codeVersion === $installedVersion) {
+        continue;
+    }
+
+    $moduleVersionDrifts[] = [
+        'module_key' => $moduleKey,
+        'installed_version' => $installedVersion,
+        'code_version' => $codeVersion,
+        'pending_update_count' => (int) ($pendingUpdateCounts[$moduleKey] ?? 0),
+        'state' => strcmp($codeVersion, $installedVersion) > 0 ? 'code_newer' : 'code_older',
+    ];
+}
 
 include TOY_ROOT . '/modules/admin/views/updates.php';

@@ -74,6 +74,42 @@ copy_modules() {
     done
 }
 
+module_version() {
+    module_root="$1"
+
+    if [ ! -f "${module_root}/module.php" ]; then
+        printf ''
+        return
+    fi
+
+    sed -n "s/.*'version'[[:space:]]*=>[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${module_root}/module.php" | sed -n '1p'
+}
+
+write_manifest() {
+    package_name="$1"
+    package_root="$2"
+    shift 2
+
+    manifest="${package_root}/distribution-manifest.json"
+    {
+        printf '{\n'
+        printf '  "package": "%s",\n' "${package_name}"
+        printf '  "version": "%s",\n' "${VERSION}"
+        printf '  "modules": [\n'
+        first=1
+        for module_key in member admin "$@"; do
+            version="$(module_version "${package_root}/modules/${module_key}")"
+            if [ "${first}" -eq 0 ]; then
+                printf ',\n'
+            fi
+            first=0
+            printf '    {"module_key": "%s", "version": "%s"}' "${module_key}" "${version}"
+        done
+        printf '\n  ]\n'
+        printf '}\n'
+    } > "${manifest}"
+}
+
 make_zip() {
     package_name="$1"
     package_root="$2"
@@ -95,12 +131,15 @@ standard_root="${DIST}/toycore-standard"
 ops_root="${DIST}/toycore-ops"
 
 copy_base "${minimal_root}"
+write_manifest toycore-minimal "${minimal_root}"
 
 copy_base "${standard_root}"
 copy_modules "${standard_root}" seo popup_layer point deposit reward
+write_manifest toycore-standard "${standard_root}" seo popup_layer point deposit reward
 
 copy_base "${ops_root}"
 copy_modules "${ops_root}" seo popup_layer point deposit reward site_menu banner notification
+write_manifest toycore-ops "${ops_root}" seo popup_layer point deposit reward site_menu banner notification
 
 make_zip toycore-minimal "${minimal_root}"
 make_zip toycore-standard "${standard_root}"

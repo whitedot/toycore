@@ -208,17 +208,18 @@ Toycore 검증 버전
 - 선택 모듈은 별도 리포지토리에서 관리한다.
 - 각 모듈 리포지토리는 `module/` 구조와 `package-module` 스크립트를 가진다.
 - toycore 배포 패키지는 `minimal`, `standard`, `ops`로 나눌 수 있다.
+- 배포 패키지는 포함 모듈과 버전을 `distribution-manifest.json`에 남긴다.
 - 관리자 모듈 화면은 설치 버전, 코드 버전, Toycore 호환 정보를 표시한다.
+- `/admin/modules`에서 owner가 모듈 zip을 업로드해 `modules/{module_key}` 파일을 반영할 수 있다.
+- 기존 모듈 파일을 교체할 때는 `storage/module-backups`에 이전 디렉터리를 보관한다.
+- 코드 버전이 설치 버전보다 높고 미적용 SQL이 없으면 파일 전용 업데이트 버전을 관리자 화면에서 반영할 수 있다.
 
 다음 작업:
 
 ```text
-1. 모듈 zip 업로드 설치/업데이트 구현
-2. 최초 설치용 standard/ops release zip 제공 절차 정리
-3. 배포 패키지 manifest 생성
-4. 공통 모듈 패키지 검증 helper 작성
-5. 설치 버전과 코드 버전 차이 안내 강화
-6. SQL 없는 파일 전용 업데이트의 버전 반영 흐름 추가
-7. 공식 registry/release zip 다운로드 설계
-8. public repository 가져오기는 owner 전용 고급 기능으로 후순위 검토
+1. 최초 설치용 standard/ops release zip 제공 절차 정리
+2. 모듈 zip 업로드 검증 기준 보강
+3. 공식 registry/release zip 다운로드 설계
+4. registry checksum 검증과 감사 로그 보강
+5. public repository 가져오기는 owner 전용 고급 기능으로 후순위 검토
 ```

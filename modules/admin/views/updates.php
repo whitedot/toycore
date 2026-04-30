@@ -39,6 +39,40 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } ?>
 
+<?php if ($moduleVersionDrifts !== []) { ?>
+    <section>
+        <h2>모듈 버전 차이</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">모듈</th>
+                    <th scope="col">설치 버전</th>
+                    <th scope="col">코드 버전</th>
+                    <th scope="col">상태</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($moduleVersionDrifts as $drift) { ?>
+                    <tr>
+                        <td><?php echo toy_e((string) $drift['module_key']); ?></td>
+                        <td><?php echo toy_e((string) $drift['installed_version']); ?></td>
+                        <td><?php echo toy_e((string) $drift['code_version']); ?></td>
+                        <td>
+                            <?php if ((int) $drift['pending_update_count'] > 0) { ?>
+                                <?php echo toy_e((string) $drift['pending_update_count']); ?>개 SQL 적용 필요
+                            <?php } elseif ((string) $drift['state'] === 'code_newer') { ?>
+                                파일 전용 업데이트 반영 가능
+                            <?php } else { ?>
+                                코드 버전이 설치 버전보다 낮음
+                            <?php } ?>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    </section>
+<?php } ?>
+
 <section>
     <h2>대기 중인 업데이트</h2>
     <?php if ($pendingUpdates === []) { ?>

@@ -24,6 +24,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <th>유형</th>
             <th>설치 버전</th>
             <th>코드 버전</th>
+            <th>업데이트</th>
             <th>Toycore 최소</th>
             <th>Toycore 검증</th>
             <th>상태</th>
@@ -42,6 +43,26 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) ($module['code_type'] ?? 'module')); ?></td>
                 <td><?php echo toy_e((string) $module['version']); ?></td>
                 <td><?php echo toy_e((string) ($module['code_version'] !== '' ? $module['code_version'] : '-')); ?></td>
+                <td>
+                    <?php if ((int) ($module['pending_update_count'] ?? 0) > 0) { ?>
+                        <a href="<?php echo toy_e(toy_url('/admin/updates')); ?>"><?php echo toy_e((string) $module['pending_update_count']); ?>개 SQL 대기</a>
+                    <?php } elseif (($module['version_state'] ?? '') === 'code_newer') { ?>
+                        <?php if ($canManageModuleSources) { ?>
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
+                                <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="sync_module_version">
+                                <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
+                                <button type="submit">파일 업데이트 반영</button>
+                            </form>
+                        <?php } else { ?>
+                            owner 확인 필요
+                        <?php } ?>
+                    <?php } elseif (($module['version_state'] ?? '') === 'code_older') { ?>
+                        코드 버전 낮음
+                    <?php } else { ?>
+                        -
+                    <?php } ?>
+                </td>
                 <td><?php echo toy_e((string) ($module['toycore_min_version'] !== '' ? $module['toycore_min_version'] : '-')); ?></td>
                 <td><?php echo toy_e((string) ($module['toycore_tested_with'] !== '' ? $module['toycore_tested_with'] : '-')); ?></td>
                 <td><?php echo toy_e((string) $module['status']); ?></td>
@@ -83,6 +104,32 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </tbody>
 </table>
+
+<section>
+    <h2>모듈 zip 업로드</h2>
+    <?php if (!$canManageModuleSources) { ?>
+        <p>모듈 파일 업로드는 owner 권한이 필요합니다.</p>
+    <?php } elseif (!$moduleUploadAvailable) { ?>
+        <p>PHP ZipArchive 확장이 없어 이 서버에서는 zip 업로드를 사용할 수 없습니다. FTP로 <code>modules/{module_key}</code>에 업로드한 뒤 설치하세요.</p>
+    <?php } else { ?>
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>" enctype="multipart/form-data">
+            <?php echo toy_csrf_field(); ?>
+            <input type="hidden" name="intent" value="upload_module_zip">
+            <p>
+                <label>Module zip<br>
+                    <input type="file" name="module_zip" accept=".zip,application/zip" required>
+                </label>
+            </p>
+            <p>
+                <label>Module key<br>
+                    <input type="text" name="upload_module_key" maxlength="60" pattern="[a-z0-9_]*">
+                </label>
+            </p>
+            <p>최대 <?php echo toy_e($moduleUploadLimitLabel); ?>까지 업로드할 수 있습니다. zip은 <code>{module_key}/module.php</code> 구조를 권장하고, <code>module/module.php</code> 구조라면 module key를 입력하세요.</p>
+            <button type="submit">zip 업로드</button>
+        </form>
+    <?php } ?>
+</section>
 
 <section>
     <h2>설치 가능한 모듈</h2>
