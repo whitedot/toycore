@@ -244,6 +244,8 @@ Toycore 검증 버전
 
 모듈 설치 SQL 실행 중 실패한 경우 `toy_modules.status`는 `failed`로 남을 수 있다. 이 상태에서는 재설치를 먼저 실행하고, 운영자가 임의로 `enabled`로 바꾸지 않는다. DDL 일부가 이미 적용되었을 수 있으므로 실패 SQL을 그대로 재실행하기 전에 DB 상태를 확인한다.
 
+관리자 대시보드는 `storage/update-failed.json`과 `storage/module-backups` 요약을 표시한다. `/admin/modules`에서 파일 교체를 수행한 뒤에는 `/admin`에서 최근 백업 존재 여부를 확인하고, `/admin/updates`에서 미적용 SQL을 확인한다.
+
 다음 작업:
 
 ```text

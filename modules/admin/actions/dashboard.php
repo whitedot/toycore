@@ -15,6 +15,12 @@ foreach ($stmt->fetchAll() as $row) {
 }
 
 $operationSummary = [];
+$recoveryMarkers = [];
+$moduleBackupSummary = [
+    'count' => 0,
+    'latest_name' => '',
+    'latest_modified_at' => '',
+];
 
 function toy_admin_dashboard_table_exists(PDO $pdo, string $tableName): bool
 {
@@ -40,6 +46,84 @@ function toy_admin_dashboard_count(PDO $pdo, string $sql): int
         return 0;
     }
 }
+
+function toy_admin_dashboard_recovery_marker(string $filename, string $label): ?array
+{
+    if (preg_match('/\A[a-z0-9_.-]+\.json\z/', $filename) !== 1) {
+        return null;
+    }
+
+    $path = TOY_ROOT . '/storage/' . $filename;
+    if (!is_file($path) || !is_readable($path)) {
+        return null;
+    }
+
+    $content = file_get_contents($path);
+    $decoded = is_string($content) ? json_decode($content, true) : null;
+    if (!is_array($decoded)) {
+        return [
+            'label' => $label,
+            'filename' => $filename,
+            'recorded_at' => '',
+            'stage' => '',
+            'message' => '복구 marker를 읽을 수 없습니다.',
+        ];
+    }
+
+    return [
+        'label' => $label,
+        'filename' => $filename,
+        'recorded_at' => (string) ($decoded['recorded_at'] ?? ''),
+        'stage' => (string) ($decoded['stage'] ?? ''),
+        'scope' => (string) ($decoded['scope'] ?? ''),
+        'module_key' => (string) ($decoded['module_key'] ?? ''),
+        'version' => (string) ($decoded['version'] ?? ''),
+        'message' => (string) ($decoded['message'] ?? ''),
+    ];
+}
+
+function toy_admin_dashboard_module_backup_summary(): array
+{
+    $backupRoot = TOY_ROOT . '/storage/module-backups';
+    $summary = [
+        'count' => 0,
+        'latest_name' => '',
+        'latest_modified_at' => '',
+    ];
+    if (!is_dir($backupRoot)) {
+        return $summary;
+    }
+
+    $directories = glob($backupRoot . '/*', GLOB_ONLYDIR);
+    if (!is_array($directories)) {
+        return $summary;
+    }
+
+    $latestTime = 0;
+    foreach ($directories as $directory) {
+        $summary['count']++;
+        $modifiedAt = filemtime($directory);
+        if ($modifiedAt !== false && $modifiedAt > $latestTime) {
+            $latestTime = $modifiedAt;
+            $summary['latest_name'] = basename($directory);
+            $summary['latest_modified_at'] = date('Y-m-d H:i:s', $modifiedAt);
+        }
+    }
+
+    return $summary;
+}
+
+foreach ([
+    'install-failed.json' => '설치 실패',
+    'update-failed.json' => '업데이트 실패',
+] as $filename => $label) {
+    $marker = toy_admin_dashboard_recovery_marker($filename, $label);
+    if (is_array($marker)) {
+        $recoveryMarkers[] = $marker;
+    }
+}
+
+$moduleBackupSummary = toy_admin_dashboard_module_backup_summary();
 
 if (toy_admin_dashboard_table_exists($pdo, 'toy_site_menus') && toy_admin_dashboard_table_exists($pdo, 'toy_site_menu_items')) {
     $operationSummary[] = [

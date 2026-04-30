@@ -16,6 +16,51 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </dl>
 </section>
 
+<?php if ($recoveryMarkers !== [] || (int) $moduleBackupSummary['count'] > 0) { ?>
+    <section>
+        <h2>복구 상태</h2>
+
+        <?php if ($recoveryMarkers !== []) { ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th>항목</th>
+                        <th>단계</th>
+                        <th>대상</th>
+                        <th>기록 시각</th>
+                        <th>요약</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($recoveryMarkers as $marker) { ?>
+                        <?php
+                        $target = trim((string) ($marker['scope'] ?? '') . ' ' . (string) ($marker['module_key'] ?? '') . ' ' . (string) ($marker['version'] ?? ''));
+                        ?>
+                        <tr>
+                            <td><?php echo toy_e((string) $marker['label']); ?></td>
+                            <td><?php echo toy_e((string) $marker['stage']); ?></td>
+                            <td><?php echo toy_e($target); ?></td>
+                            <td><?php echo toy_e((string) $marker['recorded_at']); ?></td>
+                            <td><?php echo toy_e((string) $marker['message']); ?></td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        <?php } ?>
+
+        <?php if ((int) $moduleBackupSummary['count'] > 0) { ?>
+            <p>
+                모듈 백업 <?php echo toy_e((string) $moduleBackupSummary['count']); ?>개
+                <?php if ((string) $moduleBackupSummary['latest_name'] !== '') { ?>
+                    / 최근 백업:
+                    <?php echo toy_e((string) $moduleBackupSummary['latest_name']); ?>
+                    <?php echo toy_e((string) $moduleBackupSummary['latest_modified_at']); ?>
+                <?php } ?>
+            </p>
+        <?php } ?>
+    </section>
+<?php } ?>
+
 <?php if ($operationSummary !== []) { ?>
     <section>
         <h2>운영 모듈</h2>

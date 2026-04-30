@@ -111,6 +111,10 @@ storage/update-failed.json
 
 설치나 업데이트가 중간에 실패하면 운영자가 재시도 전 상태를 확인할 수 있도록 최소 복구 marker를 남깁니다. marker에는 실패 단계, 오류 요약, 업데이트 scope/module/version/checksum 같은 운영 식별자만 저장하고 DB 비밀번호, 토큰, 요청 원문은 저장하지 않습니다. 다음 성공 시 해당 marker는 삭제됩니다.
 
+관리자 대시보드는 남아 있는 복구 marker를 운영자가 먼저 볼 수 있도록 요약 표시합니다. 설치 실패 marker는 정상 설치 성공 후 삭제되어야 하며, 업데이트 실패 marker는 다음 업데이트 성공 후 삭제되어야 합니다. marker가 남아 있다면 운영자는 `storage/logs/error.log`, 감사 로그, 관련 SQL 또는 모듈 파일 상태를 확인한 뒤 재시도합니다.
+
+모듈 파일 교체 과정에서 만들어진 백업 디렉터리는 `storage/module-backups` 아래에 보관합니다. 관리자 대시보드는 백업 개수와 최근 백업 이름을 요약 표시해 파일 교체 이후 운영자가 백업 존재 여부를 바로 확인할 수 있게 합니다.
+
 ## 오류 처리 흐름
 
 ```text
@@ -131,6 +135,7 @@ storage/update-failed.json
 - SQL query 전체 로그는 기본 비활성
 - 개인정보가 포함된 request body 로그 금지
 - 복구 marker에 비밀번호, 토큰, CSRF 값 저장 금지
+- 복구 marker나 백업 경로를 일반 사용자 화면에 노출 금지
 
 ## 금지하는 방향
 
