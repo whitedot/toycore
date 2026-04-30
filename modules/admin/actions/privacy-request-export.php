@@ -21,50 +21,14 @@ if ($requestId <= 0) {
     exit;
 }
 
-$stmt = $pdo->prepare(
-    'SELECT id, account_id, request_type, status, requester_snapshot, request_message, admin_note, handled_by_account_id, handled_at, created_at, updated_at
-     FROM toy_privacy_requests
-     WHERE id = :id
-     LIMIT 1'
-);
-$stmt->execute(['id' => $requestId]);
-$privacyRequest = $stmt->fetch();
-
-if (!is_array($privacyRequest)) {
+$privacyRequest = toy_admin_privacy_request($pdo, $requestId);
+if ($privacyRequest === null) {
     toy_render_error(404, '개인정보 요청을 찾을 수 없습니다.');
     exit;
 }
 
-$export = [
-    'exported_at' => toy_now(),
-    'privacy_request' => [
-        'id' => (int) $privacyRequest['id'],
-        'account_id' => $privacyRequest['account_id'] !== null ? (int) $privacyRequest['account_id'] : null,
-        'request_type' => (string) $privacyRequest['request_type'],
-        'status' => (string) $privacyRequest['status'],
-        'requester_snapshot' => (string) $privacyRequest['requester_snapshot'],
-        'request_message' => $privacyRequest['request_message'],
-        'admin_note' => $privacyRequest['admin_note'],
-        'handled_by_account_id' => $privacyRequest['handled_by_account_id'] !== null ? (int) $privacyRequest['handled_by_account_id'] : null,
-        'handled_at' => $privacyRequest['handled_at'],
-        'created_at' => (string) $privacyRequest['created_at'],
-        'updated_at' => (string) $privacyRequest['updated_at'],
-    ],
-];
-
-if (!empty($privacyRequest['account_id'])) {
-    $export['member_data'] = toy_member_privacy_export_data($pdo, (int) $privacyRequest['account_id']);
-}
-
-toy_audit_log($pdo, [
-    'actor_account_id' => (int) $account['id'],
-    'actor_type' => 'admin',
-    'event_type' => 'privacy.request.exported',
-    'target_type' => 'privacy_request',
-    'target_id' => (string) $requestId,
-    'result' => 'success',
-    'message' => 'Privacy request export downloaded.',
-]);
+$export = toy_admin_privacy_request_export_data($pdo, $privacyRequest);
+toy_admin_log_privacy_request_export($pdo, $account, $requestId);
 
 toy_send_download_headers('application/json; charset=UTF-8', 'toycore-privacy-request-' . $requestId . '.json');
 echo json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
