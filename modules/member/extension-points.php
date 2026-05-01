@@ -17,11 +17,6 @@ return [
                 'label' => '폼 아래',
                 'kind' => 'content',
             ],
-            [
-                'slot_key' => 'overlay',
-                'label' => '화면',
-                'kind' => 'overlay',
-            ],
         ],
     ],
     [
@@ -39,11 +34,6 @@ return [
                 'slot_key' => 'after_form',
                 'label' => '폼 아래',
                 'kind' => 'content',
-            ],
-            [
-                'slot_key' => 'overlay',
-                'label' => '화면',
-                'kind' => 'overlay',
             ],
         ],
     ],

@@ -599,7 +599,7 @@ hash_hmac('sha256', normalized_identifier, app_key)
 
 - `module_key`: 대상 모듈
 - `point_key`: 대상 extension point
-- `slot_key`: extension point 안의 출력 위치. 선언이 없으면 기본값 `overlay`를 사용하고, 팝업레이어는 `kind=overlay` 위치를 대상으로 함
+- `slot_key`: extension point 안의 출력 위치. 팝업레이어는 배너와 같이 `kind=content` 위치를 대상으로 함
 - `subject_id`: 특정 상품, 게시판, 글 같은 세부 대상 ID
 - `match_type`: `all`, `exact`
 
@@ -668,7 +668,7 @@ hash_hmac('sha256', normalized_identifier, app_key)
 
 ### `toy_banner_targets`
 
-배너가 출력될 extension point 조건을 저장합니다. 팝업레이어와 같은 선택 깊이를 사용하지만, 배너는 `kind=content` slot을 대상으로 합니다.
+배너가 출력될 extension point 조건을 저장합니다. 팝업레이어와 같은 선택 깊이와 `kind=content` slot 기준을 사용합니다.
 
 권장 인덱스:
 

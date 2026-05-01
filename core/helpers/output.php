@@ -149,7 +149,7 @@ function toy_render_output_slot(PDO $pdo, array $context): string
 {
     $moduleKey = (string) ($context['module_key'] ?? '');
     $pointKey = (string) ($context['point_key'] ?? '');
-    $slotKey = (string) ($context['slot_key'] ?? 'overlay');
+    $slotKey = (string) ($context['slot_key'] ?? '');
 
     if (
         !toy_is_safe_module_key($moduleKey)

@@ -18,7 +18,6 @@ $seo = [
     <main>
         <h1><?php echo toy_e($pageTitle); ?></h1>
 
-        <?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.register']); ?>
         <?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.register', 'slot_key' => 'before_form']); ?>
 
         <?php if ($errors !== []) { ?>

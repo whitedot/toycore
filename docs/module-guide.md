@@ -673,6 +673,7 @@ renderer 규칙:
 
 - 출력할 HTML 문자열을 반환한다.
 - 아무것도 출력하지 않으면 빈 문자열을 반환한다.
+- 화면 소유 모듈은 `slot_key`를 명시해서 호출한다.
 - context 값을 검증한다.
 - 사용자 입력과 DB 값은 escape 후 출력한다.
 - DB 조회가 필요하면 인덱스가 있는 저장 규칙 테이블을 사용한다.
@@ -717,11 +718,6 @@ return [
                 'label' => '본문 아래',
                 'kind' => 'content',
             ],
-            [
-                'slot_key' => 'overlay',
-                'label' => '화면',
-                'kind' => 'overlay',
-            ],
         ],
         'subjects' => [
             'type' => 'board',
@@ -743,7 +739,7 @@ return [
 - `output`: 출력형 확장이 붙을 수 있는지 여부
 - `slots`: 실제 출력 위치 목록
 - `slot_key`: point 안의 위치 key
-- `kind`: `content`, `overlay`, `head`, `script` 같은 위치 성격
+- `kind`: `content`, `head`, `script` 같은 위치 성격. 배너와 팝업레이어처럼 화면 본문에 붙는 출력 모듈은 `content` slot을 대상으로 한다.
 - `subjects`: 선택 대상 정보
 
 대상이 많으면 `options` 전체를 반환하지 말고 검색형 selector를 선언한다.
@@ -765,6 +761,12 @@ return [
 - 관리자 설정 화면에서만 확장 대상 목록을 읽는다.
 - 사용자 요청에서는 저장된 규칙 테이블만 조회한다.
 - 대량 subject는 검색 selector를 사용한다.
+
+팝업레이어 규칙:
+
+- 팝업레이어는 배너와 같이 `kind=content`인 slot을 대상으로 한다.
+- 화면 소유 모듈은 팝업 전용 호출을 따로 두지 않고 필요한 content slot에서 `toy_render_output_slot()`을 호출한다.
+- 팝업레이어 모듈은 자신의 `output-slots.php`에서 저장된 대상 규칙, 기간, 닫기 유지 정책을 검증한 뒤 해당 slot에 출력할 HTML을 반환한다.
 
 ## 18. 사이트 메뉴 후보
 

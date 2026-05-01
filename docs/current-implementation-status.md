@@ -136,9 +136,9 @@
 - 닫기 유지 일수 설정
 - 활성 모듈 `extension-points.php` 기반 노출 대상 선택
 - `module -> point -> slot -> subject` 대상 규칙 저장
-- 선언된 slot 또는 기본 `overlay` slot 기준 팝업 출력
+- 배너와 같은 content slot 기준 팝업 출력
 - 사용자 요청 시 저장된 대상 규칙 테이블 조회
-- 회원 로그인/회원가입/계정 화면 팝업 출력 지점 연결
+- 회원 로그인/회원가입 화면 content slot 출력 지점 연결
 
 ### 사이트 메뉴, 배너, 알림
 
