@@ -12,6 +12,12 @@ if (toy_request_method() !== 'POST') {
 toy_require_csrf();
 
 $account = toy_member_require_login($pdo);
+
+foreach (toy_member_privacy_export_reauth_errors($pdo, $account) as $reauthError) {
+    toy_render_error(403, $reauthError);
+    exit;
+}
+
 $export = toy_member_privacy_export_data($pdo, (int) $account['id']);
 
 toy_audit_log($pdo, [

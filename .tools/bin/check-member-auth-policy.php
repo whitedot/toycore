@@ -94,6 +94,7 @@ toy_member_auth_policy_assert(
     in_array('password_change_reauth', toy_member_reauth_failure_event_types(), true)
         && in_array('password_change_session_failed', toy_member_reauth_failure_event_types(), true)
         && in_array('withdraw_reauth', toy_member_reauth_failure_event_types(), true)
+        && in_array('privacy_export_reauth', toy_member_reauth_failure_event_types(), true)
         && in_array('privacy_request_export_reauth', toy_member_reauth_failure_event_types(), true)
         && in_array('reauth_blocked', toy_member_reauth_failure_event_types(), true),
     'Sensitive reauth failures should count as reauth throttle events.'
@@ -316,6 +317,37 @@ if ($withdrawAction !== '') {
         strpos($withdrawAction, 'toy_member_record_consent_withdrawals($pdo, (int) $account[\'id\'])') !== false
             && strpos($withdrawAction, "'withdrawn_consents' => \$withdrawnConsents") !== false,
         'Withdraw should record consent withdrawals before account anonymization.'
+    );
+}
+
+$privacyExportAction = toy_member_auth_policy_read('modules/member/actions/privacy-export.php');
+if ($privacyExportAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($privacyExportAction, 'toy_member_privacy_export_reauth_errors($pdo, $account)') !== false
+            && strpos($privacyExportAction, 'toy_render_error(403, $reauthError)') !== false,
+        'Privacy export action should enforce current-password reauthentication before generating JSON.'
+    );
+}
+
+$privacyHelper = toy_member_auth_policy_read('modules/member/helpers/privacy.php');
+if ($privacyHelper !== '') {
+    toy_member_auth_policy_assert(
+        strpos($privacyHelper, 'function toy_member_privacy_export_reauth_errors') !== false
+            && strpos($privacyHelper, "toy_post_string('current_password', 255)") !== false
+            && strpos($privacyHelper, 'toy_member_reauth_throttle_status($pdo, $accountId)') !== false
+            && strpos($privacyHelper, 'privacy_export_reauth') !== false
+            && strpos($privacyHelper, 'privacy.export.reauth_failed') !== false,
+        'Privacy helper should require throttled current-password reauthentication for member privacy exports.'
+    );
+}
+
+$accountView = toy_member_auth_policy_read('modules/member/views/account.php');
+if ($accountView !== '') {
+    toy_member_auth_policy_assert(
+        strpos($accountView, 'action="<?php echo toy_e(toy_url(\'/account/privacy-export\')); ?>"') !== false
+            && strpos($accountView, 'name="current_password"') !== false
+            && strpos($accountView, 'autocomplete="current-password" required') !== false,
+        'Account view privacy export form should ask for the current password.'
     );
 }
 

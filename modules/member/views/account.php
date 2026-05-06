@@ -174,6 +174,9 @@ $seo = [
         <?php } ?>
         <form method="post" action="<?php echo toy_e(toy_url('/account/privacy-export')); ?>">
             <?php echo toy_csrf_field(); ?>
+            <label>현재 비밀번호<br>
+                <input type="password" name="current_password" autocomplete="current-password" required>
+            </label>
             <button type="submit">개인정보 JSON 내보내기</button>
         </form>
         <p><a href="<?php echo toy_e(toy_url('/account/withdraw')); ?>">회원 탈퇴</a></p>

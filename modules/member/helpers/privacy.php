@@ -144,6 +144,47 @@ function toy_member_privacy_export_data(PDO $pdo, int $accountId): array
     ];
 }
 
+function toy_member_privacy_export_reauth_errors(PDO $pdo, array $account): array
+{
+    $password = toy_post_string('current_password', 255);
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId < 1) {
+        return ['재인증 계정을 확인할 수 없습니다.'];
+    }
+
+    $throttle = toy_member_reauth_throttle_status($pdo, $accountId);
+    if (!empty($throttle['limited'])) {
+        toy_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
+        toy_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'member',
+            'event_type' => 'privacy.export.reauth_blocked',
+            'target_type' => 'member_account',
+            'target_id' => (string) $accountId,
+            'result' => 'failure',
+            'message' => 'Member privacy export reauthentication blocked by throttle.',
+        ]);
+        return ['비밀번호 확인 시도가 많습니다. 잠시 후 다시 시도하세요.'];
+    }
+
+    if ($password === '' || !password_verify($password, (string) ($account['password_hash'] ?? ''))) {
+        toy_member_log_auth($pdo, $accountId, 'privacy_export_reauth', 'failure');
+        toy_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'member',
+            'event_type' => 'privacy.export.reauth_failed',
+            'target_type' => 'member_account',
+            'target_id' => (string) $accountId,
+            'result' => 'failure',
+            'message' => 'Member privacy export reauthentication failed.',
+        ]);
+        return ['개인정보 내보내기 전 현재 비밀번호를 다시 입력하세요.'];
+    }
+
+    toy_member_log_auth($pdo, $accountId, 'privacy_export_reauth', 'success');
+    return [];
+}
+
 function toy_member_module_privacy_exports(PDO $pdo, int $accountId): array
 {
     $exports = [];
