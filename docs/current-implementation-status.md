@@ -30,7 +30,7 @@
 - 각 모듈 리포지토리에 설치용 zip 생성 스크립트 추가
 - 모듈 설치/관리 화면에 설치 버전, 코드 버전, Toycore 호환 버전 표기
 - 모듈 설치/관리 화면에서 owner 전용 zip 업로드와 공식 registry release zip 다운로드 지원
-- 모듈 zip은 checksum, 항목 수, 압축 해제 크기, module key, version, downgrade, 교체 확인을 검증
+- 모듈 zip은 checksum, 항목 수, symlink, 압축 해제 크기, module key, version, downgrade, 교체 확인을 검증
 - 공식 모듈 registry는 `docs/module-index.json`에 두고 release zip URL과 checksum이 등록된 항목만 다운로드 가능
 - `.tools/bin/check-module-index.php`로 공식 모듈 registry 구조와 release zip/checksum 쌍 검증 가능
 - registry에 등록된 공식 GitHub repository는 owner가 고급 UI에서 ref를 지정해 archive zip으로 다운로드 가능

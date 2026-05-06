@@ -139,6 +139,17 @@ if (!is_string($adminSettingsHelper)) {
     $errors[] = 'Admin settings helper must allowlist site setting intents.';
 }
 
+$adminModuleSourcesHelper = file_get_contents($root . '/modules/admin/helpers/module-sources.php');
+if (!is_string($adminModuleSourcesHelper)) {
+    $errors[] = 'Admin module sources helper cannot be read.';
+} elseif (
+    strpos($adminModuleSourcesHelper, 'function toy_admin_zip_entry_is_symlink') === false
+    || strpos($adminModuleSourcesHelper, 'toy_admin_zip_entry_is_symlink($zip, $i)') === false
+    || strpos($adminModuleSourcesHelper, 'zip 안에 심볼릭 링크가 있습니다.') === false
+) {
+    $errors[] = 'Admin module source zip checks must reject symlink entries before extraction.';
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "admin action security checks failed:\n");
     foreach ($errors as $error) {

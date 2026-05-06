@@ -383,6 +383,22 @@ function toy_admin_zip_entry_is_safe(string $name): bool
     return true;
 }
 
+function toy_admin_zip_entry_is_symlink(ZipArchive $zip, int $index): bool
+{
+    if (!method_exists($zip, 'getExternalAttributesIndex')) {
+        return false;
+    }
+
+    $opsys = 0;
+    $attributes = 0;
+    if (!$zip->getExternalAttributesIndex($index, $opsys, $attributes)) {
+        return false;
+    }
+
+    $mode = ($attributes >> 16) & 0170000;
+    return $mode === 0120000;
+}
+
 function toy_admin_zip_upload_stats(ZipArchive $zip): array
 {
     $entryCount = $zip->numFiles;
@@ -398,6 +414,10 @@ function toy_admin_zip_upload_stats(ZipArchive $zip): array
         $entry = $zip->getNameIndex($i);
         if (!is_string($entry) || !toy_admin_zip_entry_is_safe($entry)) {
             throw new RuntimeException('zip 안에 안전하지 않은 경로가 있습니다.');
+        }
+
+        if (toy_admin_zip_entry_is_symlink($zip, $i)) {
+            throw new RuntimeException('zip 안에 심볼릭 링크가 있습니다.');
         }
 
         $stats = $zip->statIndex($i);
