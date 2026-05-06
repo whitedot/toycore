@@ -95,6 +95,9 @@ if (toy_request_method() === 'POST') {
                 if (!$verificationMailSent || !empty($config['debug'])) {
                     $_SESSION['toy_debug_email_verification_url'] = $verificationUrl;
                 }
+                if (!$verificationMailSent) {
+                    toy_member_log_auth($pdo, $accountId, 'email_verification_mail_failed', 'failure');
+                }
             }
             toy_member_record_consent($pdo, $accountId, 'terms', '2026.04.001', true);
             toy_member_record_consent($pdo, $accountId, 'privacy', '2026.04.001', true);

@@ -116,6 +116,10 @@ if ($loginAction !== '') {
         strpos($loginAction, "'mail_sent' => \$mailSent") !== false,
         'Login action should audit email verification resend mail delivery result.'
     );
+    toy_member_auth_policy_assert(
+        strpos($loginAction, 'email_verification_mail_failed') !== false,
+        'Login action should write an auth log event when verification mail delivery fails.'
+    );
 }
 
 $accountHelper = toy_member_auth_policy_read('modules/member/helpers/accounts.php');
@@ -234,6 +238,10 @@ if ($registerAction !== '') {
             && strpos($registerAction, "'email_verification_mail_sent' => \$verificationMailSent") !== false,
         'Register action should audit email verification mail delivery result without storing token values.'
     );
+    toy_member_auth_policy_assert(
+        strpos($registerAction, 'email_verification_mail_failed') !== false,
+        'Register action should write an auth log event when verification mail delivery fails.'
+    );
 }
 
 $emailVerificationRequestAction = toy_member_auth_policy_read('modules/member/actions/email-verification-request.php');
@@ -241,6 +249,10 @@ if ($emailVerificationRequestAction !== '') {
     toy_member_auth_policy_assert(
         strpos($emailVerificationRequestAction, "'mail_sent' => \$mailSent") !== false,
         'Email verification request action should audit mail delivery result.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($emailVerificationRequestAction, 'email_verification_mail_failed') !== false,
+        'Email verification request action should write an auth log event when mail delivery fails.'
     );
 }
 
@@ -304,6 +316,10 @@ if ($passwordResetRequestAction !== '') {
         strpos($passwordResetRequestAction, '$mailSent = toy_send_mail') !== false
             && strpos($passwordResetRequestAction, "'mail_sent' => \$mailSent") !== false,
         'Password reset request action should audit reset mail delivery result.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($passwordResetRequestAction, 'password_reset_mail_failed') !== false,
+        'Password reset request action should write an auth log event when reset mail delivery fails.'
     );
 }
 

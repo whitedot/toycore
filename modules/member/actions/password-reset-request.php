@@ -42,6 +42,9 @@ if (toy_request_method() === 'POST') {
                 '비밀번호 재설정 안내',
                 "아래 링크를 열어 비밀번호를 재설정하세요.\n\n" . $resetUrl
             );
+            if (!$mailSent) {
+                toy_member_log_auth($pdo, (int) $activeAccount['id'], 'password_reset_mail_failed', 'failure');
+            }
             toy_member_log_auth($pdo, (int) $activeAccount['id'], 'password_reset_request', 'success');
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $activeAccount['id'],

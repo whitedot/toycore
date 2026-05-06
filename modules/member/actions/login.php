@@ -70,6 +70,9 @@ if (toy_request_method() === 'POST') {
             if (!$mailSent || !empty($config['debug'])) {
                 $_SESSION['toy_debug_email_verification_url'] = $verificationUrl;
             }
+            if (!$mailSent) {
+                toy_member_log_auth($pdo, (int) $account['id'], 'email_verification_mail_failed', 'failure');
+            }
             toy_member_log_auth($pdo, (int) $account['id'], 'email_verification_request', 'success');
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
