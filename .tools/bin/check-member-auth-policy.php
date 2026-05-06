@@ -317,6 +317,11 @@ if ($privacyRequestsAction !== '') {
             && strpos($privacyRequestsAction, "'request_message' => toy_post_string('request_message', 2000)") !== false,
         'Privacy request action should preserve submitted form values.'
     );
+    toy_member_auth_policy_assert(
+        strpos($privacyRequestsAction, "AND status IN (\\'requested\\', \\'reviewing\\')") !== false
+            && strpos($privacyRequestsAction, '이미 처리 대기 중인 같은 유형의 개인정보 요청이 있습니다.') !== false,
+        'Privacy request action should block duplicate in-progress requests of the same type.'
+    );
 }
 
 $privacyRequestsView = toy_member_auth_policy_read('modules/member/views/privacy-requests.php');

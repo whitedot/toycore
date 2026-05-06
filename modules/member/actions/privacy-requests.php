@@ -26,6 +26,25 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        $stmt = $pdo->prepare(
+            'SELECT id
+             FROM toy_privacy_requests
+             WHERE account_id = :account_id
+               AND request_type = :request_type
+               AND status IN (\'requested\', \'reviewing\')
+             LIMIT 1'
+        );
+        $stmt->execute([
+            'account_id' => (int) $account['id'],
+            'request_type' => $values['request_type'],
+        ]);
+
+        if (is_array($stmt->fetch())) {
+            $errors[] = '이미 처리 대기 중인 같은 유형의 개인정보 요청이 있습니다.';
+        }
+    }
+
+    if ($errors === []) {
         $now = toy_now();
         $stmt = $pdo->prepare(
             'INSERT INTO toy_privacy_requests
