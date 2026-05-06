@@ -246,6 +246,11 @@ if ($logoutAction !== '') {
 $accountAction = toy_member_auth_policy_read('modules/member/actions/account.php');
 if ($accountAction !== '') {
     toy_member_auth_policy_assert(
+        strpos($accountAction, "in_array(\$intent, ['basics', 'profile', 'password'], true)") !== false
+            && strpos($accountAction, '계정 작업 값이 올바르지 않습니다.') !== false,
+        'Account action should allowlist account update intents.'
+    );
+    toy_member_auth_policy_assert(
         strpos($accountAction, 'toy_member_rotate_current_session($pdo, (int) $account[\'id\'])') !== false,
         'Password change should rotate the current member session.'
     );

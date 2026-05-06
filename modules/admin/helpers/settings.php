@@ -91,7 +91,11 @@ function toy_admin_handle_settings_post(
     $values = toy_admin_site_setting_values($site);
     $intent = toy_post_string('intent', 40);
 
-    if ($intent === 'site_setting') {
+    if (!in_array($intent, ['site', 'site_setting', 'delete_site_setting'], true)) {
+        $errors[] = '사이트 설정 작업 값이 올바르지 않습니다.';
+    }
+
+    if ($errors === [] && $intent === 'site_setting') {
         if (!$canManageAdvancedSettings) {
             $errors[] = '고급 사이트 설정은 owner 권한이 필요합니다.';
         }
@@ -134,7 +138,7 @@ function toy_admin_handle_settings_post(
 
             $notice = '사이트 설정 항목을 저장했습니다.';
         }
-    } elseif ($intent === 'delete_site_setting') {
+    } elseif ($errors === [] && $intent === 'delete_site_setting') {
         if (!$canManageAdvancedSettings) {
             $errors[] = '고급 사이트 설정은 owner 권한이 필요합니다.';
         }
@@ -165,7 +169,7 @@ function toy_admin_handle_settings_post(
 
             $notice = '사이트 설정 항목을 삭제했습니다.';
         }
-    } else {
+    } elseif ($errors === [] && $intent === 'site') {
         $values = toy_admin_post_site_setting_values();
 
         if ($values['name'] === '') {

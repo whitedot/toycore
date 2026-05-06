@@ -24,7 +24,11 @@ if (toy_request_method() === 'POST') {
 
     $intent = toy_post_string('intent', 40);
 
-    if ($intent === 'basics') {
+    if (!in_array($intent, ['basics', 'profile', 'password'], true)) {
+        $errors[] = '계정 작업 값이 올바르지 않습니다.';
+    }
+
+    if ($errors === [] && $intent === 'basics') {
         $basics = [
             'display_name' => toy_post_string('display_name', 120),
             'locale' => toy_post_string('locale', 20),
@@ -60,7 +64,7 @@ if (toy_request_method() === 'POST') {
             }
             $notice = '계정 정보를 저장했습니다.';
         }
-    } elseif ($intent === 'profile') {
+    } elseif ($errors === [] && $intent === 'profile') {
         if (!$profileFieldsEnabled) {
             $errors[] = '수정할 수 있는 프로필 항목이 없습니다.';
         }
@@ -113,7 +117,7 @@ if (toy_request_method() === 'POST') {
             ]);
             $notice = '프로필을 저장했습니다.';
         }
-    } else {
+    } elseif ($errors === [] && $intent === 'password') {
         $currentPassword = toy_post_string('current_password', 255);
         $newPassword = toy_post_string('new_password', 255);
         $newPasswordConfirm = toy_post_string('new_password_confirm', 255);

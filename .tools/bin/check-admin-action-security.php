@@ -124,6 +124,16 @@ if (!is_string($adminMembersHelper)) {
     }
 }
 
+$adminSettingsHelper = file_get_contents($root . '/modules/admin/helpers/settings.php');
+if (!is_string($adminSettingsHelper)) {
+    $errors[] = 'Admin settings helper cannot be read.';
+} elseif (
+    strpos($adminSettingsHelper, "in_array(\$intent, ['site', 'site_setting', 'delete_site_setting'], true)") === false
+    || strpos($adminSettingsHelper, '사이트 설정 작업 값이 올바르지 않습니다.') === false
+) {
+    $errors[] = 'Admin settings helper must allowlist site setting intents.';
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "admin action security checks failed:\n");
     foreach ($errors as $error) {
