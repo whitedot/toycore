@@ -4,7 +4,10 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
-$indexPath = $root . '/docs/module-index.json';
+$indexPath = (string) ($argv[1] ?? ($root . '/docs/module-index.json'));
+if ($indexPath !== '' && !str_starts_with($indexPath, '/') && preg_match('/\A[A-Za-z]:[\/\\\\]/', $indexPath) !== 1) {
+    $indexPath = $root . '/' . $indexPath;
+}
 $errors = [];
 
 function toy_module_index_error(string $message): void

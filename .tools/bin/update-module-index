@@ -143,7 +143,10 @@ function toy_update_module_index_remote_archive_checksum(string $url): string
     return hash_final($hash);
 }
 
-$indexPath = $root . '/docs/module-index.json';
+$indexPath = (string) (getenv('TOYCORE_MODULE_INDEX_PATH') ?: ($root . '/docs/module-index.json'));
+if ($indexPath !== '' && !str_starts_with($indexPath, '/') && preg_match('/\A[A-Za-z]:[\/\\\\]/', $indexPath) !== 1) {
+    $indexPath = $root . '/' . $indexPath;
+}
 $content = file_get_contents($indexPath);
 if (!is_string($content)) {
     fwrite(STDERR, "module index cannot be read.\n");
