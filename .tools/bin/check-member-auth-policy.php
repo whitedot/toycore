@@ -448,6 +448,13 @@ if ($adminPrivacyRequestsHelper !== '') {
             && strpos($adminPrivacyRequestsHelper, 'privacy.request.export_reauth_failed') !== false,
         'Admin privacy request export should require throttled current-admin reauthentication.'
     );
+    toy_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsHelper, 'toy_member_privacy_export_data($pdo, (int) $privacyRequest[\'account_id\'])') !== false
+            && strpos($adminPrivacyRequestsHelper, 'catch (Throwable $exception)') !== false
+            && strpos($adminPrivacyRequestsHelper, "toy_log_exception(\$exception, 'privacy_request_export_member_' . (int) \$privacyRequest['id'])") !== false
+            && strpos($adminPrivacyRequestsHelper, "\$export['member_data_unavailable'] = true") !== false,
+        'Admin privacy request export should isolate linked member export failures.'
+    );
 }
 
 $adminPrivacyRequestsView = toy_member_auth_policy_read('modules/admin/views/privacy-requests.php');

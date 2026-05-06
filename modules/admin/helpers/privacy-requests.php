@@ -212,7 +212,12 @@ function toy_admin_privacy_request_export_data(PDO $pdo, array $privacyRequest):
     ];
 
     if (!empty($privacyRequest['account_id'])) {
-        $export['member_data'] = toy_member_privacy_export_data($pdo, (int) $privacyRequest['account_id']);
+        try {
+            $export['member_data'] = toy_member_privacy_export_data($pdo, (int) $privacyRequest['account_id']);
+        } catch (Throwable $exception) {
+            toy_log_exception($exception, 'privacy_request_export_member_' . (int) $privacyRequest['id']);
+            $export['member_data_unavailable'] = true;
+        }
     }
 
     return $export;

@@ -259,11 +259,14 @@ if (!is_string($adminPrivacyRequestsHelper)) {
     || strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_terminal_statuses') === false
     || strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_export_reauth_errors') === false
     || strpos($adminPrivacyRequestsHelper, 'privacy_request_export_reauth') === false
+    || strpos($adminPrivacyRequestsHelper, 'catch (Throwable $exception)') === false
+    || strpos($adminPrivacyRequestsHelper, "toy_log_exception(\$exception, 'privacy_request_export_member_' . (int) \$privacyRequest['id'])") === false
+    || strpos($adminPrivacyRequestsHelper, "'member_data_unavailable'") === false
     || strpos($adminPrivacyRequestsHelper, '종결된 개인정보 요청 상태는 다시 변경할 수 없습니다.') === false
     || strpos($adminPrivacyRequestsHelper, "return \$prefix . '***@' . \$domain;") === false
     || strpos($adminPrivacyRequestsHelper, "return mb_substr(\$preview, 0, \$maxLength) . '...';") === false
 ) {
-    $errors[] = 'Admin privacy request helpers must reduce list exposure, protect terminal status changes, and reauthenticate exports.';
+    $errors[] = 'Admin privacy request helpers must reduce list exposure, protect terminal status changes, isolate member export failures, and reauthenticate exports.';
 }
 
 $adminPrivacyRequestsView = file_get_contents($root . '/modules/admin/views/privacy-requests.php');
