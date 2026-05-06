@@ -65,6 +65,16 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 
 현재 toycore.git 본체는 웹 설치, 기본 관리자 진입, 회원 인증, 업데이트 실행, 개인정보/감사 로그 기반을 포함합니다. SEO, 팝업레이어, 포인트, 예치금, 적립금, 사이트 메뉴, 배너, 알림은 별도 모듈 리포지토리에서 관리하며 배포 패키지 조립 시 포함할 수 있습니다.
 
+Toycore는 작은 절차형 코어를 목표로 하지만, 운영 중 자주 문제가 되는 보안과 복구 흐름은 초기 구현 범위 안에서 다룹니다.
+
+- 인증: DB 기반 로그인 세션, PHP 세션 strict/cookie-only 모드, 로그인 실패 타이밍 노출 완화, 비밀번호 변경/재설정 후 세션 폐기
+- 토큰: 비밀번호 재설정/이메일 인증 token HMAC 저장, 원자적 사용 처리, 새 token 발급 시 기존 미사용 token 무효화, token URL referrer 차단
+- 요청 보호: CSRF helper, 안전한 redirect helper, URL 제어 문자 차단, trusted proxy 기반 HTTPS/IP 해석, 기본 보안 응답 헤더
+- 개인정보: 회원 개인정보 JSON 내보내기, 모듈별 export 확장, 내부 hash/token/secret-like 필드 제외, 탈퇴/익명화와 동의 철회 이력
+- 운영 복구: 설치/업데이트 실패 marker, 업데이트 lock, checksum 기반 업데이트 파일 검증, 민감 정보 마스킹된 예외/감사 로그
+- 모듈 격리: `paths.php` 기반 명시적 요청 처리, action 상대 경로 검증, 활성 모듈 route 충돌 감지, `module.php`의 `requires` 의존성 검증
+- 배포: minimal/standard/ops 패키징, 공식 모듈 registry checksum 검증, owner 재인증 기반 모듈 zip 업로드와 소스 교체
+
 기본 설치 흐름은 필수 모듈을 항상 설치/활성화하고, 배포본에 포함된 선택 모듈은 설치 화면에서 설치 여부를 선택합니다.
 
 ```text
@@ -284,3 +294,7 @@ module -> point -> slot -> subject
 ## 예제
 
 - [절차형 요청 흐름 예제](examples/procedural-flow-sample.php.txt)
+
+## 라이선스
+
+Toycore는 [MIT License](LICENSE)로 배포합니다.
