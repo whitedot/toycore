@@ -28,6 +28,24 @@ function toy_admin_audit_log_result_filter(string $value): string
     return in_array($value, ['success', 'failure'], true) ? $value : '';
 }
 
+function toy_admin_audit_log_date_filter(string $value): string
+{
+    if ($value === '' || preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $value) !== 1) {
+        return '';
+    }
+
+    $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+    $dateErrors = DateTimeImmutable::getLastErrors();
+    if (
+        !$date instanceof DateTimeImmutable
+        || (is_array($dateErrors) && ((int) $dateErrors['warning_count'] > 0 || (int) $dateErrors['error_count'] > 0))
+    ) {
+        return '';
+    }
+
+    return $date->format('Y-m-d') === $value ? $value : '';
+}
+
 function toy_admin_audit_metadata_redact(mixed $value, string $key = ''): mixed
 {
     if ($key !== '' && toy_admin_setting_value_is_secret($key)) {
@@ -79,6 +97,8 @@ function toy_admin_audit_log_query_parts(array &$filters): array
     $filters['event_type'] = toy_admin_audit_log_identifier_filter($filters['event_type'], 80);
     $filters['target_type'] = toy_admin_audit_log_identifier_filter($filters['target_type'], 60);
     $filters['result'] = toy_admin_audit_log_result_filter($filters['result']);
+    $filters['date_from'] = toy_admin_audit_log_date_filter($filters['date_from']);
+    $filters['date_to'] = toy_admin_audit_log_date_filter($filters['date_to']);
 
     if ($filters['event_type'] !== '') {
         $where[] = 'event_type = :event_type';
@@ -105,22 +125,18 @@ function toy_admin_audit_log_query_parts(array &$filters): array
     }
 
     if ($filters['date_from'] !== '') {
-        $dateFrom = DateTimeImmutable::createFromFormat('Y-m-d', $filters['date_from']);
+        $dateFrom = DateTimeImmutable::createFromFormat('!Y-m-d', $filters['date_from']);
         if ($dateFrom instanceof DateTimeImmutable) {
             $where[] = 'created_at >= :date_from';
             $params['date_from'] = $dateFrom->format('Y-m-d 00:00:00');
-        } else {
-            $filters['date_from'] = '';
         }
     }
 
     if ($filters['date_to'] !== '') {
-        $dateTo = DateTimeImmutable::createFromFormat('Y-m-d', $filters['date_to']);
+        $dateTo = DateTimeImmutable::createFromFormat('!Y-m-d', $filters['date_to']);
         if ($dateTo instanceof DateTimeImmutable) {
             $where[] = 'created_at <= :date_to';
             $params['date_to'] = $dateTo->format('Y-m-d 23:59:59');
-        } else {
-            $filters['date_to'] = '';
         }
     }
 

@@ -265,8 +265,12 @@ if (!is_string($adminAuditLogsHelper)) {
     strpos($adminAuditLogsHelper, 'function toy_admin_audit_metadata_redact') === false
     || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_identifier_filter') === false
     || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_result_filter') === false
+    || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_date_filter') === false
     || strpos($adminAuditLogsHelper, "preg_match('/\\A[a-z][a-z0-9_.-]*\\z/', \$value)") === false
     || strpos($adminAuditLogsHelper, "in_array(\$value, ['success', 'failure'], true)") === false
+    || strpos($adminAuditLogsHelper, "preg_match('/\\A\\d{4}-\\d{2}-\\d{2}\\z/', \$value)") === false
+    || strpos($adminAuditLogsHelper, "DateTimeImmutable::createFromFormat('!Y-m-d', \$value)") === false
+    || strpos($adminAuditLogsHelper, 'DateTimeImmutable::getLastErrors()') === false
     || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_display_metadata') === false
     || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_display_message') === false
     || strpos($adminAuditLogsHelper, 'toy_admin_setting_value_is_secret($key)') === false
