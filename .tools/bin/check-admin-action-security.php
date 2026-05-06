@@ -320,6 +320,8 @@ if (!is_string($adminPrivacyRequestsHelper)) {
     || strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_terminal_statuses') === false
     || strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_export_reauth_errors') === false
     || strpos($adminPrivacyRequestsHelper, 'privacy_request_export_reauth') === false
+    || strpos($adminPrivacyRequestsHelper, "toy_post_string_without_truncation('admin_note', 2000)") === false
+    || strpos($adminPrivacyRequestsHelper, '$adminNote === null') === false
     || strpos($adminPrivacyRequestsHelper, 'catch (Throwable $exception)') === false
     || strpos($adminPrivacyRequestsHelper, "toy_log_exception(\$exception, 'privacy_request_export_member_' . (int) \$privacyRequest['id'])") === false
     || strpos($adminPrivacyRequestsHelper, "'member_data_unavailable'") === false

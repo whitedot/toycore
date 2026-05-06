@@ -460,6 +460,12 @@ if ($adminPrivacyRequestsHelper !== '') {
         'Admin privacy request helper should preserve stored admin notes when list forms submit no replacement note.'
     );
     toy_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsHelper, "toy_post_string_without_truncation('status', 30)") !== false
+            && strpos($adminPrivacyRequestsHelper, "toy_post_string_without_truncation('admin_note', 2000)") !== false
+            && strpos($adminPrivacyRequestsHelper, '$adminNote === null') !== false,
+        'Admin privacy request helper should reject overlong raw status/admin note inputs instead of truncating them.'
+    );
+    toy_member_auth_policy_assert(
         strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_export_reauth_errors') !== false
             && strpos($adminPrivacyRequestsHelper, "toy_post_string('admin_password', 255)") !== false
             && strpos($adminPrivacyRequestsHelper, 'toy_member_reauth_throttle_status($pdo, $accountId)') !== false

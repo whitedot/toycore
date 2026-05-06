@@ -46,8 +46,15 @@ function toy_admin_handle_privacy_request_post(PDO $pdo, array $account, array $
     $errors = [];
     $notice = '';
     $requestId = toy_admin_post_positive_int('request_id');
-    $status = toy_post_string('status', 30);
-    $adminNote = toy_post_string('admin_note', 2000);
+    $status = toy_post_string_without_truncation('status', 30);
+    if ($status === null) {
+        $status = '';
+    }
+    $adminNote = toy_post_string_without_truncation('admin_note', 2000);
+    if ($adminNote === null) {
+        $errors[] = '관리자 메모는 2000자 이하로 입력하세요.';
+        $adminNote = '';
+    }
     $identityConfirmed = ($_POST['identity_confirmed'] ?? '') === '1';
     $exportConfirmed = ($_POST['export_confirmed'] ?? '') === '1';
     $actionConfirmed = ($_POST['action_confirmed'] ?? '') === '1';
