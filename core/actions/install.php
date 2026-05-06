@@ -448,11 +448,9 @@ if (toy_request_method() === 'POST') {
             toy_redirect('/login?next=/admin');
         } catch (Throwable $exception) {
             toy_log_exception($exception, 'install_failed_' . $installStage);
-            $failureMessage = $exception->getMessage();
-            $failureMessage = function_exists('mb_substr') ? mb_substr($failureMessage, 0, 500) : substr($failureMessage, 0, 500);
             toy_write_operational_marker('install-failed.json', [
                 'stage' => $installStage,
-                'message' => $failureMessage,
+                'message' => toy_log_line_value($exception->getMessage(), 500),
                 'config_written' => is_file(TOY_ROOT . '/config/config.php'),
                 'installed_lock_written' => is_file(TOY_ROOT . '/storage/installed.lock'),
             ]);
