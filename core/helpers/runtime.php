@@ -787,7 +787,14 @@ function toy_send_http_api_mail(array $mailConfig, string $to, string $subject, 
         return false;
     }
 
+    $fromEmail = (string) ($mailConfig['from_email'] ?? '');
+    if (!filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
     $payload = json_encode([
+        'from_email' => $fromEmail,
+        'from_name' => (string) ($mailConfig['from_name'] ?? ''),
         'to' => $to,
         'subject' => $subject,
         'text' => $body,

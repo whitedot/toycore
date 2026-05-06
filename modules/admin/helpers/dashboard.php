@@ -140,18 +140,21 @@ function toy_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): arra
 
 function toy_admin_dashboard_mail_transport_ready(string $transport, array $mail): bool
 {
+    $fromEmail = (string) ($mail['from_email'] ?? '');
+
     if ($transport === 'php_mail') {
-        return function_exists('mail');
+        return function_exists('mail') && ($fromEmail === '' || filter_var($fromEmail, FILTER_VALIDATE_EMAIL) !== false);
     }
 
     if ($transport === 'smtp') {
         return (string) ($mail['host'] ?? '') !== ''
             && (int) ($mail['port'] ?? 0) >= 1
-            && filter_var((string) ($mail['from_email'] ?? ''), FILTER_VALIDATE_EMAIL) !== false;
+            && filter_var($fromEmail, FILTER_VALIDATE_EMAIL) !== false;
     }
 
     if ($transport === 'http_api') {
-        return toy_is_http_url((string) ($mail['endpoint'] ?? ''));
+        return toy_is_http_url((string) ($mail['endpoint'] ?? ''))
+            && filter_var($fromEmail, FILTER_VALIDATE_EMAIL) !== false;
     }
 
     return false;

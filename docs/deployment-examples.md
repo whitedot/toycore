@@ -139,17 +139,22 @@ server {
 'mail' => [
     'transport' => 'smtp',
     'from_email' => 'no-reply@example.com',
+    'from_name' => 'Toycore',
     'host' => 'smtp.example.com',
     'port' => 587,
     'encryption' => 'tls',
     'username' => 'smtp-user',
     'password' => 'smtp-password',
+    'endpoint' => '',
+    'bearer_token' => '',
 ],
 ```
 
 `trusted_proxies`에는 PHP가 직접 보는 로드밸런서 또는 리버스 프록시의 IP/CIDR만 넣는다. 이 값이 맞아야 `X-Forwarded-Proto` 기반 HTTPS 판단, Secure 쿠키, 실제 클라이언트 IP 기반 인증 제한이 올바르게 동작한다.
 
 `app_key_env`를 사용하면 환경변수 또는 secret manager에서 앱 비밀값을 주입할 수 있다. 운영 중 `app_key`를 바꾸면 로그인 식별자 HMAC 조회가 깨질 수 있으므로 기존 값과 동일한 값을 주입해야 한다.
+
+`mail.transport`는 `php_mail`, `smtp`, `http_api`를 지원한다. `smtp`와 `http_api`는 `from_email`이 유효한 이메일이어야 하며, `http_api`는 `endpoint`와 선택적인 `bearer_token`을 사용해 JSON payload를 전송한다.
 
 ## 공유호스팅
 

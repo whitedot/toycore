@@ -62,6 +62,7 @@ toy_auth_runtime_require('core/helpers/runtime.php', '/HTTP_X_FORWARDED_PROTO/',
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_forwarded_client_ip\(\?array \$config = null\): string/', 'Forwarded client IP helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_send_smtp_mail\(/', 'SMTP mail transport helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_send_http_api_mail\(/', 'HTTP API mail transport helper is missing');
+toy_auth_runtime_require('core/helpers/runtime.php', "/'from_email'\\s*=>\\s*\\\$fromEmail/", 'HTTP API mail payload from email is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_rate_limit_count\(/', 'Rate limit count helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_rate_limit_increment\(/', 'Rate limit increment helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_app_key\(array \$config\): string/', 'App key resolver is missing');
@@ -73,8 +74,10 @@ toy_auth_runtime_require('modules/member/helpers/accounts.php', '/toy_member_rec
 toy_auth_runtime_require('modules/admin/helpers/retention.php', "/'runtime_sessions'\\s*=>\\s*\\[/", 'Runtime sessions retention target is missing');
 toy_auth_runtime_require('modules/admin/helpers/retention.php', "/'rate_limits'\\s*=>\\s*\\[/", 'Rate limits retention target is missing');
 toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/function toy_admin_dashboard_auth_runtime_summary\(/', 'Auth runtime dashboard summary is missing');
+toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/toy_admin_dashboard_mail_transport_ready/', 'Mail transport dashboard validation is missing');
 toy_auth_runtime_require('modules/admin/views/dashboard.php', '/인증 런타임/', 'Auth runtime dashboard view is missing');
 toy_auth_runtime_require('docs/deployment-examples.md', '/로드밸런서와 클라우드 런타임/', 'Cloud runtime deployment documentation is missing');
+toy_auth_runtime_require('docs/deployment-examples.md', '/http_api/', 'HTTP API mail documentation is missing');
 
 if ($errors !== []) {
     fwrite(STDERR, "auth runtime checks failed:\n");

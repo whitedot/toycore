@@ -75,6 +75,7 @@
 - 다운로드 응답 헤더 helper
 - 기본 mail helper
 - SMTP/HTTP API mail transport 설정 지원
+- HTTP API mail transport 발신자 payload 포함
 - HMAC hash helper
 - 환경변수 기반 app key 주입 지원
 - 기본 보안 응답 헤더
