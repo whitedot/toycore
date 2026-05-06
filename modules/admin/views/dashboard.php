@@ -16,6 +16,30 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </dl>
 </section>
 
+<section>
+    <h2>인증 런타임</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>항목</th>
+                <th>상태</th>
+                <th>판정</th>
+                <th>상세</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($authRuntimeSummary as $summary) { ?>
+                <tr>
+                    <td><?php echo toy_e((string) $summary['label']); ?></td>
+                    <td><?php echo toy_e((string) $summary['value']); ?></td>
+                    <td><?php echo toy_e((string) $summary['state']); ?></td>
+                    <td><?php echo toy_e((string) $summary['detail']); ?></td>
+                </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+</section>
+
 <?php if ($recoveryMarkers !== [] || (int) $moduleBackupSummary['count'] > 0) { ?>
     <section>
         <h2>복구 상태</h2>

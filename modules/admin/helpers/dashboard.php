@@ -69,6 +69,94 @@ function toy_admin_dashboard_operation_summary(PDO $pdo): array
     return $operationSummary;
 }
 
+function toy_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): array
+{
+    $summary = [];
+    $session = isset($config['session']) && is_array($config['session']) ? $config['session'] : [];
+    $security = isset($config['security']) && is_array($config['security']) ? $config['security'] : [];
+    $secrets = isset($config['secrets']) && is_array($config['secrets']) ? $config['secrets'] : [];
+    $mail = isset($config['mail']) && is_array($config['mail']) ? $config['mail'] : [];
+
+    $sessionHandler = (string) ($session['handler'] ?? 'database');
+    $hasRuntimeSessionsTable = toy_admin_dashboard_table_exists($pdo, 'toy_sessions');
+    $summary[] = [
+        'label' => 'PHP 세션 저장소',
+        'value' => $sessionHandler === 'database' ? 'DB' : '파일',
+        'state' => $sessionHandler === 'database' && $hasRuntimeSessionsTable ? '정상' : '주의',
+        'detail' => $sessionHandler === 'database'
+            ? ($hasRuntimeSessionsTable ? 'toy_sessions 사용 가능' : 'toy_sessions 테이블이 없어 파일 세션으로 fallback')
+            : '다중 인스턴스에서는 공유 세션 저장소가 필요',
+    ];
+
+    $hasRateLimitsTable = toy_admin_dashboard_table_exists($pdo, 'toy_rate_limits');
+    $summary[] = [
+        'label' => '인증 제한 저장소',
+        'value' => $hasRateLimitsTable ? '전용 테이블' : '인증 로그 fallback',
+        'state' => $hasRateLimitsTable ? '정상' : '주의',
+        'detail' => $hasRateLimitsTable ? 'toy_rate_limits 사용 가능' : '업데이트 SQL 적용 전에는 인증 로그 COUNT를 사용',
+    ];
+
+    $secureCookie = toy_session_cookie_secure($config);
+    $summary[] = [
+        'label' => '세션 쿠키 Secure',
+        'value' => $secureCookie ? '적용' : '미적용',
+        'state' => $secureCookie ? '정상' : ((string) ($config['env'] ?? 'production') === 'production' ? '주의' : '확인'),
+        'detail' => !empty($security['force_https'])
+            ? 'force_https 설정으로 강제'
+            : (toy_is_https_request($config) ? '현재 요청을 HTTPS로 인식' : '현재 요청을 HTTPS로 인식하지 않음'),
+    ];
+
+    $trustedProxies = isset($security['trusted_proxies']) && is_array($security['trusted_proxies']) ? $security['trusted_proxies'] : [];
+    $hasForwardedHeaders = (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '') !== '' || (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') !== '';
+    $summary[] = [
+        'label' => 'Trusted proxy',
+        'value' => (string) count($trustedProxies),
+        'state' => $trustedProxies !== [] ? '정상' : ($hasForwardedHeaders ? '주의' : '확인'),
+        'detail' => $trustedProxies !== []
+            ? '프록시 헤더 신뢰 범위가 설정됨'
+            : ($hasForwardedHeaders ? '전달 헤더가 있지만 trusted_proxies가 비어 있음' : '프록시 없이 직접 요청으로 판단'),
+    ];
+
+    $appKeyEnv = (string) ($secrets['app_key_env'] ?? '');
+    $appKeyFromEnv = $appKeyEnv !== '' && getenv($appKeyEnv) !== false && (string) getenv($appKeyEnv) !== '';
+    $summary[] = [
+        'label' => 'App key 출처',
+        'value' => $appKeyFromEnv ? '환경변수' : 'config 파일',
+        'state' => toy_app_key($config) !== '' ? '정상' : '주의',
+        'detail' => $appKeyFromEnv ? $appKeyEnv . ' 값을 사용 중' : '환경변수 주입이 없으면 config/app_key를 사용',
+    ];
+
+    $transport = (string) ($mail['transport'] ?? 'php_mail');
+    $mailReady = toy_admin_dashboard_mail_transport_ready($transport, $mail);
+    $summary[] = [
+        'label' => '메일 transport',
+        'value' => $transport,
+        'state' => $mailReady ? '정상' : '주의',
+        'detail' => $mailReady ? '인증 메일 발송 설정 확인됨' : '인증 메일 발송 설정 보완 필요',
+    ];
+
+    return $summary;
+}
+
+function toy_admin_dashboard_mail_transport_ready(string $transport, array $mail): bool
+{
+    if ($transport === 'php_mail') {
+        return function_exists('mail');
+    }
+
+    if ($transport === 'smtp') {
+        return (string) ($mail['host'] ?? '') !== ''
+            && (int) ($mail['port'] ?? 0) >= 1
+            && filter_var((string) ($mail['from_email'] ?? ''), FILTER_VALIDATE_EMAIL) !== false;
+    }
+
+    if ($transport === 'http_api') {
+        return toy_is_http_url((string) ($mail['endpoint'] ?? ''));
+    }
+
+    return false;
+}
+
 function toy_admin_dashboard_recovery_marker(string $filename, string $label): ?array
 {
     if (preg_match('/\A[a-z0-9_.-]+\.json\z/', $filename) !== 1) {
