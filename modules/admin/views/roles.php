@@ -31,8 +31,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <?php foreach ($accounts as $adminAccount) { ?>
             <tr>
                 <td><?php echo toy_e((string) $adminAccount['id']); ?></td>
-                <td><?php echo toy_e((string) $adminAccount['email']); ?></td>
-                <td><?php echo toy_e((string) $adminAccount['display_name']); ?></td>
+                <td><?php echo toy_e(toy_admin_member_email_display($adminAccount)); ?></td>
+                <td><?php echo toy_e(toy_admin_member_display_name_preview($adminAccount)); ?></td>
                 <td><?php echo toy_e((string) $adminAccount['status']); ?></td>
                 <td><?php echo toy_e(implode(', ', $adminAccount['roles'])); ?></td>
                 <td>

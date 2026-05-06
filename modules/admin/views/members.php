@@ -54,8 +54,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <?php foreach ($members as $member) { ?>
             <tr>
                 <td><?php echo toy_e((string) $member['id']); ?></td>
-                <td><?php echo toy_e((string) $member['email']); ?></td>
-                <td><?php echo toy_e((string) $member['display_name']); ?></td>
+                <td><?php echo toy_e(toy_admin_member_email_display($member)); ?></td>
+                <td><?php echo toy_e(toy_admin_member_display_name_preview($member)); ?></td>
                 <td><?php echo toy_e((string) $member['status']); ?></td>
                 <td><?php echo toy_e((string) ($member['email_verified_at'] ?? '')); ?></td>
                 <td><?php echo toy_e((string) ($member['last_login_at'] ?? '')); ?></td>

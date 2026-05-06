@@ -127,6 +127,35 @@ if (!is_string($adminMembersHelper)) {
     ) {
         $errors[] = 'Admin members helper must prevent deactivating the last active owner.';
     }
+
+    if (
+        strpos($adminMembersHelper, 'function toy_admin_member_email_display') === false
+        || strpos($adminMembersHelper, 'function toy_admin_member_display_name_preview') === false
+        || strpos($adminMembersHelper, "return \$prefix . '***@' . \$domain;") === false
+        || strpos($adminMembersHelper, "toy_log_line_value((string) (\$member['display_name'] ?? ''), 80)") === false
+    ) {
+        $errors[] = 'Admin member lists must reduce member email and display name exposure before display.';
+    }
+}
+
+$adminMembersView = file_get_contents($root . '/modules/admin/views/members.php');
+if (!is_string($adminMembersView)) {
+    $errors[] = 'Admin members view cannot be read.';
+} elseif (
+    strpos($adminMembersView, 'toy_admin_member_email_display($member)') === false
+    || strpos($adminMembersView, 'toy_admin_member_display_name_preview($member)') === false
+) {
+    $errors[] = 'Admin members view must render member identity fields through privacy display helpers.';
+}
+
+$adminRolesView = file_get_contents($root . '/modules/admin/views/roles.php');
+if (!is_string($adminRolesView)) {
+    $errors[] = 'Admin roles view cannot be read.';
+} elseif (
+    strpos($adminRolesView, 'toy_admin_member_email_display($adminAccount)') === false
+    || strpos($adminRolesView, 'toy_admin_member_display_name_preview($adminAccount)') === false
+) {
+    $errors[] = 'Admin roles view must render member identity fields through privacy display helpers.';
 }
 
 $adminSettingsHelper = file_get_contents($root . '/modules/admin/helpers/settings.php');

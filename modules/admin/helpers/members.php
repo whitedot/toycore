@@ -7,6 +7,24 @@ function toy_admin_member_allowed_statuses(): array
     return ['active', 'pending', 'suspended', 'withdrawn', 'anonymized'];
 }
 
+function toy_admin_member_email_display(array $member): string
+{
+    $email = (string) ($member['email'] ?? '');
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return toy_log_line_value($email, 80);
+    }
+
+    [$localPart, $domain] = explode('@', $email, 2);
+    $prefix = function_exists('mb_substr') ? mb_substr($localPart, 0, 2) : substr($localPart, 0, 2);
+
+    return $prefix . '***@' . $domain;
+}
+
+function toy_admin_member_display_name_preview(array $member): string
+{
+    return toy_log_line_value((string) ($member['display_name'] ?? ''), 80);
+}
+
 function toy_admin_handle_members_post(PDO $pdo, array $account, array $allowedStatuses): array
 {
     $errors = [];
