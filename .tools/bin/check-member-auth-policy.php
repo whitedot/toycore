@@ -270,6 +270,24 @@ if ($registerAction !== '') {
         strpos($registerAction, 'email_verification_mail_failed') !== false,
         'Register action should write an auth log event when verification mail delivery fails.'
     );
+    $registerTransaction = strpos($registerAction, '$pdo->beginTransaction();');
+    $registerConsent = strpos($registerAction, "toy_member_record_consent(\$pdo, \$accountId, 'privacy'");
+    $registerCommit = strpos($registerAction, '$pdo->commit();');
+    $registerMail = strpos($registerAction, '$verificationMailSent = toy_send_mail');
+    toy_member_auth_policy_assert(
+        $registerTransaction !== false
+            && $registerConsent !== false
+            && $registerCommit !== false
+            && $registerTransaction < $registerConsent
+            && $registerConsent < $registerCommit,
+        'Register action should create account, verification token, and required consents in one transaction.'
+    );
+    toy_member_auth_policy_assert(
+        $registerCommit !== false
+            && $registerMail !== false
+            && $registerCommit < $registerMail,
+        'Register action should send email only after the account transaction commits.'
+    );
 }
 
 $emailVerificationRequestAction = toy_member_auth_policy_read('modules/member/actions/email-verification-request.php');

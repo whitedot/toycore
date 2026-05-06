@@ -72,8 +72,13 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        $accountId = null;
+        $verificationMailSent = null;
+        $verificationUrl = '';
+
         try {
-            $verificationMailSent = null;
+            $pdo->beginTransaction();
+
             $accountId = toy_member_create_account($pdo, $config, [
                 'email' => $values['email'],
                 'password' => $password,
@@ -86,6 +91,22 @@ if (toy_request_method() === 'POST') {
             if ($emailVerificationEnabled) {
                 $verificationToken = toy_member_create_email_verification($pdo, $config, $accountId, $values['email']);
                 $verificationUrl = toy_absolute_url($site, '/email/verify?token=' . rawurlencode($verificationToken));
+            }
+            toy_member_record_consent($pdo, $accountId, 'terms', '2026.04.001', true);
+            toy_member_record_consent($pdo, $accountId, 'privacy', '2026.04.001', true);
+
+            $pdo->commit();
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            toy_member_log_auth($pdo, null, 'register', 'failure');
+            $errors[] = '이미 사용 중인 이메일이거나 가입을 처리할 수 없습니다.';
+        }
+
+        if ($errors === [] && $accountId !== null) {
+            if ($emailVerificationEnabled) {
                 $verificationMailSent = toy_send_mail(
                     $site,
                     $values['email'],
@@ -99,8 +120,6 @@ if (toy_request_method() === 'POST') {
                     toy_member_log_auth($pdo, $accountId, 'email_verification_mail_failed', 'failure');
                 }
             }
-            toy_member_record_consent($pdo, $accountId, 'terms', '2026.04.001', true);
-            toy_member_record_consent($pdo, $accountId, 'privacy', '2026.04.001', true);
 
             toy_member_log_auth($pdo, $accountId, 'register', 'success');
             toy_audit_log($pdo, [
@@ -128,9 +147,6 @@ if (toy_request_method() === 'POST') {
 
             $_SESSION['toy_member_login_notice'] = '가입은 완료됐지만 로그인 세션을 만들 수 없습니다. 로그인 화면에서 다시 시도하세요.';
             toy_redirect('/login');
-        } catch (Throwable $exception) {
-            toy_member_log_auth($pdo, null, 'register', 'failure');
-            $errors[] = '이미 사용 중인 이메일이거나 가입을 처리할 수 없습니다.';
         }
     }
 }
