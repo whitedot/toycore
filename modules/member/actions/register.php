@@ -115,11 +115,12 @@ if (toy_request_method() === 'POST') {
                 toy_redirect('/login');
             }
 
-            if ($newAccount !== null) {
-                toy_member_login($pdo, $newAccount);
+            if ($newAccount !== null && toy_member_login($pdo, $newAccount)) {
+                toy_redirect('/account');
             }
 
-            toy_redirect('/account');
+            $_SESSION['toy_member_login_notice'] = '가입은 완료됐지만 로그인 세션을 만들 수 없습니다. 로그인 화면에서 다시 시도하세요.';
+            toy_redirect('/login');
         } catch (Throwable $exception) {
             toy_member_log_auth($pdo, null, 'register', 'failure');
             $errors[] = '이미 사용 중인 이메일이거나 가입을 처리할 수 없습니다.';

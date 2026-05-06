@@ -615,6 +615,7 @@ POST /login
 -> session_regenerate_id(true)
 -> session token 생성과 hash 저장
 -> session token 생성 실패 시 기존 session token hash 정리
+-> DB 세션 테이블이 있으면 session token 생성 실패 시 로그인 성공 처리 중단
 -> last_login_at 갱신
 -> 인증 로그 기록
 -> 목적지로 redirect

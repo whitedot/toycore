@@ -153,9 +153,16 @@ if ($sessionHelper !== '') {
         'Current member session rotation helper should regenerate PHP and member session tokens.'
     );
     toy_member_auth_policy_assert(
-        strpos($sessionHelper, 'function toy_member_login') !== false
-            && strpos($sessionHelper, "if (\$sessionTokenHash !== '') {\n        \$_SESSION['toy_session_token_hash'] = \$sessionTokenHash;\n    } else {\n        unset(\$_SESSION['toy_session_token_hash']);\n    }") !== false,
+        strpos($sessionHelper, 'function toy_member_login(PDO $pdo, array $account): bool') !== false
+            && strpos($sessionHelper, "if (\$sessionTokenHash !== '') {\n        \$_SESSION['toy_session_token_hash'] = \$sessionTokenHash;") !== false
+            && strpos($sessionHelper, "unset(\$_SESSION['toy_session_token_hash']);") !== false,
         'Member login should clear stale session token hash when DB session creation fails.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($sessionHelper, 'toy_member_sessions_table_exists($pdo)') !== false
+            && strpos($sessionHelper, "unset(\$_SESSION['toy_account_id']);") !== false
+            && strpos($sessionHelper, 'return false;') !== false,
+        'Member login should fail clearly when DB session creation fails while the session table exists.'
     );
     toy_member_auth_policy_assert(
         strpos($sessionHelper, 'function toy_member_logout_current_session_if_account') !== false
@@ -189,7 +196,8 @@ if ($withdrawAction !== '') {
 $registerAction = toy_member_auth_policy_read('modules/member/actions/register.php');
 if ($registerAction !== '') {
     toy_member_auth_policy_assert(
-        strpos($registerAction, 'toy_member_login($pdo, $newAccount)') !== false,
+        strpos($registerAction, 'toy_member_login($pdo, $newAccount)') !== false
+            && strpos($registerAction, '로그인 세션을 만들 수 없습니다') !== false,
         'Register action should keep auto-login for immediately verified accounts.'
     );
     toy_member_auth_policy_assert(
@@ -204,6 +212,11 @@ if ($loginAction !== '') {
     toy_member_auth_policy_assert(
         strpos($loginAction, 'toy_member_rehash_login_password_if_needed') !== false,
         'Login action should rehash stale password hashes after successful verification.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($loginAction, 'if (toy_member_login($pdo, $account))') !== false
+            && strpos($loginAction, 'login_session_failed') !== false,
+        'Login action should not record login success when member session creation fails.'
     );
 }
 

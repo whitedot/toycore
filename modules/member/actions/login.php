@@ -94,18 +94,31 @@ if (toy_request_method() === 'POST') {
         $errors[] = '이메일 인증을 완료한 뒤 로그인할 수 있습니다. 인증 안내 메일을 다시 확인하세요.';
     } elseif ($passwordVerified) {
         toy_member_rehash_login_password_if_needed($pdo, (int) $account['id'], $password, (string) $account['password_hash']);
-        toy_member_login($pdo, $account);
-        toy_member_log_auth($pdo, (int) $account['id'], 'login', 'success');
+        if (toy_member_login($pdo, $account)) {
+            toy_member_log_auth($pdo, (int) $account['id'], 'login', 'success');
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'member',
+                'event_type' => 'member.login',
+                'target_type' => 'member_account',
+                'target_id' => (string) $account['id'],
+                'result' => 'success',
+                'message' => 'Member login succeeded.',
+            ]);
+            toy_redirect($next);
+        }
+
+        toy_member_log_auth($pdo, (int) $account['id'], 'login_session_failed', 'failure');
         toy_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'member',
-            'event_type' => 'member.login',
+            'event_type' => 'member.login.session_failed',
             'target_type' => 'member_account',
             'target_id' => (string) $account['id'],
-            'result' => 'success',
-            'message' => 'Member login succeeded.',
+            'result' => 'failure',
+            'message' => 'Member login session could not be created.',
         ]);
-        toy_redirect($next);
+        $errors[] = '로그인 세션을 만들 수 없습니다. 잠시 후 다시 시도하세요.';
     } else {
         toy_member_log_auth($pdo, $account !== null ? (int) $account['id'] : null, 'login', 'failure');
         toy_audit_log($pdo, [

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-function toy_member_login(PDO $pdo, array $account): void
+function toy_member_login(PDO $pdo, array $account): bool
 {
     session_regenerate_id(true);
     $_SESSION['toy_account_id'] = (int) $account['id'];
@@ -12,6 +12,10 @@ function toy_member_login(PDO $pdo, array $account): void
         $_SESSION['toy_session_token_hash'] = $sessionTokenHash;
     } else {
         unset($_SESSION['toy_session_token_hash']);
+        if (toy_member_sessions_table_exists($pdo)) {
+            unset($_SESSION['toy_account_id']);
+            return false;
+        }
     }
 
     $stmt = $pdo->prepare('UPDATE toy_member_accounts SET last_login_at = :last_login_at, updated_at = :updated_at WHERE id = :id');
@@ -20,6 +24,8 @@ function toy_member_login(PDO $pdo, array $account): void
         'updated_at' => toy_now(),
         'id' => (int) $account['id'],
     ]);
+
+    return true;
 }
 
 function toy_member_create_session(PDO $pdo, int $accountId): string
