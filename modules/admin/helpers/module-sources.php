@@ -376,17 +376,20 @@ function toy_admin_copy_directory(string $source, string $target): void
 function toy_admin_zip_entry_is_safe(string $name): bool
 {
     $name = str_replace('\\', '/', $name);
+    $pathName = rtrim($name, '/');
     if (
         $name === ''
+        || $pathName === ''
         || preg_match('/[\x00-\x1F\x7F]/', $name) === 1
         || str_starts_with($name, '/')
+        || str_contains($name, '//')
         || str_contains($name, ':')
     ) {
         return false;
     }
 
-    foreach (explode('/', $name) as $segment) {
-        if ($segment === '..') {
+    foreach (explode('/', $pathName) as $segment) {
+        if ($segment === '' || $segment === '.' || $segment === '..') {
             return false;
         }
     }
@@ -397,13 +400,13 @@ function toy_admin_zip_entry_is_safe(string $name): bool
 function toy_admin_zip_entry_is_symlink(ZipArchive $zip, int $index): bool
 {
     if (!method_exists($zip, 'getExternalAttributesIndex')) {
-        return false;
+        throw new RuntimeException('zip 항목 속성을 확인할 수 없습니다.');
     }
 
     $opsys = 0;
     $attributes = 0;
     if (!$zip->getExternalAttributesIndex($index, $opsys, $attributes)) {
-        return false;
+        throw new RuntimeException('zip 항목 속성을 확인할 수 없습니다.');
     }
 
     $mode = ($attributes >> 16) & 0170000;

@@ -159,8 +159,15 @@ if (!is_string($adminModuleSourcesHelper)) {
 if (is_string($adminModuleSourcesHelper) && (
     strpos($adminModuleSourcesHelper, "preg_match('/[\\x00-\\x1F\\x7F]/', \$name)") === false
     || strpos($adminModuleSourcesHelper, "str_contains(\$name, ':')") === false
+    || strpos($adminModuleSourcesHelper, "str_contains(\$name, '//')") === false
+    || strpos($adminModuleSourcesHelper, "\$segment === '.'") === false
 )) {
-    $errors[] = 'Admin module source zip paths must reject control characters and colon separators.';
+    $errors[] = 'Admin module source zip paths must reject control characters, colon separators, and ambiguous path segments.';
+}
+if (is_string($adminModuleSourcesHelper) && (
+    strpos($adminModuleSourcesHelper, "throw new RuntimeException('zip 항목 속성을 확인할 수 없습니다.');") === false
+)) {
+    $errors[] = 'Admin module source zip symlink checks must fail closed when entry attributes cannot be read.';
 }
 if (is_string($adminModuleSourcesHelper) && (
     strpos($adminModuleSourcesHelper, 'function toy_admin_is_https_public_url') === false
