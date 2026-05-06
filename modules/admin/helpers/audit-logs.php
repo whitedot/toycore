@@ -20,6 +20,10 @@ function toy_admin_audit_metadata_redact(mixed $value, string $key = ''): mixed
         return $value === '' ? '' : '[masked]';
     }
 
+    if (is_string($value)) {
+        return toy_log_sensitive_text_sanitize($value);
+    }
+
     if (!is_array($value)) {
         return $value;
     }
@@ -47,6 +51,11 @@ function toy_admin_audit_log_display_metadata(array $log): string
     $encoded = json_encode(toy_admin_audit_metadata_redact($metadata), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
     return is_string($encoded) ? $encoded : '[invalid metadata]';
+}
+
+function toy_admin_audit_log_display_message(array $log): string
+{
+    return toy_log_sensitive_text_sanitize(toy_log_line_value((string) ($log['message'] ?? ''), 1000));
 }
 
 function toy_admin_audit_log_query_parts(array &$filters): array

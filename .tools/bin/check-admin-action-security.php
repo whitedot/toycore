@@ -211,7 +211,10 @@ if (!is_string($adminAuditLogsHelper)) {
 } elseif (
     strpos($adminAuditLogsHelper, 'function toy_admin_audit_metadata_redact') === false
     || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_display_metadata') === false
+    || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_display_message') === false
     || strpos($adminAuditLogsHelper, 'toy_admin_setting_value_is_secret($key)') === false
+    || strpos($adminAuditLogsHelper, 'return toy_log_sensitive_text_sanitize($value);') === false
+    || strpos($adminAuditLogsHelper, "toy_log_sensitive_text_sanitize(toy_log_line_value((string) (\$log['message'] ?? ''), 1000))") === false
     || strpos($adminAuditLogsHelper, 'json_decode($metadataJson, true)') === false
     || strpos($adminAuditLogsHelper, "'[invalid metadata]'") === false
 ) {
@@ -221,8 +224,11 @@ if (!is_string($adminAuditLogsHelper)) {
 $adminAuditLogsView = file_get_contents($root . '/modules/admin/views/audit-logs.php');
 if (!is_string($adminAuditLogsView)) {
     $errors[] = 'Admin audit logs view cannot be read.';
-} elseif (strpos($adminAuditLogsView, 'toy_admin_audit_log_display_metadata($log)') === false) {
-    $errors[] = 'Admin audit logs view must render metadata through the redaction helper.';
+} elseif (
+    strpos($adminAuditLogsView, 'toy_admin_audit_log_display_message($log)') === false
+    || strpos($adminAuditLogsView, 'toy_admin_audit_log_display_metadata($log)') === false
+) {
+    $errors[] = 'Admin audit logs view must render messages and metadata through redaction helpers.';
 }
 
 $coreOpsHelper = file_get_contents($root . '/core/helpers/ops.php');

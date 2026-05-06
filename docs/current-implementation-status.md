@@ -299,6 +299,7 @@
 - 관리자 작업 로그 metadata 표시 민감 키 마스킹
 - 관리자 작업 로그 metadata 저장 전 민감 키 마스킹
 - 관리자 작업 로그 message와 metadata 문자열의 민감한 key/value 및 Bearer 값 저장 전 마스킹
+- 기존 관리자 작업 로그 message와 metadata 문자열 표시 전 민감한 key/value 및 Bearer 값 마스킹
 - 설치/업데이트 실패 marker message 표시 전 민감한 key/value 및 Bearer 값 마스킹
 - 개인정보 요청 처리
 - 종결된 개인정보 요청 상태 재변경 차단
