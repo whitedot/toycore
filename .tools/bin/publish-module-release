@@ -76,7 +76,11 @@ for module_key in ${module_keys}; do
     cp "${zip_path}" "${MODULE_DIST}/${zip_name}"
 done
 
-"${ROOT}/.tools/bin/update-module-index" "${VERSION}" "${RELEASE_BASE_URL}" "${MODULE_DIST}"
+if [ "${TOYCORE_UPDATE_REPOSITORY_REFS:-0}" = "1" ]; then
+    "${ROOT}/.tools/bin/update-module-index" "${VERSION}" "${RELEASE_BASE_URL}" "${MODULE_DIST}" --repository-refs "${MODULE_REPO_ROOT}"
+else
+    "${ROOT}/.tools/bin/update-module-index" "${VERSION}" "${RELEASE_BASE_URL}" "${MODULE_DIST}"
+fi
 
 if command -v gh >/dev/null 2>&1; then
     if gh release view "${TAG}" --repo "${RELEASE_REPO}" >/dev/null 2>&1; then

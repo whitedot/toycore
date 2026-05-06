@@ -90,6 +90,18 @@ sha256sum module-name.zip
 
 URL과 checksum이 모두 채워진 항목만 `/admin/modules`의 공식 registry 다운로드 대상으로 사용된다.
 
+운영 환경에서 repository archive 반영도 허용해야 한다면 같은 명령에 `--repository-refs`를 추가한다. 이 옵션은 공식 모듈 리포지토리의 현재 commit SHA를 읽고 GitHub codeload archive zip의 sha256 checksum을 계산해 `repository_refs`에 기록한다.
+
+```sh
+./.tools/bin/update-module-index 2026.05.001 https://github.com/whitedot/toycore-module-releases/releases/download/v2026.05.001 dist/modules --repository-refs ../
+```
+
+`publish-module-release`에서 같은 작업을 함께 실행하려면 다음처럼 환경 변수를 지정한다.
+
+```sh
+TOYCORE_UPDATE_REPOSITORY_REFS=1 ./.tools/bin/publish-module-release 2026.05.001
+```
+
 ## 5. 릴리스 노트
 
 릴리스 노트에는 다음을 포함한다.

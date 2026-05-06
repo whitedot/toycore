@@ -189,11 +189,19 @@ Repository archive 반영은 고급 경로입니다. 운영 환경에서는 `rep
 ./.tools/bin/update-module-index 2026.05.001 https://example.com/releases/v2026.05.001 dist/modules
 ```
 
+운영용 repository archive checksum도 함께 등록하려면 공식 모듈 리포지토리가 있는 상위 디렉터리를 넘깁니다. 이 옵션은 각 모듈의 현재 Git commit SHA를 읽고 GitHub codeload archive의 sha256을 계산합니다.
+
+```sh
+./.tools/bin/update-module-index 2026.05.001 https://example.com/releases/v2026.05.001 dist/modules --repository-refs ../
+```
+
 공식 모듈 릴리스 zip을 모듈 리포지토리에서 모아 GitHub Release에 올릴 때는 릴리스 담당자 환경에서 다음 도구를 사용할 수 있습니다.
 
 ```sh
 ./.tools/bin/publish-module-release 2026.05.001
 ```
+
+`publish-module-release`에서 repository archive checksum까지 갱신하려면 `TOYCORE_UPDATE_REPOSITORY_REFS=1`을 지정합니다.
 
 owner는 registry에 등록된 공식 GitHub repository의 archive zip도 ref를 지정해 다운로드할 수 있습니다. 이 경로는 checksum이 고정된 release zip보다 낮은 수준의 고급 경로이며, 임의 repository URL 입력은 허용하지 않습니다. 운영 환경에서 이 경로를 사용하려면 registry 항목에 다음처럼 commit SHA별 checksum을 등록해야 합니다.
 

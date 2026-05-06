@@ -6,13 +6,33 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 $version = (string) ($argv[1] ?? '');
 $releaseBaseUrl = rtrim((string) ($argv[2] ?? ''), '/');
-$zipDirectory = (string) ($argv[3] ?? ($root . '/dist/modules'));
+$zipDirectory = $root . '/dist/modules';
+$updateRepositoryRefs = false;
+$repositoryRoot = '';
+$arguments = array_slice($argv, 3);
+if (($arguments[0] ?? '') !== '' && $arguments[0] !== '--repository-refs') {
+    $zipDirectory = (string) array_shift($arguments);
+}
+foreach ($arguments as $index => $argument) {
+    if ($argument === '--repository-refs') {
+        $updateRepositoryRefs = true;
+        $nextArgument = $arguments[$index + 1] ?? '';
+        $repositoryRoot = is_string($nextArgument) && $nextArgument !== '' && $nextArgument !== '--repository-refs'
+            ? (string) $nextArgument
+            : (string) (getenv('TOYCORE_MODULE_REPO_ROOT') ?: dirname($root));
+        break;
+    }
+}
+
 if ($zipDirectory !== '' && !str_starts_with($zipDirectory, '/') && preg_match('/\A[A-Za-z]:[\/\\\\]/', $zipDirectory) !== 1) {
     $zipDirectory = $root . '/' . $zipDirectory;
 }
+if ($repositoryRoot !== '' && !str_starts_with($repositoryRoot, '/') && preg_match('/\A[A-Za-z]:[\/\\\\]/', $repositoryRoot) !== 1) {
+    $repositoryRoot = $root . '/' . $repositoryRoot;
+}
 
 if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $version) !== 1) {
-    fwrite(STDERR, "Usage: ./.tools/bin/update-module-index YYYY.MM.NNN https://release-base-url [zip-dir]\n");
+    fwrite(STDERR, "Usage: ./.tools/bin/update-module-index YYYY.MM.NNN https://release-base-url [zip-dir] [--repository-refs [module-repo-root]]\n");
     exit(1);
 }
 
@@ -24,6 +44,103 @@ if (!filter_var($releaseBaseUrl, FILTER_VALIDATE_URL) || !in_array((string) pars
 if (!is_dir($zipDirectory)) {
     fwrite(STDERR, "zip directory does not exist: " . $zipDirectory . "\n");
     exit(1);
+}
+
+if ($updateRepositoryRefs && !is_dir($repositoryRoot)) {
+    fwrite(STDERR, "module repository root does not exist: " . $repositoryRoot . "\n");
+    exit(1);
+}
+
+function toy_update_module_index_module_repo_path(string $repositoryRoot, string $moduleKey): string
+{
+    return rtrim($repositoryRoot, "/\\") . '/toycore-module-' . str_replace('_', '-', $moduleKey);
+}
+
+function toy_update_module_index_current_commit(string $repositoryPath): string
+{
+    $command = 'git -C ' . escapeshellarg($repositoryPath) . ' rev-parse HEAD';
+    $output = [];
+    $exitCode = 1;
+    exec($command, $output, $exitCode);
+    $commit = trim((string) ($output[0] ?? ''));
+    if ($exitCode !== 0 || preg_match('/\A[a-f0-9]{40}\z/', $commit) !== 1) {
+        throw new RuntimeException('module repository commit cannot be resolved: ' . $repositoryPath);
+    }
+
+    return $commit;
+}
+
+function toy_update_module_index_archive_url(string $repository, string $commit): string
+{
+    $host = strtolower((string) parse_url($repository, PHP_URL_HOST));
+    $path = trim((string) parse_url($repository, PHP_URL_PATH), '/');
+    if ($host !== 'github.com' || preg_match('/\Awhitedot\/toycore-module-[a-z0-9-]+\z/', $path) !== 1) {
+        throw new RuntimeException('module repository URL is not allowed: ' . $repository);
+    }
+
+    return 'https://codeload.github.com/' . $path . '/zip/' . rawurlencode($commit);
+}
+
+function toy_update_module_index_http_status(array $headers): int
+{
+    $status = 0;
+    foreach ($headers as $header) {
+        if (preg_match('/\AHTTP\/\S+\s+(\d{3})\b/', (string) $header, $matches) === 1) {
+            $status = (int) $matches[1];
+        }
+    }
+
+    return $status;
+}
+
+function toy_update_module_index_remote_archive_checksum(string $url): string
+{
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 30,
+            'ignore_errors' => true,
+            'header' => "User-Agent: Toycore-Module-Index\r\n",
+        ],
+    ]);
+
+    $handle = fopen($url, 'rb', false, $context);
+    if (!is_resource($handle)) {
+        throw new RuntimeException('repository archive cannot be downloaded: ' . $url);
+    }
+
+    $hash = hash_init('sha256');
+    $bytes = 0;
+    $limit = 25 * 1024 * 1024;
+    try {
+        while (!feof($handle)) {
+            $chunk = fread($handle, 8192);
+            if (!is_string($chunk)) {
+                throw new RuntimeException('repository archive cannot be read: ' . $url);
+            }
+
+            if ($chunk === '') {
+                continue;
+            }
+
+            $bytes += strlen($chunk);
+            if ($bytes > $limit) {
+                throw new RuntimeException('repository archive is too large: ' . $url);
+            }
+
+            hash_update($hash, $chunk);
+        }
+    } finally {
+        $metadata = stream_get_meta_data($handle);
+        fclose($handle);
+    }
+
+    $status = toy_update_module_index_http_status(is_array($metadata['wrapper_data'] ?? null) ? $metadata['wrapper_data'] : []);
+    if ($status < 200 || $status >= 300) {
+        throw new RuntimeException('repository archive returned HTTP ' . $status . ': ' . $url);
+    }
+
+    return hash_final($hash);
 }
 
 $indexPath = $root . '/docs/module-index.json';
@@ -40,6 +157,7 @@ if (!is_array($index) || !is_array($index['modules'] ?? null)) {
 }
 
 $updated = [];
+$updatedRepositoryRefs = [];
 $missing = [];
 foreach ($index['modules'] as $position => $module) {
     if (!is_array($module)) {
@@ -67,6 +185,30 @@ foreach ($index['modules'] as $position => $module) {
     $index['modules'][$position]['latest_version'] = $version;
     $index['modules'][$position]['zip_url'] = $releaseBaseUrl . '/' . rawurlencode($zipName);
     $index['modules'][$position]['checksum'] = $checksum;
+
+    if ($updateRepositoryRefs) {
+        try {
+            $repositoryPath = toy_update_module_index_module_repo_path($repositoryRoot, $moduleKey);
+            if (!is_dir($repositoryPath)) {
+                throw new RuntimeException('module repository does not exist: ' . $repositoryPath);
+            }
+
+            $commit = toy_update_module_index_current_commit($repositoryPath);
+            $archiveUrl = toy_update_module_index_archive_url((string) ($module['repository'] ?? ''), $commit);
+            $archiveChecksum = toy_update_module_index_remote_archive_checksum($archiveUrl);
+            $repositoryRefs = is_array($index['modules'][$position]['repository_refs'] ?? null)
+                ? $index['modules'][$position]['repository_refs']
+                : [];
+            $repositoryRefs[$commit] = $archiveChecksum;
+            ksort($repositoryRefs, SORT_STRING);
+            $index['modules'][$position]['repository_refs'] = $repositoryRefs;
+            $updatedRepositoryRefs[] = $moduleKey . ' ' . substr($commit, 0, 12);
+        } catch (Throwable $exception) {
+            fwrite(STDERR, "repository archive ref cannot be updated for " . $moduleKey . ": " . $exception->getMessage() . "\n");
+            exit(1);
+        }
+    }
+
     $updated[] = $moduleKey;
 }
 
@@ -89,4 +231,10 @@ file_put_contents($indexPath, $encoded . "\n", LOCK_EX);
 echo "Updated module index for version " . $version . "\n";
 foreach ($updated as $moduleKey) {
     echo "- " . $moduleKey . "\n";
+}
+if ($updatedRepositoryRefs !== []) {
+    echo "Updated repository archive refs\n";
+    foreach ($updatedRepositoryRefs as $repositoryRef) {
+        echo "- " . $repositoryRef . "\n";
+    }
 }

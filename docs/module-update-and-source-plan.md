@@ -221,7 +221,8 @@ Toycore 검증 버전
 - `/admin/modules`에서 registry에 URL과 checksum이 등록된 공식 release zip을 다운로드해 같은 검증 흐름으로 반영할 수 있다.
 - `/admin/modules`에서 registry에 등록된 공식 GitHub repository의 archive zip을 ref 기준으로 다운로드해 같은 검증 흐름으로 반영할 수 있으며, 이 경로는 고급 UI로 접어 둔다.
 - `.tools/bin/update-module-index`로 모듈 zip 디렉터리의 sha256 checksum을 계산해 `docs/module-index.json`을 갱신할 수 있다.
-- `.tools/bin/publish-module-release`로 공식 모듈 zip 수집, registry checksum 갱신, GitHub Release 업로드를 한 흐름으로 처리할 수 있다.
+- `.tools/bin/update-module-index --repository-refs`로 공식 모듈 리포지토리의 현재 commit SHA와 GitHub archive zip checksum을 `repository_refs`에 기록할 수 있다.
+- `.tools/bin/publish-module-release`로 공식 모듈 zip 수집, registry checksum 갱신, GitHub Release 업로드를 한 흐름으로 처리할 수 있으며, `TOYCORE_UPDATE_REPOSITORY_REFS=1`이면 archive checksum도 함께 갱신한다.
 - 기존 모듈 파일을 교체할 때는 `storage/module-backups`에 이전 디렉터리를 보관한다.
 - 코드 버전이 설치 버전보다 높고 미적용 SQL이 없으면 파일 전용 업데이트 버전을 관리자 화면에서 반영할 수 있다.
 - 업로드 zip은 `{module_key}/module.php`, `module/module.php`, 한 단계 아래 `module/` 디렉터리를 둔 리포지토리 zip 구조를 인식한다.
