@@ -150,7 +150,7 @@ server {
 ],
 ```
 
-`trusted_proxies`에는 PHP가 직접 보는 로드밸런서 또는 리버스 프록시의 IP/CIDR만 넣는다. 이 값이 맞아야 `X-Forwarded-Proto` 기반 HTTPS 판단, Secure 쿠키, 실제 클라이언트 IP 기반 인증 제한이 올바르게 동작한다.
+`trusted_proxies`에는 PHP가 직접 보는 로드밸런서 또는 리버스 프록시의 IP/CIDR만 넣는다. 이 값이 맞아야 `X-Forwarded-Proto` 기반 HTTPS 판단, Secure 쿠키, 실제 클라이언트 IP 기반 인증 제한이 올바르게 동작한다. 값은 단일 IP(`203.0.113.10`) 또는 CIDR(`10.0.0.0/8`, `2001:db8::/32`) 형식이어야 하며, 잘못된 항목은 런타임에서 신뢰 대상으로 사용하지 않는다.
 
 `app_key_env`를 사용하면 환경변수 또는 secret manager에서 앱 비밀값을 주입할 수 있다. 운영 중 `app_key`를 바꾸면 로그인 식별자 HMAC 조회가 깨질 수 있으므로 기존 값과 동일한 값을 주입해야 한다.
 

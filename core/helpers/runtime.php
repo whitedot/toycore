@@ -199,16 +199,78 @@ function toy_request_from_trusted_proxy(?array $config = null): bool
     }
 
     $config = is_array($config) ? $config : toy_runtime_config();
-    $security = isset($config['security']) && is_array($config['security']) ? $config['security'] : [];
-    $trustedProxies = isset($security['trusted_proxies']) && is_array($security['trusted_proxies']) ? $security['trusted_proxies'] : [];
-
-    foreach ($trustedProxies as $trustedProxy) {
-        if (is_string($trustedProxy) && toy_ip_matches_trusted_proxy($remoteAddress, $trustedProxy)) {
+    foreach (toy_trusted_proxy_entries($config) as $trustedProxy) {
+        if (toy_ip_matches_trusted_proxy($remoteAddress, $trustedProxy)) {
             return true;
         }
     }
 
     return false;
+}
+
+function toy_trusted_proxy_entries(array $config): array
+{
+    $security = isset($config['security']) && is_array($config['security']) ? $config['security'] : [];
+    $trustedProxies = isset($security['trusted_proxies']) && is_array($security['trusted_proxies']) ? $security['trusted_proxies'] : [];
+    $entries = [];
+
+    foreach ($trustedProxies as $trustedProxy) {
+        if (!is_string($trustedProxy)) {
+            continue;
+        }
+
+        $trustedProxy = trim($trustedProxy);
+        if (toy_trusted_proxy_entry_is_valid($trustedProxy)) {
+            $entries[] = $trustedProxy;
+        }
+    }
+
+    return array_values(array_unique($entries));
+}
+
+function toy_trusted_proxy_config_errors(array $config): array
+{
+    $security = isset($config['security']) && is_array($config['security']) ? $config['security'] : [];
+    if (!array_key_exists('trusted_proxies', $security)) {
+        return [];
+    }
+
+    if (!is_array($security['trusted_proxies'])) {
+        return ['trusted_proxies must be an array.'];
+    }
+
+    $errors = [];
+    foreach ($security['trusted_proxies'] as $trustedProxy) {
+        if (!is_string($trustedProxy) || !toy_trusted_proxy_entry_is_valid(trim($trustedProxy))) {
+            $errors[] = 'Invalid trusted proxy entry.';
+        }
+    }
+
+    return $errors;
+}
+
+function toy_trusted_proxy_entry_is_valid(string $trustedProxy): bool
+{
+    if ($trustedProxy === '') {
+        return false;
+    }
+
+    if (strpos($trustedProxy, '/') === false) {
+        return filter_var($trustedProxy, FILTER_VALIDATE_IP) !== false;
+    }
+
+    [$network, $prefixLength] = explode('/', $trustedProxy, 2);
+    if (filter_var($network, FILTER_VALIDATE_IP) === false || !ctype_digit($prefixLength)) {
+        return false;
+    }
+
+    $packedNetwork = inet_pton($network);
+    if ($packedNetwork === false) {
+        return false;
+    }
+
+    $prefix = (int) $prefixLength;
+    return $prefix >= 0 && $prefix <= strlen($packedNetwork) * 8;
 }
 
 function toy_ip_matches_trusted_proxy(string $ipAddress, string $trustedProxy): bool
@@ -289,11 +351,8 @@ function toy_forwarded_client_ip(?array $config = null): string
 
 function toy_ip_is_trusted_proxy(string $ipAddress, array $config): bool
 {
-    $security = isset($config['security']) && is_array($config['security']) ? $config['security'] : [];
-    $trustedProxies = isset($security['trusted_proxies']) && is_array($security['trusted_proxies']) ? $security['trusted_proxies'] : [];
-
-    foreach ($trustedProxies as $trustedProxy) {
-        if (is_string($trustedProxy) && toy_ip_matches_trusted_proxy($ipAddress, $trustedProxy)) {
+    foreach (toy_trusted_proxy_entries($config) as $trustedProxy) {
+        if (toy_ip_matches_trusted_proxy($ipAddress, $trustedProxy)) {
             return true;
         }
     }

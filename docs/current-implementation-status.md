@@ -80,6 +80,7 @@
 - 환경변수 기반 app key 주입 지원
 - 기본 보안 응답 헤더
 - trusted proxy 기반 HTTPS/클라이언트 IP 해석
+- trusted proxy IP/CIDR 설정 검증
 - DB 기반 PHP 세션 저장소
 - 독립 rate limit 카운터 저장소
 - 토큰 URL 보호를 위한 referrer 전송 차단

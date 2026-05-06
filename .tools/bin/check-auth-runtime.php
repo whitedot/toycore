@@ -60,6 +60,8 @@ toy_auth_runtime_require('core/helpers/runtime.php', '/class ToyDatabaseSessionH
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_is_https_request\(\?array \$config = null\): bool/', 'Proxy-aware HTTPS helper signature is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/HTTP_X_FORWARDED_PROTO/', 'Forwarded proto handling is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_forwarded_client_ip\(\?array \$config = null\): string/', 'Forwarded client IP helper is missing');
+toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_trusted_proxy_entries\(array \$config\): array/', 'Trusted proxy entry helper is missing');
+toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_trusted_proxy_config_errors\(array \$config\): array/', 'Trusted proxy config validation is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_send_smtp_mail\(/', 'SMTP mail transport helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_send_http_api_mail\(/', 'HTTP API mail transport helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', "/'from_email'\\s*=>\\s*\\\$fromEmail/", 'HTTP API mail payload from email is missing');
@@ -74,6 +76,7 @@ toy_auth_runtime_require('modules/member/helpers/accounts.php', '/toy_member_rec
 toy_auth_runtime_require('modules/admin/helpers/retention.php', "/'runtime_sessions'\\s*=>\\s*\\[/", 'Runtime sessions retention target is missing');
 toy_auth_runtime_require('modules/admin/helpers/retention.php', "/'rate_limits'\\s*=>\\s*\\[/", 'Rate limits retention target is missing');
 toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/function toy_admin_dashboard_auth_runtime_summary\(/', 'Auth runtime dashboard summary is missing');
+toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/toy_trusted_proxy_config_errors/', 'Dashboard trusted proxy validation is missing');
 toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/toy_admin_dashboard_mail_transport_ready/', 'Mail transport dashboard validation is missing');
 toy_auth_runtime_require('modules/admin/views/dashboard.php', '/인증 런타임/', 'Auth runtime dashboard view is missing');
 toy_auth_runtime_require('docs/deployment-examples.md', '/로드밸런서와 클라우드 런타임/', 'Cloud runtime deployment documentation is missing');

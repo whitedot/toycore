@@ -106,15 +106,18 @@ function toy_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): arra
             : (toy_is_https_request($config) ? '현재 요청을 HTTPS로 인식' : '현재 요청을 HTTPS로 인식하지 않음'),
     ];
 
-    $trustedProxies = isset($security['trusted_proxies']) && is_array($security['trusted_proxies']) ? $security['trusted_proxies'] : [];
+    $trustedProxies = toy_trusted_proxy_entries($config);
+    $trustedProxyErrors = toy_trusted_proxy_config_errors($config);
     $hasForwardedHeaders = (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '') !== '' || (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') !== '';
     $summary[] = [
         'label' => 'Trusted proxy',
         'value' => (string) count($trustedProxies),
-        'state' => $trustedProxies !== [] ? '정상' : ($hasForwardedHeaders ? '주의' : '확인'),
-        'detail' => $trustedProxies !== []
+        'state' => $trustedProxyErrors === [] && $trustedProxies !== [] ? '정상' : ($hasForwardedHeaders || $trustedProxyErrors !== [] ? '주의' : '확인'),
+        'detail' => $trustedProxyErrors !== []
+            ? 'trusted_proxies에 올바르지 않은 IP/CIDR 값이 있음'
+            : ($trustedProxies !== []
             ? '프록시 헤더 신뢰 범위가 설정됨'
-            : ($hasForwardedHeaders ? '전달 헤더가 있지만 trusted_proxies가 비어 있음' : '프록시 없이 직접 요청으로 판단'),
+            : ($hasForwardedHeaders ? '전달 헤더가 있지만 trusted_proxies가 비어 있음' : '프록시 없이 직접 요청으로 판단')),
     ];
 
     $appKeyEnv = (string) ($secrets['app_key_env'] ?? '');
