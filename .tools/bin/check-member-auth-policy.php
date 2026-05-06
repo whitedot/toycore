@@ -130,7 +130,7 @@ if ($accountHelper !== '') {
         'Current member session should be rejected when email verification is still required.'
     );
     toy_member_auth_policy_assert(
-        strpos($accountHelper, "if (!array_key_exists('toy_account_id', \$_SESSION)) {\n        return null;\n    }") !== false
+        strpos($accountHelper, "if (!array_key_exists('toy_account_id', \$_SESSION)) {\n        toy_member_revoke_current_session(\$pdo);\n        unset(\$_SESSION['toy_session_token_hash']);\n        return null;\n    }") !== false
             && strpos($accountHelper, "if (!is_int(\$accountId) && !ctype_digit((string) \$accountId)) {\n        toy_member_logout(\$pdo);\n        return null;\n    }") !== false
             && strpos($accountHelper, "if (\$accountId < 1) {\n        toy_member_logout(\$pdo);\n        return null;\n    }") !== false
             && strpos($accountHelper, "if (!is_array(\$account)) {\n        toy_member_logout(\$pdo);\n        return null;\n    }") !== false,

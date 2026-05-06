@@ -150,6 +150,8 @@ function toy_member_find_by_email(PDO $pdo, array $config, string $email): ?arra
 function toy_member_current_account(PDO $pdo): ?array
 {
     if (!array_key_exists('toy_account_id', $_SESSION)) {
+        toy_member_revoke_current_session($pdo);
+        unset($_SESSION['toy_session_token_hash']);
         return null;
     }
 
