@@ -155,6 +155,14 @@ if (is_string($adminModuleSourcesHelper) && (
 )) {
     $errors[] = 'Admin module source zip paths must reject control characters and colon separators.';
 }
+if (is_string($adminModuleSourcesHelper) && (
+    strpos($adminModuleSourcesHelper, 'function toy_admin_is_https_public_url') === false
+    || strpos($adminModuleSourcesHelper, "strtolower((string) parse_url(\$url, PHP_URL_SCHEME)) === 'https'") === false
+    || strpos($adminModuleSourcesHelper, "toy_admin_is_https_public_url((string) (\$entry['zip_url'] ?? ''))") === false
+    || strpos($adminModuleSourcesHelper, 'toy_admin_is_https_public_url($repository)') === false
+)) {
+    $errors[] = 'Admin module source registry URLs must be restricted to HTTPS public URLs at runtime.';
+}
 
 if ($errors !== []) {
     fwrite(STDERR, "admin action security checks failed:\n");

@@ -178,20 +178,26 @@ function toy_admin_module_registry_entry(string $moduleKey): ?array
 
 function toy_admin_registry_entry_download_ready(array $entry): bool
 {
-    return toy_is_public_http_url((string) ($entry['zip_url'] ?? ''))
+    return toy_admin_is_https_public_url((string) ($entry['zip_url'] ?? ''))
         && preg_match('/\A[a-f0-9]{64}\z/', (string) ($entry['checksum'] ?? '')) === 1;
 }
 
 function toy_admin_registry_entry_repository_ready(array $entry): bool
 {
     $repository = (string) ($entry['repository'] ?? '');
-    if (!toy_is_public_http_url($repository)) {
+    if (!toy_admin_is_https_public_url($repository)) {
         return false;
     }
 
     $host = strtolower((string) parse_url($repository, PHP_URL_HOST));
     $path = trim((string) parse_url($repository, PHP_URL_PATH), '/');
     return $host === 'github.com' && preg_match('/\Awhitedot\/toycore-module-[a-z0-9-]+\z/', $path) === 1;
+}
+
+function toy_admin_is_https_public_url(string $url): bool
+{
+    return toy_is_public_http_url($url)
+        && strtolower((string) parse_url($url, PHP_URL_SCHEME)) === 'https';
 }
 
 function toy_admin_is_safe_repository_ref(string $ref): bool
