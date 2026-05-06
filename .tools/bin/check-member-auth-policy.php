@@ -120,6 +120,24 @@ if ($throttleHelper !== '') {
     );
 }
 
+$sessionHelper = toy_member_auth_policy_read('modules/member/helpers/sessions.php');
+if ($sessionHelper !== '') {
+    toy_member_auth_policy_assert(
+        strpos($sessionHelper, 'function toy_member_rotate_current_session') !== false
+            && strpos($sessionHelper, 'session_regenerate_id(true)') !== false
+            && strpos($sessionHelper, 'toy_member_create_session($pdo, $accountId)') !== false,
+        'Current member session rotation helper should regenerate PHP and member session tokens.'
+    );
+}
+
+$accountAction = toy_member_auth_policy_read('modules/member/actions/account.php');
+if ($accountAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($accountAction, 'toy_member_rotate_current_session($pdo, (int) $account[\'id\'])') !== false,
+        'Password change should rotate the current member session.'
+    );
+}
+
 $registerAction = toy_member_auth_policy_read('modules/member/actions/register.php');
 if ($registerAction !== '') {
     toy_member_auth_policy_assert(

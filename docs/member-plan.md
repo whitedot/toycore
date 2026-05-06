@@ -727,6 +727,7 @@ status
 - 비밀번호는 `password_hash()`로 저장
 - 비밀번호 검증은 `password_verify()` 사용
 - 로그인 성공 후 `session_regenerate_id(true)` 실행
+- 비밀번호 변경 후 현재 PHP session ID, CSRF token, 회원 session token 회전
 - 토큰 원문은 DB와 로그에 저장하지 않음
 - 모든 상태 변경 요청은 CSRF 검증
 - 로그인 실패와 재설정 요청은 계정 존재 여부를 노출하지 않음

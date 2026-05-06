@@ -164,6 +164,26 @@ function toy_member_revoke_other_sessions(PDO $pdo, int $accountId): int
     return $stmt->rowCount();
 }
 
+function toy_member_rotate_current_session(PDO $pdo, int $accountId): bool
+{
+    if ($accountId < 1) {
+        return false;
+    }
+
+    toy_member_revoke_current_session($pdo);
+    session_regenerate_id(true);
+    $_SESSION['toy_csrf_token'] = bin2hex(random_bytes(32));
+
+    $sessionTokenHash = toy_member_create_session($pdo, $accountId);
+    if ($sessionTokenHash === '') {
+        unset($_SESSION['toy_session_token_hash']);
+        return false;
+    }
+
+    $_SESSION['toy_session_token_hash'] = $sessionTokenHash;
+    return true;
+}
+
 function toy_member_logout(?PDO $pdo = null): void
 {
     if ($pdo instanceof PDO) {
