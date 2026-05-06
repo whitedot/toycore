@@ -209,6 +209,10 @@ function toy_is_safe_relative_url(string $url): bool
         return false;
     }
 
+    if (strpos($url, '\\') !== false) {
+        return false;
+    }
+
     return preg_match('/[\x00-\x1F\x7F]/', $url) !== 1;
 }
 
