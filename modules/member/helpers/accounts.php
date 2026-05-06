@@ -219,6 +219,33 @@ function toy_member_require_login(PDO $pdo): array
     return $account;
 }
 
+function toy_member_public_account_summary(PDO $pdo, int $accountId): ?array
+{
+    if ($accountId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, display_name, locale, status
+         FROM toy_member_accounts
+         WHERE id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $accountId]);
+    $account = $stmt->fetch();
+
+    if (!is_array($account)) {
+        return null;
+    }
+
+    return [
+        'id' => (int) $account['id'],
+        'display_name' => (string) $account['display_name'],
+        'locale' => (string) $account['locale'],
+        'status' => (string) $account['status'],
+    ];
+}
+
 function toy_member_safe_next_path(string $path): string
 {
     if (

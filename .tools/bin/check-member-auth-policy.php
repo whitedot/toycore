@@ -147,6 +147,14 @@ if ($accountHelper !== '') {
         'Login password rehash helper should upgrade stale password hashes.'
     );
     toy_member_auth_policy_assert(
+        strpos($accountHelper, 'function toy_member_public_account_summary(PDO $pdo, int $accountId): ?array') !== false
+            && strpos($accountHelper, 'SELECT id, display_name, locale, status') !== false
+            && strpos($accountHelper, "'display_name' => (string) \$account['display_name']") !== false
+            && strpos($accountHelper, "'locale' => (string) \$account['locale']") !== false
+            && strpos($accountHelper, "'status' => (string) \$account['status']") !== false,
+        'Public account summary helper should expose only non-sensitive account summary fields.'
+    );
+    toy_member_auth_policy_assert(
         strpos($accountHelper, 'email_hash = :email_hash') !== false
             && strpos($accountHelper, 'email_hash_guard') !== false,
         'Login identifier lookup should allow email fallback when login_id mode is used.'
