@@ -20,7 +20,7 @@ function toy_member_login_throttle_status(PDO $pdo, ?int $accountId): array
     if ($accountId !== null) {
         $failureCount = $useRateLimits
             ? toy_rate_limit_count($pdo, 'member.login.account', (string) $accountId, $windowSeconds)
-            : toy_member_auth_log_count($pdo, ['login', 'login_blocked'], 'failure', $accountId, '', $windowStartedAt);
+            : toy_member_auth_log_count($pdo, toy_member_login_failure_event_types(), 'failure', $accountId, '', $windowStartedAt);
         if ($failureCount >= $accountLimit) {
             return ['limited' => true, 'reason' => 'account'];
         }
@@ -29,7 +29,7 @@ function toy_member_login_throttle_status(PDO $pdo, ?int $accountId): array
     if ($ipAddress !== '') {
         $failureCount = $useRateLimits
             ? toy_rate_limit_count($pdo, 'member.login.ip', $ipAddress, $windowSeconds)
-            : toy_member_auth_log_count($pdo, ['login', 'login_blocked'], 'failure', null, $ipAddress, $windowStartedAt);
+            : toy_member_auth_log_count($pdo, toy_member_login_failure_event_types(), 'failure', null, $ipAddress, $windowStartedAt);
         if ($failureCount >= $ipLimit) {
             return ['limited' => true, 'reason' => 'ip'];
         }
@@ -132,6 +132,11 @@ function toy_member_register_throttle_status(PDO $pdo): array
     return ['limited' => false, 'reason' => ''];
 }
 
+function toy_member_login_failure_event_types(): array
+{
+    return ['login', 'login_blocked', 'login_email_unverified'];
+}
+
 function toy_member_rate_limits_table_exists(PDO $pdo): bool
 {
     static $exists = null;
@@ -209,7 +214,7 @@ function toy_member_record_auth_rate_limits(PDO $pdo, ?int $accountId, string $e
     $settings = toy_member_settings($pdo);
     $ipAddress = toy_client_ip();
 
-    if (in_array($eventType, ['login', 'login_blocked'], true) && $result === 'failure') {
+    if (in_array($eventType, toy_member_login_failure_event_types(), true) && $result === 'failure') {
         $windowSeconds = min(86400, max(60, (int) $settings['login_throttle_window_seconds']));
         if ($accountId !== null) {
             toy_rate_limit_increment($pdo, 'member.login.account', (string) $accountId, $windowSeconds);

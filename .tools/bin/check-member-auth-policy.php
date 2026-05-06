@@ -8,6 +8,7 @@ define('TOY_ROOT', $root);
 
 require_once $root . '/modules/member/helpers/accounts.php';
 require_once $root . '/modules/member/helpers/tokens.php';
+require_once $root . '/modules/member/helpers/throttle.php';
 
 $errors = [];
 
@@ -81,6 +82,10 @@ toy_member_auth_policy_assert(
     !isset($_SESSION['toy_password_reset_token_hash'], $_SESSION['toy_password_reset_token_stored_at']),
     'Expired password reset session hash should be cleared.'
 );
+toy_member_auth_policy_assert(
+    in_array('login_email_unverified', toy_member_login_failure_event_types(), true),
+    'Unverified email login blocks should count as login failure throttle events.'
+);
 
 $loginAction = toy_member_auth_policy_read('modules/member/actions/login.php');
 if ($loginAction !== '') {
@@ -91,6 +96,35 @@ if ($loginAction !== '') {
     toy_member_auth_policy_assert(
         strpos($loginAction, 'login_email_unverified') !== false,
         'Login action should log unverified email login blocks.'
+    );
+}
+
+$accountHelper = toy_member_auth_policy_read('modules/member/helpers/accounts.php');
+if ($accountHelper !== '') {
+    toy_member_auth_policy_assert(
+        strpos($accountHelper, 'toy_member_email_verification_blocks_login($settings, $account)') !== false,
+        'Current member session should be rejected when email verification is still required.'
+    );
+}
+
+$throttleHelper = toy_member_auth_policy_read('modules/member/helpers/throttle.php');
+if ($throttleHelper !== '') {
+    toy_member_auth_policy_assert(
+        strpos($throttleHelper, 'toy_member_login_failure_event_types()') !== false,
+        'Login throttle should use the shared login failure event list.'
+    );
+}
+
+$registerAction = toy_member_auth_policy_read('modules/member/actions/register.php');
+if ($registerAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($registerAction, 'toy_member_login($pdo, $newAccount)') !== false,
+        'Register action should keep auto-login for immediately verified accounts.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($registerAction, "toy_redirect('/login')") !== false
+            && strpos($registerAction, '이메일 인증을 완료한 뒤 로그인하세요') !== false,
+        'Register action should not auto-login unverified accounts.'
     );
 }
 

@@ -110,6 +110,11 @@ if (toy_request_method() === 'POST') {
             ]);
 
             $newAccount = toy_member_find_by_identifier($pdo, $config, $values['email']);
+            if ($emailVerificationEnabled) {
+                $_SESSION['toy_member_login_notice'] = '가입을 접수했습니다. 이메일 인증을 완료한 뒤 로그인하세요.';
+                toy_redirect('/login');
+            }
+
             if ($newAccount !== null) {
                 toy_member_login($pdo, $newAccount);
             }

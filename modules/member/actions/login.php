@@ -10,9 +10,15 @@ if ($account !== null) {
 }
 
 $errors = [];
+$notice = '';
 $identifier = '';
 $next = toy_member_safe_next_path(toy_get_string('next', 255));
 $memberSettings = toy_member_settings($pdo);
+
+if (!empty($_SESSION['toy_member_login_notice']) && is_string($_SESSION['toy_member_login_notice'])) {
+    $notice = $_SESSION['toy_member_login_notice'];
+    unset($_SESSION['toy_member_login_notice']);
+}
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();

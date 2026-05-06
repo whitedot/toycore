@@ -177,6 +177,12 @@ function toy_member_current_account(PDO $pdo): ?array
         return null;
     }
 
+    $settings = toy_member_settings($pdo);
+    if (toy_member_email_verification_blocks_login($settings, $account)) {
+        toy_member_logout($pdo);
+        return null;
+    }
+
     return $account;
 }
 

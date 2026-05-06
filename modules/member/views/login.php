@@ -21,6 +21,10 @@ $identifierLabel = ((string) ($memberSettings['login_identifier'] ?? 'email') ==
 
         <?php echo toy_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'before_form']); ?>
 
+        <?php if ($notice !== '') { ?>
+            <p><?php echo toy_e($notice); ?></p>
+        <?php } ?>
+
         <?php if ($errors !== []) { ?>
             <ul>
                 <?php foreach ($errors as $error) { ?>
