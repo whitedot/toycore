@@ -45,7 +45,7 @@ function toy_admin_handle_privacy_request_post(PDO $pdo, array $account, array $
 {
     $errors = [];
     $notice = '';
-    $requestId = (int) toy_post_string('request_id', 20);
+    $requestId = toy_admin_post_positive_int('request_id');
     $status = toy_post_string('status', 30);
     $adminNote = toy_post_string('admin_note', 2000);
     $identityConfirmed = ($_POST['identity_confirmed'] ?? '') === '1';

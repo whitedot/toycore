@@ -85,7 +85,7 @@ function toy_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRol
 {
     $errors = [];
     $notice = '';
-    $targetAccountId = (int) toy_post_string('account_id', 20);
+    $targetAccountId = toy_admin_post_positive_int('account_id');
     $roleKey = toy_post_string('role_key', 40);
     $roleAction = toy_post_string('role_action', 20);
 

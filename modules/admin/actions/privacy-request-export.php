@@ -15,7 +15,7 @@ toy_require_csrf();
 $account = toy_member_require_login($pdo);
 toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
-$requestId = (int) toy_post_string('id', 20);
+$requestId = toy_admin_post_positive_int('id');
 if ($requestId <= 0) {
     toy_render_error(400, '개인정보 요청을 선택하세요.');
     exit;

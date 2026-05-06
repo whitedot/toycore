@@ -102,6 +102,21 @@ if (!is_string($adminRolesHelper) || strpos($adminRolesHelper, 'function toy_adm
     $errors[] = 'Admin role helper must prevent revoking the last active owner role.';
 }
 
+$adminInputHelper = file_get_contents($root . '/modules/admin/helpers/input.php');
+if (!is_string($adminInputHelper)) {
+    $errors[] = 'Admin input helper cannot be read.';
+} elseif (
+    strpos($adminInputHelper, 'function toy_admin_post_positive_int') === false
+    || strpos($adminInputHelper, "\$value = \$_POST[\$key] ?? '';") === false
+    || strpos($adminInputHelper, 'is_array($value)') === false
+    || strpos($adminInputHelper, 'strlen($value) > $maxLength') === false
+    || strpos($adminInputHelper, "preg_match('/\\A[1-9][0-9]*\\z/', \$value)") === false
+    || strpos($adminInputHelper, 'return (int) $value;') === false
+    || strpos($adminRolesHelper, "toy_admin_post_positive_int('account_id')") === false
+) {
+    $errors[] = 'Admin POST id inputs must be accepted only as positive integer strings.';
+}
+
 $adminMembersHelper = file_get_contents($root . '/modules/admin/helpers/members.php');
 if (!is_string($adminMembersHelper)) {
     $errors[] = 'Admin members helper cannot be read.';
@@ -109,8 +124,9 @@ if (!is_string($adminMembersHelper)) {
     if (
         strpos($adminMembersHelper, "in_array(\$intent, ['status', 'revoke_sessions'], true)") === false
         || strpos($adminMembersHelper, '회원 작업 값이 올바르지 않습니다.') === false
+        || strpos($adminMembersHelper, "toy_admin_post_positive_int('account_id')") === false
     ) {
-        $errors[] = 'Admin members helper must allowlist member management intents.';
+        $errors[] = 'Admin members helper must allowlist member management intents and strict account ids.';
     }
 
     if (
@@ -301,10 +317,11 @@ if (!is_string($adminPrivacyRequestsHelper)) {
     || strpos($adminPrivacyRequestsHelper, "toy_log_exception(\$exception, 'privacy_request_export_member_' . (int) \$privacyRequest['id'])") === false
     || strpos($adminPrivacyRequestsHelper, "'member_data_unavailable'") === false
     || strpos($adminPrivacyRequestsHelper, '종결된 개인정보 요청 상태는 다시 변경할 수 없습니다.') === false
+    || strpos($adminPrivacyRequestsHelper, "toy_admin_post_positive_int('request_id')") === false
     || strpos($adminPrivacyRequestsHelper, "return \$prefix . '***@' . \$domain;") === false
     || strpos($adminPrivacyRequestsHelper, "return mb_substr(\$preview, 0, \$maxLength) . '...';") === false
 ) {
-    $errors[] = 'Admin privacy request helpers must reduce list exposure, protect terminal status changes, isolate member export failures, and reauthenticate exports.';
+    $errors[] = 'Admin privacy request helpers must reduce list exposure, validate request ids, protect terminal status changes, isolate member export failures, and reauthenticate exports.';
 }
 
 $adminPrivacyRequestsView = file_get_contents($root . '/modules/admin/views/privacy-requests.php');
@@ -318,6 +335,13 @@ if (!is_string($adminPrivacyRequestsView)) {
     || strpos($adminPrivacyRequestsView, "\$request['admin_note'] ?? ''") !== false
 ) {
     $errors[] = 'Admin privacy requests view must reduce requester/message exposure and avoid prefilled admin notes.';
+}
+
+$adminPrivacyRequestExportAction = file_get_contents($root . '/modules/admin/actions/privacy-request-export.php');
+if (!is_string($adminPrivacyRequestExportAction)) {
+    $errors[] = 'Admin privacy request export action cannot be read.';
+} elseif (strpos($adminPrivacyRequestExportAction, "toy_admin_post_positive_int('id')") === false) {
+    $errors[] = 'Admin privacy request export action must validate request ids strictly.';
 }
 
 $coreSettingsHelper = file_get_contents($root . '/core/helpers/settings.php');

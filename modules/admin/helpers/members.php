@@ -30,7 +30,7 @@ function toy_admin_handle_members_post(PDO $pdo, array $account, array $allowedS
     $errors = [];
     $notice = '';
     $intent = toy_post_string('intent', 40);
-    $targetAccountId = (int) toy_post_string('account_id', 20);
+    $targetAccountId = toy_admin_post_positive_int('account_id');
     $status = toy_post_string('status', 30);
 
     if ($targetAccountId <= 0) {
