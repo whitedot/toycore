@@ -306,4 +306,6 @@ function toy_member_log_auth(PDO $pdo, ?int $accountId, string $eventType, strin
         'user_agent' => toy_client_user_agent(),
         'created_at' => toy_now(),
     ]);
+
+    toy_member_record_auth_rate_limits($pdo, $accountId, $eventType, $result);
 }

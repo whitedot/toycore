@@ -289,6 +289,30 @@ if (toy_request_method() === 'POST') {
             'debug' => false,
             'timezone' => $values['timezone'],
             'app_key' => $existingAppKey !== '' ? $existingAppKey : bin2hex(random_bytes(32)),
+            'secrets' => [
+                'app_key_env' => 'TOY_APP_KEY',
+            ],
+            'security' => [
+                'force_https' => false,
+                'trusted_proxies' => [],
+            ],
+            'session' => [
+                'handler' => 'database',
+                'lifetime_seconds' => 86400,
+            ],
+            'mail' => [
+                'transport' => 'php_mail',
+                'from_email' => '',
+                'from_name' => '',
+                'host' => '',
+                'port' => 587,
+                'encryption' => 'tls',
+                'username' => '',
+                'password' => '',
+                'endpoint' => '',
+                'bearer_token' => '',
+                'timeout_seconds' => 10,
+            ],
             'db' => [
                 'host' => $values['db_host'],
                 'name' => $values['db_name'],
@@ -302,6 +326,7 @@ if (toy_request_method() === 'POST') {
         try {
             $installStage = 'write_config';
             toy_write_config($config);
+            toy_set_runtime_config($config);
             toy_apply_runtime_config($config);
 
             $installStage = 'connect_database';
@@ -365,7 +390,7 @@ if (toy_request_method() === 'POST') {
             }
 
             $installStage = 'record_schema_versions';
-            toy_record_installed_core_schema_versions($pdo, '2026.04.005');
+            toy_record_installed_core_schema_versions($pdo, '2026.04.006');
             toy_record_installed_module_schema_versions($pdo, 'member', (string) $requiredModules['member']['version']);
             toy_record_installed_module_schema_versions($pdo, 'admin', (string) $requiredModules['admin']['version']);
             foreach ($selectedOptionalModuleKeys as $moduleKey) {

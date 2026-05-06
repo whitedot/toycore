@@ -2,11 +2,24 @@
 
 declare(strict_types=1);
 
-function toy_start_session(): void
+function toy_set_runtime_config(array $config): void
+{
+    $GLOBALS['toy_runtime_config'] = $config;
+}
+
+function toy_runtime_config(): array
+{
+    $config = $GLOBALS['toy_runtime_config'] ?? [];
+    return is_array($config) ? $config : [];
+}
+
+function toy_start_session(?array $config = null, ?PDO $pdo = null): void
 {
     if (session_status() === PHP_SESSION_NONE) {
+        $config = is_array($config) ? $config : toy_runtime_config();
         $cookiePath = toy_base_path();
         $cookiePath = $cookiePath === '' ? '/' : $cookiePath;
+        $cookieSecure = toy_session_cookie_secure($config);
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
         ini_set('session.cookie_httponly', '1');
@@ -16,11 +29,48 @@ function toy_start_session(): void
             'lifetime' => 0,
             'path' => $cookiePath,
             'httponly' => true,
-            'secure' => !empty($_SERVER['HTTPS']),
+            'secure' => $cookieSecure,
             'samesite' => 'Lax',
         ]);
+        toy_register_session_handler($config, $pdo);
         session_start();
     }
+}
+
+function toy_session_cookie_secure(array $config): bool
+{
+    $security = isset($config['security']) && is_array($config['security']) ? $config['security'] : [];
+    if (!empty($security['force_https'])) {
+        return true;
+    }
+
+    return toy_is_https_request($config);
+}
+
+function toy_register_session_handler(array $config, ?PDO $pdo): void
+{
+    if (!$pdo instanceof PDO) {
+        return;
+    }
+
+    $session = isset($config['session']) && is_array($config['session']) ? $config['session'] : [];
+    if ((string) ($session['handler'] ?? 'database') !== 'database') {
+        return;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM toy_sessions LIMIT 1');
+    } catch (Throwable $exception) {
+        return;
+    }
+
+    $lifetime = (int) ($session['lifetime_seconds'] ?? 86400);
+    $lifetime = max(300, min(2592000, $lifetime));
+    ini_set('session.gc_maxlifetime', (string) $lifetime);
+
+    $handler = new ToyDatabaseSessionHandler($pdo, $lifetime);
+    session_set_save_handler($handler, true);
+    $GLOBALS['toy_session_handler'] = $handler;
 }
 
 function toy_send_security_headers(?array $config = null): void
@@ -36,18 +86,33 @@ function toy_send_security_headers(?array $config = null): void
     header('Cache-Control: no-store, no-cache, must-revalidate');
     header('Pragma: no-cache');
 
-    if (toy_is_https_request() && (empty($config) || (string) ($config['env'] ?? 'production') === 'production')) {
+    $security = is_array($config) && isset($config['security']) && is_array($config['security']) ? $config['security'] : [];
+    if ((toy_is_https_request($config) || !empty($security['force_https'])) && (empty($config) || (string) ($config['env'] ?? 'production') === 'production')) {
         header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
     }
 }
 
-function toy_is_https_request(): bool
+function toy_is_https_request(?array $config = null): bool
 {
     if (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') {
         return true;
     }
 
-    return (string) ($_SERVER['SERVER_PORT'] ?? '') === '443';
+    if ((string) ($_SERVER['SERVER_PORT'] ?? '') === '443') {
+        return true;
+    }
+
+    $config = is_array($config) ? $config : toy_runtime_config();
+    if (!toy_request_from_trusted_proxy($config)) {
+        return false;
+    }
+
+    $forwardedProto = strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
+    if ($forwardedProto === 'https') {
+        return true;
+    }
+
+    return strtolower((string) ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '')) === 'on';
 }
 
 function toy_current_base_url(): string
@@ -124,6 +189,116 @@ function toy_is_public_network_host(string $host): bool
     }
 
     return true;
+}
+
+function toy_request_from_trusted_proxy(?array $config = null): bool
+{
+    $remoteAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    if (filter_var($remoteAddress, FILTER_VALIDATE_IP) === false) {
+        return false;
+    }
+
+    $config = is_array($config) ? $config : toy_runtime_config();
+    $security = isset($config['security']) && is_array($config['security']) ? $config['security'] : [];
+    $trustedProxies = isset($security['trusted_proxies']) && is_array($security['trusted_proxies']) ? $security['trusted_proxies'] : [];
+
+    foreach ($trustedProxies as $trustedProxy) {
+        if (is_string($trustedProxy) && toy_ip_matches_trusted_proxy($remoteAddress, $trustedProxy)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function toy_ip_matches_trusted_proxy(string $ipAddress, string $trustedProxy): bool
+{
+    $trustedProxy = trim($trustedProxy);
+    if ($trustedProxy === '') {
+        return false;
+    }
+
+    if (strpos($trustedProxy, '/') === false) {
+        return hash_equals($ipAddress, $trustedProxy);
+    }
+
+    [$network, $prefixLength] = explode('/', $trustedProxy, 2);
+    if (filter_var($network, FILTER_VALIDATE_IP) === false || !ctype_digit($prefixLength)) {
+        return false;
+    }
+
+    $packedIp = inet_pton($ipAddress);
+    $packedNetwork = inet_pton($network);
+    if ($packedIp === false || $packedNetwork === false || strlen($packedIp) !== strlen($packedNetwork)) {
+        return false;
+    }
+
+    $prefix = (int) $prefixLength;
+    $maxPrefix = strlen($packedIp) * 8;
+    if ($prefix < 0 || $prefix > $maxPrefix) {
+        return false;
+    }
+
+    $fullBytes = intdiv($prefix, 8);
+    $remainingBits = $prefix % 8;
+    if ($fullBytes > 0 && substr($packedIp, 0, $fullBytes) !== substr($packedNetwork, 0, $fullBytes)) {
+        return false;
+    }
+
+    if ($remainingBits === 0) {
+        return true;
+    }
+
+    $mask = (0xFF << (8 - $remainingBits)) & 0xFF;
+    return (ord($packedIp[$fullBytes]) & $mask) === (ord($packedNetwork[$fullBytes]) & $mask);
+}
+
+function toy_forwarded_client_ip(?array $config = null): string
+{
+    if (!toy_request_from_trusted_proxy($config)) {
+        return '';
+    }
+
+    $forwardedFor = (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '');
+    if ($forwardedFor === '') {
+        return '';
+    }
+
+    $config = is_array($config) ? $config : toy_runtime_config();
+    $candidates = [];
+    foreach (explode(',', $forwardedFor) as $part) {
+        $candidate = trim($part);
+        if (filter_var($candidate, FILTER_VALIDATE_IP) !== false) {
+            $candidates[] = $candidate;
+        }
+    }
+
+    if ($candidates === []) {
+        return '';
+    }
+
+    for ($index = count($candidates) - 1; $index >= 0; $index--) {
+        $candidate = $candidates[$index];
+        if (!toy_ip_is_trusted_proxy($candidate, $config)) {
+            return $candidate;
+        }
+    }
+
+    return $candidates[0];
+}
+
+function toy_ip_is_trusted_proxy(string $ipAddress, array $config): bool
+{
+    $security = isset($config['security']) && is_array($config['security']) ? $config['security'] : [];
+    $trustedProxies = isset($security['trusted_proxies']) && is_array($security['trusted_proxies']) ? $security['trusted_proxies'] : [];
+
+    foreach ($trustedProxies as $trustedProxy) {
+        if (is_string($trustedProxy) && toy_ip_matches_trusted_proxy($ipAddress, $trustedProxy)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function toy_request_method(): string
@@ -250,6 +425,143 @@ function toy_apply_site_runtime_settings(?array $site): void
     }
 }
 
+class ToyDatabaseSessionHandler implements SessionHandlerInterface
+{
+    private PDO $pdo;
+    private int $lifetimeSeconds;
+    private string $lockName = '';
+    private bool $lockAcquired = false;
+
+    public function __construct(PDO $pdo, int $lifetimeSeconds)
+    {
+        $this->pdo = $pdo;
+        $this->lifetimeSeconds = $lifetimeSeconds;
+    }
+
+    public function open(string $path, string $name): bool
+    {
+        return true;
+    }
+
+    public function close(): bool
+    {
+        if ($this->lockAcquired && $this->lockName !== '') {
+            try {
+                $stmt = $this->pdo->prepare('SELECT RELEASE_LOCK(:lock_name)');
+                $stmt->execute(['lock_name' => $this->lockName]);
+            } catch (Throwable $ignored) {
+            }
+        }
+
+        $this->lockName = '';
+        $this->lockAcquired = false;
+        return true;
+    }
+
+    public function read(string $id): string|false
+    {
+        $this->acquireLock($id);
+
+        try {
+            $stmt = $this->pdo->prepare(
+                'SELECT payload
+                 FROM toy_sessions
+                 WHERE session_id = :session_id
+                   AND expires_at >= :now
+                 LIMIT 1'
+            );
+            $stmt->execute([
+                'session_id' => $id,
+                'now' => toy_now(),
+            ]);
+            $session = $stmt->fetch();
+        } catch (Throwable $exception) {
+            return '';
+        }
+
+        if (!is_array($session)) {
+            return '';
+        }
+
+        return (string) ($session['payload'] ?? '');
+    }
+
+    public function write(string $id, string $data): bool
+    {
+        $now = toy_now();
+        $expiresAt = date('Y-m-d H:i:s', time() + $this->lifetimeSeconds);
+
+        try {
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO toy_sessions
+                    (session_id, payload, ip_address, user_agent, expires_at, created_at, updated_at)
+                 VALUES
+                    (:session_id, :payload, :ip_address, :user_agent, :expires_at, :created_at, :updated_at)
+                 ON DUPLICATE KEY UPDATE
+                    payload = VALUES(payload),
+                    ip_address = VALUES(ip_address),
+                    user_agent = VALUES(user_agent),
+                    expires_at = VALUES(expires_at),
+                    updated_at = VALUES(updated_at)'
+            );
+            $stmt->execute([
+                'session_id' => $id,
+                'payload' => $data,
+                'ip_address' => toy_client_ip(),
+                'user_agent' => toy_client_user_agent(),
+                'expires_at' => $expiresAt,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        } catch (Throwable $exception) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function destroy(string $id): bool
+    {
+        try {
+            $stmt = $this->pdo->prepare('DELETE FROM toy_sessions WHERE session_id = :session_id');
+            $stmt->execute(['session_id' => $id]);
+        } catch (Throwable $exception) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function gc(int $max_lifetime): int|false
+    {
+        try {
+            $stmt = $this->pdo->prepare('DELETE FROM toy_sessions WHERE expires_at < :now');
+            $stmt->execute(['now' => toy_now()]);
+        } catch (Throwable $exception) {
+            return false;
+        }
+
+        return $stmt->rowCount();
+    }
+
+    private function acquireLock(string $id): void
+    {
+        if ($this->lockAcquired) {
+            return;
+        }
+
+        $this->lockName = 'toy_session_' . hash('sha256', $id);
+        try {
+            $stmt = $this->pdo->prepare('SELECT GET_LOCK(:lock_name, 5) AS lock_acquired');
+            $stmt->execute(['lock_name' => $this->lockName]);
+            $row = $stmt->fetch();
+            $this->lockAcquired = is_array($row) && (string) ($row['lock_acquired'] ?? '') === '1';
+        } catch (Throwable $ignored) {
+            $this->lockAcquired = false;
+        }
+    }
+}
+
 class ToyPrefixedPDO extends PDO
 {
     private string $toyTablePrefix;
@@ -305,6 +617,11 @@ function toy_db(array $config): PDO
 
 function toy_client_ip(): string
 {
+    $forwardedIp = toy_forwarded_client_ip();
+    if ($forwardedIp !== '') {
+        return $forwardedIp;
+    }
+
     $ipAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
     if (filter_var($ipAddress, FILTER_VALIDATE_IP) === false) {
         return '';
@@ -335,17 +652,25 @@ function toy_normalize_identifier(string $value): string
 
 function toy_send_mail(?array $site, string $to, string $subject, string $body): bool
 {
-    if (!filter_var($to, FILTER_VALIDATE_EMAIL) || !function_exists('mail')) {
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
         return false;
     }
 
-    $baseUrl = is_array($site) ? (string) ($site['base_url'] ?? '') : '';
-    $host = parse_url($baseUrl, PHP_URL_HOST);
-    if (!is_string($host) || $host === '') {
-        $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    $config = toy_runtime_config();
+    $mailConfig = isset($config['mail']) && is_array($config['mail']) ? $config['mail'] : [];
+    $transport = (string) ($mailConfig['transport'] ?? 'php_mail');
+    if ($transport === 'smtp') {
+        return toy_send_smtp_mail($site, $mailConfig, $to, $subject, $body);
+    }
+    if ($transport === 'http_api') {
+        return toy_send_http_api_mail($mailConfig, $to, $subject, $body);
     }
 
-    $from = 'no-reply@' . preg_replace('/[^A-Za-z0-9.-]/', '', $host);
+    if (!function_exists('mail')) {
+        return false;
+    }
+
+    $from = toy_mail_from_address($site, $mailConfig);
     $headers = [
         'From: ' . $from,
         'Content-Type: text/plain; charset=UTF-8',
@@ -354,12 +679,307 @@ function toy_send_mail(?array $site, string $to, string $subject, string $body):
     return mail($to, $subject, $body, implode("\r\n", $headers));
 }
 
+function toy_mail_from_address(?array $site, array $mailConfig): string
+{
+    $from = (string) ($mailConfig['from_email'] ?? '');
+    if (filter_var($from, FILTER_VALIDATE_EMAIL)) {
+        return $from;
+    }
+
+    $baseUrl = is_array($site) ? (string) ($site['base_url'] ?? '') : '';
+    $host = parse_url($baseUrl, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    }
+
+    return 'no-reply@' . preg_replace('/[^A-Za-z0-9.-]/', '', $host);
+}
+
+function toy_send_smtp_mail(?array $site, array $mailConfig, string $to, string $subject, string $body): bool
+{
+    $host = (string) ($mailConfig['host'] ?? '');
+    $port = (int) ($mailConfig['port'] ?? 587);
+    if ($host === '' || $port < 1 || $port > 65535) {
+        return false;
+    }
+
+    $encryption = strtolower((string) ($mailConfig['encryption'] ?? 'tls'));
+    $remote = ($encryption === 'ssl' ? 'ssl://' : '') . $host . ':' . $port;
+    $timeout = max(3, min(30, (int) ($mailConfig['timeout_seconds'] ?? 10)));
+    $socket = @stream_socket_client($remote, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT);
+    if (!is_resource($socket)) {
+        return false;
+    }
+
+    stream_set_timeout($socket, $timeout);
+    $from = toy_mail_from_address($site, $mailConfig);
+    $fromName = trim((string) ($mailConfig['from_name'] ?? (is_array($site) ? (string) ($site['name'] ?? '') : '')));
+    $headers = [
+        'From: ' . ($fromName !== '' ? toy_mail_header_encode($fromName) . ' <' . $from . '>' : $from),
+        'To: ' . $to,
+        'Subject: ' . toy_mail_header_encode($subject),
+        'Date: ' . date(DATE_RFC2822),
+        'MIME-Version: 1.0',
+        'Content-Type: text/plain; charset=UTF-8',
+        'Content-Transfer-Encoding: 8bit',
+    ];
+    $message = implode("\r\n", $headers) . "\r\n\r\n" . str_replace(["\r\n", "\r"], "\n", $body);
+
+    try {
+        if (!toy_smtp_expect($socket, [220])) {
+            fclose($socket);
+            return false;
+        }
+
+        $serverName = (string) ($_SERVER['SERVER_NAME'] ?? 'localhost');
+        if (!toy_smtp_command($socket, 'EHLO ' . $serverName, [250])) {
+            fclose($socket);
+            return false;
+        }
+
+        if ($encryption === 'tls') {
+            if (!toy_smtp_command($socket, 'STARTTLS', [220])) {
+                fclose($socket);
+                return false;
+            }
+            if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                fclose($socket);
+                return false;
+            }
+            if (!toy_smtp_command($socket, 'EHLO ' . $serverName, [250])) {
+                fclose($socket);
+                return false;
+            }
+        }
+
+        $username = (string) ($mailConfig['username'] ?? '');
+        $password = (string) ($mailConfig['password'] ?? '');
+        if ($username !== '') {
+            if (
+                !toy_smtp_command($socket, 'AUTH LOGIN', [334])
+                || !toy_smtp_command($socket, base64_encode($username), [334])
+                || !toy_smtp_command($socket, base64_encode($password), [235])
+            ) {
+                fclose($socket);
+                return false;
+            }
+        }
+
+        $ok = toy_smtp_command($socket, 'MAIL FROM:<' . $from . '>', [250])
+            && toy_smtp_command($socket, 'RCPT TO:<' . $to . '>', [250, 251])
+            && toy_smtp_command($socket, 'DATA', [354])
+            && toy_smtp_command($socket, toy_smtp_dot_stuff($message) . "\r\n.", [250])
+            && toy_smtp_command($socket, 'QUIT', [221]);
+        fclose($socket);
+        return $ok;
+    } catch (Throwable $exception) {
+        if (is_resource($socket)) {
+            fclose($socket);
+        }
+        return false;
+    }
+}
+
+function toy_send_http_api_mail(array $mailConfig, string $to, string $subject, string $body): bool
+{
+    $endpoint = (string) ($mailConfig['endpoint'] ?? '');
+    if ($endpoint === '' || !toy_is_http_url($endpoint)) {
+        return false;
+    }
+
+    $payload = json_encode([
+        'to' => $to,
+        'subject' => $subject,
+        'text' => $body,
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if (!is_string($payload)) {
+        return false;
+    }
+
+    $headers = [
+        'Content-Type: application/json',
+        'User-Agent: Toycore-Mail/1.0',
+    ];
+    $bearerToken = (string) ($mailConfig['bearer_token'] ?? '');
+    if ($bearerToken !== '') {
+        $headers[] = 'Authorization: Bearer ' . $bearerToken;
+    }
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'timeout' => max(3, min(30, (int) ($mailConfig['timeout_seconds'] ?? 10))),
+            'ignore_errors' => true,
+            'header' => implode("\r\n", $headers) . "\r\n",
+            'content' => $payload,
+        ],
+    ]);
+
+    set_error_handler(static function (): bool {
+        return true;
+    });
+    $response = file_get_contents($endpoint, false, $context);
+    restore_error_handler();
+    if ($response === false || empty($http_response_header) || !is_array($http_response_header)) {
+        return false;
+    }
+
+    foreach ($http_response_header as $header) {
+        if (preg_match('/\AHTTP\/\S+\s+(\d{3})\b/', (string) $header, $matches) === 1) {
+            $status = (int) $matches[1];
+            return $status >= 200 && $status < 300;
+        }
+    }
+
+    return false;
+}
+
+function toy_mail_header_encode(string $value): string
+{
+    if (preg_match('/^[\x20-\x7E]*$/', $value) === 1) {
+        return str_replace(["\r", "\n"], '', $value);
+    }
+
+    return '=?UTF-8?B?' . base64_encode($value) . '?=';
+}
+
+function toy_smtp_command($socket, string $command, array $expectedCodes): bool
+{
+    fwrite($socket, $command . "\r\n");
+    return toy_smtp_expect($socket, $expectedCodes);
+}
+
+function toy_smtp_expect($socket, array $expectedCodes): bool
+{
+    $lastCode = 0;
+    while (($line = fgets($socket, 515)) !== false) {
+        if (preg_match('/\A(\d{3})([\s-])/', $line, $matches) !== 1) {
+            continue;
+        }
+        $lastCode = (int) $matches[1];
+        if ((string) $matches[2] === ' ') {
+            break;
+        }
+    }
+
+    return in_array($lastCode, $expectedCodes, true);
+}
+
+function toy_smtp_dot_stuff(string $message): string
+{
+    $normalized = str_replace(["\r\n", "\r"], "\n", $message);
+    $lines = explode("\n", $normalized);
+    foreach ($lines as $index => $line) {
+        if (str_starts_with($line, '.')) {
+            $lines[$index] = '.' . $line;
+        }
+    }
+
+    return implode("\r\n", $lines);
+}
+
+function toy_rate_limit_count(PDO $pdo, string $bucket, string $subject, int $windowSeconds): int
+{
+    if (!toy_rate_limit_input_is_valid($bucket, $subject, $windowSeconds)) {
+        return 0;
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT attempt_count
+             FROM toy_rate_limits
+             WHERE rate_key = :rate_key
+               AND expires_at >= :now
+             LIMIT 1'
+        );
+        $stmt->execute([
+            'rate_key' => toy_rate_limit_key($bucket, $subject),
+            'now' => toy_now(),
+        ]);
+        $row = $stmt->fetch();
+    } catch (Throwable $exception) {
+        return 0;
+    }
+
+    return is_array($row) ? (int) ($row['attempt_count'] ?? 0) : 0;
+}
+
+function toy_rate_limit_increment(PDO $pdo, string $bucket, string $subject, int $windowSeconds): void
+{
+    if (!toy_rate_limit_input_is_valid($bucket, $subject, $windowSeconds)) {
+        return;
+    }
+
+    $now = toy_now();
+    $expiresAt = date('Y-m-d H:i:s', time() + max(60, min(86400, $windowSeconds)));
+    try {
+        if (random_int(1, 100) === 1) {
+            toy_rate_limit_collect_garbage($pdo);
+        }
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO toy_rate_limits
+                (rate_key, bucket, subject_hash, attempt_count, expires_at, created_at, updated_at)
+             VALUES
+                (:rate_key, :bucket, :subject_hash, 1, :expires_at, :created_at, :updated_at)
+             ON DUPLICATE KEY UPDATE
+                attempt_count = IF(expires_at < VALUES(updated_at), 1, attempt_count + 1),
+                expires_at = IF(expires_at < VALUES(updated_at), VALUES(expires_at), expires_at),
+                updated_at = VALUES(updated_at)'
+        );
+        $stmt->execute([
+            'rate_key' => toy_rate_limit_key($bucket, $subject),
+            'bucket' => $bucket,
+            'subject_hash' => hash('sha256', $subject),
+            'expires_at' => $expiresAt,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    } catch (Throwable $ignored) {
+    }
+}
+
+function toy_rate_limit_collect_garbage(PDO $pdo): void
+{
+    try {
+        $stmt = $pdo->prepare('DELETE FROM toy_rate_limits WHERE expires_at < :now');
+        $stmt->execute(['now' => toy_now()]);
+    } catch (Throwable $ignored) {
+    }
+}
+
+function toy_rate_limit_input_is_valid(string $bucket, string $subject, int $windowSeconds): bool
+{
+    return $subject !== ''
+        && $windowSeconds > 0
+        && preg_match('/\A[a-z0-9][a-z0-9_.:-]{1,119}\z/', $bucket) === 1;
+}
+
+function toy_rate_limit_key(string $bucket, string $subject): string
+{
+    return hash('sha256', $bucket . '|' . $subject);
+}
+
 function toy_hmac_hash(string $value, array $config): string
 {
-    $appKey = (string) ($config['app_key'] ?? '');
+    $appKey = toy_app_key($config);
     if ($appKey === '') {
         throw new RuntimeException('app_key is required.');
     }
 
     return hash_hmac('sha256', $value, $appKey);
+}
+
+function toy_app_key(array $config): string
+{
+    $secrets = isset($config['secrets']) && is_array($config['secrets']) ? $config['secrets'] : [];
+    $envName = (string) ($secrets['app_key_env'] ?? '');
+    if ($envName !== '' && preg_match('/\A[A-Z][A-Z0-9_]{1,80}\z/', $envName) === 1) {
+        $envValue = getenv($envName);
+        if (is_string($envValue) && $envValue !== '') {
+            return $envValue;
+        }
+    }
+
+    return (string) ($config['app_key'] ?? '');
 }

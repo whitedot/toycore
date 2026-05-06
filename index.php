@@ -35,17 +35,17 @@ set_error_handler(function (int $severity, string $message, string $file, int $l
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
-toy_start_session();
-
 $method = toy_request_method();
 $path = toy_request_path();
 
 if (!toy_is_installed()) {
+    toy_start_session();
     include TOY_ROOT . '/core/actions/install.php';
     exit;
 }
 
 $config = toy_load_config();
+toy_set_runtime_config($config);
 toy_apply_runtime_config($config);
 toy_send_security_headers($config);
 
@@ -53,6 +53,7 @@ try {
     $pdo = toy_db($config);
     $site = toy_load_site($pdo);
     toy_apply_site_runtime_settings($site);
+    toy_start_session($config, $pdo);
     toy_set_locale(toy_resolve_locale($pdo, $site));
 } catch (Throwable $exception) {
     toy_render_error(500, 'DB 연결 또는 사이트 설정을 확인할 수 없습니다.', $exception);

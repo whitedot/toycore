@@ -74,8 +74,13 @@
 - 활성 모듈 `extension-points.php` 기반 확장 지점 조회
 - 다운로드 응답 헤더 helper
 - 기본 mail helper
+- SMTP/HTTP API mail transport 설정 지원
 - HMAC hash helper
+- 환경변수 기반 app key 주입 지원
 - 기본 보안 응답 헤더
+- trusted proxy 기반 HTTPS/클라이언트 IP 해석
+- DB 기반 PHP 세션 저장소
+- 독립 rate limit 카운터 저장소
 - 토큰 URL 보호를 위한 referrer 전송 차단
 - 동적 PHP 응답 캐시 방지 헤더
 - 감사 로그 helper
@@ -109,8 +114,10 @@
 - 새 이메일 인증 token 발급 시 기존 미사용 token 무효화
 - DB 기반 로그인 세션 기록
 - PHP 세션 strict/cookie-only 모드 적용
+- 로그인 상태를 다중 인스턴스에서 공유 가능한 DB 세션으로 저장
 - 비활성 계정의 기존 로그인 세션 차단
-- 로그인 실패 로그 기반 시도 제한
+- 독립 rate limit 카운터 기반 시도 제한
+- rate limit 테이블이 없는 기존 설치의 인증 로그 기반 제한 fallback
 - 로그인 실패 제한 기준 모듈 설정화
 - 회원 모듈 전용 관리자 설정 화면
 - 회원가입/이메일 인증/시도 제한 설정
