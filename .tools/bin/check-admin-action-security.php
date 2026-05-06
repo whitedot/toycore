@@ -340,9 +340,9 @@ if (!is_string($adminModuleActionsHelper)) {
     strpos($adminModuleActionsHelper, "'result' => 'failure'") === false
     || strpos($adminModuleActionsHelper, 'Module source zip upload failed.') === false
     || strpos($adminModuleActionsHelper, 'Module source zip download failed.') === false
-    || strpos($adminModuleActionsHelper, 'toy_log_line_value($exception->getMessage(), 500)') === false
+    || substr_count($adminModuleActionsHelper, 'toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500))') < 2
 ) {
-    $errors[] = 'Admin module source failures must write sanitized audit log entries.';
+    $errors[] = 'Admin module source failures must write and display sanitized failure messages.';
 }
 
 $adminUpdatesHelper = file_get_contents($root . '/modules/admin/helpers/updates.php');

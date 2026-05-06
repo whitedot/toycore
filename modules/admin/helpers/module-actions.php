@@ -234,10 +234,10 @@ function toy_admin_handle_modules_post(
                 'metadata' => [
                     'source' => $sourceType,
                     'repository_ref' => $repositoryRef,
-                    'reason' => toy_log_line_value($exception->getMessage(), 500),
+                    'reason' => toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500)),
                 ],
             ]);
-            $errors[] = $exception->getMessage();
+            $errors[] = toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500));
         } finally {
             if ($extractDir !== '') {
                 try {
