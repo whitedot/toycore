@@ -200,7 +200,10 @@ function toy_member_module_privacy_exports(PDO $pdo, int $accountId): array
 
         $moduleExport = include $exportFile;
         if (is_callable($moduleExport)) {
-            $exports[$moduleKey] = toy_member_privacy_export_sanitize_module_data($moduleExport($pdo, $accountId));
+            $moduleExportData = $moduleExport($pdo, $accountId);
+            if (is_array($moduleExportData)) {
+                $exports[$moduleKey] = toy_member_privacy_export_sanitize_module_data($moduleExportData);
+            }
         } elseif (is_array($moduleExport)) {
             $exports[$moduleKey] = toy_member_privacy_export_sanitize_module_data($moduleExport);
         }
