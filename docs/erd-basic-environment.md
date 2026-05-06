@@ -52,6 +52,17 @@ erDiagram
         datetime updated_at
     }
 
+    toy_sessions {
+        bigint id PK
+        varchar session_id_hash UK
+        blob payload
+        varchar ip_address
+        text user_agent
+        datetime expires_at
+        datetime created_at
+        datetime updated_at
+    }
+
     toy_schema_versions {
         bigint id PK
         varchar scope
@@ -459,6 +470,14 @@ erDiagram
 - 비밀번호 재설정 토큰
 - DB 접속 비밀번호
 - 개인정보 원문 전체
+
+### `toy_sessions`
+
+PHP 런타임 세션 payload를 DB에 저장해 다중 인스턴스와 공유호스팅 환경에서 동일한 세션 저장 방식을 사용할 수 있게 합니다.
+
+`session_id_hash`에는 브라우저 쿠키에 들어가는 PHP session ID 원문이 아니라 SHA-256 hash를 저장합니다. DB가 유출되어도 이 값만으로 session ID 원문을 재구성해 쿠키로 사용할 수 없어야 합니다.
+
+이 테이블은 PHP 세션 payload 저장소이며, 로그인 세션 관리와 강제 폐기는 `member` 모듈의 `toy_member_sessions`가 담당합니다.
 
 ## 회원 인증 모듈
 

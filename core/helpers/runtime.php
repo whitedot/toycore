@@ -488,6 +488,7 @@ class ToyDatabaseSessionHandler implements SessionHandlerInterface
 {
     private PDO $pdo;
     private int $lifetimeSeconds;
+    private bool $useSessionIdHash;
     private string $lockName = '';
     private bool $lockAcquired = false;
 
@@ -495,6 +496,7 @@ class ToyDatabaseSessionHandler implements SessionHandlerInterface
     {
         $this->pdo = $pdo;
         $this->lifetimeSeconds = $lifetimeSeconds;
+        $this->useSessionIdHash = $this->sessionIdHashColumnExists();
     }
 
     public function open(string $path, string $name): bool
@@ -520,17 +522,18 @@ class ToyDatabaseSessionHandler implements SessionHandlerInterface
     public function read(string $id): string|false
     {
         $this->acquireLock($id);
+        $this->refreshSessionIdHashSupport();
 
         try {
             $stmt = $this->pdo->prepare(
                 'SELECT payload
                  FROM toy_sessions
-                 WHERE session_id = :session_id
+                 WHERE ' . $this->sessionIdColumn() . ' = :session_id
                    AND expires_at >= :now
                  LIMIT 1'
             );
             $stmt->execute([
-                'session_id' => $id,
+                'session_id' => $this->sessionIdValue($id),
                 'now' => toy_now(),
             ]);
             $session = $stmt->fetch();
@@ -547,24 +550,40 @@ class ToyDatabaseSessionHandler implements SessionHandlerInterface
 
     public function write(string $id, string $data): bool
     {
+        $this->refreshSessionIdHashSupport();
         $now = toy_now();
         $expiresAt = date('Y-m-d H:i:s', time() + $this->lifetimeSeconds);
 
         try {
-            $stmt = $this->pdo->prepare(
-                'INSERT INTO toy_sessions
-                    (session_id, payload, ip_address, user_agent, expires_at, created_at, updated_at)
-                 VALUES
-                    (:session_id, :payload, :ip_address, :user_agent, :expires_at, :created_at, :updated_at)
-                 ON DUPLICATE KEY UPDATE
-                    payload = VALUES(payload),
-                    ip_address = VALUES(ip_address),
-                    user_agent = VALUES(user_agent),
-                    expires_at = VALUES(expires_at),
-                    updated_at = VALUES(updated_at)'
-            );
+            if ($this->useSessionIdHash) {
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO toy_sessions
+                        (session_id_hash, payload, ip_address, user_agent, expires_at, created_at, updated_at)
+                     VALUES
+                        (:session_id, :payload, :ip_address, :user_agent, :expires_at, :created_at, :updated_at)
+                     ON DUPLICATE KEY UPDATE
+                        payload = VALUES(payload),
+                        ip_address = VALUES(ip_address),
+                        user_agent = VALUES(user_agent),
+                        expires_at = VALUES(expires_at),
+                        updated_at = VALUES(updated_at)'
+                );
+            } else {
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO toy_sessions
+                        (session_id, payload, ip_address, user_agent, expires_at, created_at, updated_at)
+                     VALUES
+                        (:session_id, :payload, :ip_address, :user_agent, :expires_at, :created_at, :updated_at)
+                     ON DUPLICATE KEY UPDATE
+                        payload = VALUES(payload),
+                        ip_address = VALUES(ip_address),
+                        user_agent = VALUES(user_agent),
+                        expires_at = VALUES(expires_at),
+                        updated_at = VALUES(updated_at)'
+                );
+            }
             $stmt->execute([
-                'session_id' => $id,
+                'session_id' => $this->sessionIdValue($id),
                 'payload' => $data,
                 'ip_address' => toy_client_ip(),
                 'user_agent' => toy_client_user_agent(),
@@ -581,9 +600,10 @@ class ToyDatabaseSessionHandler implements SessionHandlerInterface
 
     public function destroy(string $id): bool
     {
+        $this->refreshSessionIdHashSupport();
         try {
-            $stmt = $this->pdo->prepare('DELETE FROM toy_sessions WHERE session_id = :session_id');
-            $stmt->execute(['session_id' => $id]);
+            $stmt = $this->pdo->prepare('DELETE FROM toy_sessions WHERE ' . $this->sessionIdColumn() . ' = :session_id');
+            $stmt->execute(['session_id' => $this->sessionIdValue($id)]);
         } catch (Throwable $exception) {
             return false;
         }
@@ -618,6 +638,33 @@ class ToyDatabaseSessionHandler implements SessionHandlerInterface
         } catch (Throwable $ignored) {
             $this->lockAcquired = false;
         }
+    }
+
+    private function sessionIdHashColumnExists(): bool
+    {
+        try {
+            $this->pdo->query('SELECT session_id_hash FROM toy_sessions LIMIT 1');
+            return true;
+        } catch (Throwable $exception) {
+            return false;
+        }
+    }
+
+    private function refreshSessionIdHashSupport(): void
+    {
+        if (!$this->useSessionIdHash && $this->sessionIdHashColumnExists()) {
+            $this->useSessionIdHash = true;
+        }
+    }
+
+    private function sessionIdColumn(): string
+    {
+        return $this->useSessionIdHash ? 'session_id_hash' : 'session_id';
+    }
+
+    private function sessionIdValue(string $id): string
+    {
+        return $this->useSessionIdHash ? hash('sha256', $id) : $id;
     }
 }
 

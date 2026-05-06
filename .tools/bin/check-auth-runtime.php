@@ -40,13 +40,20 @@ function toy_auth_runtime_require(string $path, string $pattern, string $message
 
 foreach ([
     'database/core/install.sql',
-    'database/core/updates/2026.04.006.sql',
 ] as $path) {
     toy_auth_runtime_require($path, '/CREATE TABLE IF NOT EXISTS toy_sessions\b/', 'Runtime session table is missing');
     toy_auth_runtime_require($path, '/CREATE TABLE IF NOT EXISTS toy_rate_limits\b/', 'Rate limit table is missing');
-    toy_auth_runtime_require($path, '/UNIQUE KEY uq_toy_sessions_session_id/', 'Runtime session unique key is missing');
+    toy_auth_runtime_require($path, '/session_id_hash CHAR\(64\) NOT NULL/', 'Runtime session hash column is missing');
+    toy_auth_runtime_require($path, '/UNIQUE KEY uq_toy_sessions_session_id_hash/', 'Runtime session hash unique key is missing');
     toy_auth_runtime_require($path, '/UNIQUE KEY uq_toy_rate_limits_key/', 'Rate limit unique key is missing');
 }
+
+toy_auth_runtime_require('database/core/updates/2026.04.006.sql', '/CREATE TABLE IF NOT EXISTS toy_sessions\b/', 'Runtime session table is missing from base update');
+toy_auth_runtime_require('database/core/updates/2026.04.006.sql', '/CREATE TABLE IF NOT EXISTS toy_rate_limits\b/', 'Rate limit table is missing from base update');
+toy_auth_runtime_require('database/core/updates/2026.04.007.sql', '/session_id_hash CHAR\(64\)/', 'Runtime session hash migration column is missing');
+toy_auth_runtime_require('database/core/updates/2026.04.007.sql', '/SHA2\(session_id, 256\)/', 'Runtime session hash migration does not hash existing session ids');
+toy_auth_runtime_require('database/core/updates/2026.04.007.sql', '/SET session_id = NULL/', 'Runtime session hash migration does not clear raw session ids');
+toy_auth_runtime_require('database/core/updates/2026.04.007.sql', '/uq_toy_sessions_session_id_hash/', 'Runtime session hash migration unique key is missing');
 
 toy_auth_runtime_require('core/actions/install.php', "/'secrets'\\s*=>\\s*\\[/", 'Install config secrets block is missing');
 toy_auth_runtime_require('core/actions/install.php', "/'app_key_env'\\s*=>\\s*'TOY_APP_KEY'/", 'Install config app key env is missing');
@@ -70,6 +77,9 @@ toy_auth_runtime_require('core/helpers/runtime.php', '/toy_mail_http_api_endpoin
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_rate_limit_count\(/', 'Rate limit count helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_rate_limit_increment\(/', 'Rate limit increment helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_app_key\(array \$config\): string/', 'App key resolver is missing');
+toy_auth_runtime_require('core/helpers/runtime.php', '/session_id_hash/', 'Database session handler should use hashed session ids when available');
+toy_auth_runtime_require('core/helpers/runtime.php', '/hash\(\'sha256\', \$id\)/', 'Database session handler should hash runtime session ids');
+toy_auth_runtime_require('core/helpers/runtime.php', '/refreshSessionIdHashSupport/', 'Database session handler should refresh hash-column support after updates');
 
 toy_auth_runtime_require('modules/member/helpers/throttle.php', '/toy_rate_limit_count\(/', 'Member throttle does not use rate limit counters');
 toy_auth_runtime_require('modules/member/helpers/throttle.php', '/toy_member_auth_log_count\(/', 'Member throttle fallback is missing');

@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS toy_module_settings (
 
 CREATE TABLE IF NOT EXISTS toy_sessions (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    session_id VARCHAR(128) NOT NULL,
+    session_id_hash CHAR(64) NOT NULL,
     payload MEDIUMBLOB NOT NULL,
     ip_address VARCHAR(45) NOT NULL DEFAULT '',
     user_agent TEXT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS toy_sessions (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_sessions_session_id (session_id),
+    UNIQUE KEY uq_toy_sessions_session_id_hash (session_id_hash),
     KEY idx_toy_sessions_expires (expires_at)
 );
 

@@ -397,7 +397,7 @@ if (toy_request_method() === 'POST') {
             }
 
             $installStage = 'record_schema_versions';
-            toy_record_installed_core_schema_versions($pdo, '2026.04.006');
+            toy_record_installed_core_schema_versions($pdo, '2026.04.007');
             toy_record_installed_module_schema_versions($pdo, 'member', (string) $requiredModules['member']['version']);
             toy_record_installed_module_schema_versions($pdo, 'admin', (string) $requiredModules['admin']['version']);
             foreach ($selectedOptionalModuleKeys as $moduleKey) {

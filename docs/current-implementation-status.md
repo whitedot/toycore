@@ -85,6 +85,7 @@
 - trusted proxy 기반 HTTPS/클라이언트 IP 해석
 - trusted proxy IP/CIDR 설정 검증
 - DB 기반 PHP 세션 저장소
+- PHP 런타임 session ID 원문 대신 hash 저장
 - 독립 rate limit 카운터 저장소
 - 토큰 URL 보호를 위한 referrer 전송 차단
 - 동적 PHP 응답 캐시 방지 헤더
