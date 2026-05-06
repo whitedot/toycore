@@ -65,6 +65,10 @@ toy_auth_runtime_require('core/actions/install.php', "/'mail'\\s*=>\\s*\\[/", 'I
 
 toy_auth_runtime_require('core/helpers/ops.php', "/\\\$temporary\\s*=\\s*\\\$configDir\\s*\\.\\s*'\\/config-'\\s*\\.\\s*\\\$suffix\\s*\\.\\s*'\\.tmp\\.php'/", 'Config writer temporary file should keep a PHP extension');
 toy_auth_runtime_require('core/helpers/ops.php', '/bin2hex\(random_bytes\(6\)\)/', 'Config writer temporary file should use a random suffix');
+toy_auth_runtime_require('core/helpers/ops.php', '/function toy_fetch_http_response\(string \$url\): \?array\s*\{\s*if \(!toy_is_public_http_url\(\$url\)\)/', 'Install exposure HTTP fetch should reject non-public URLs');
+toy_auth_runtime_require('core/helpers/ops.php', "/'follow_location'\\s*=>\\s*0/", 'Install exposure HTTP fetch should not follow redirects');
+toy_auth_runtime_require('core/helpers/ops.php', "/'max_redirects'\\s*=>\\s*0/", 'Install exposure HTTP fetch should disable redirects');
+toy_auth_runtime_require('core/helpers/ops.php', '/function toy_public_internal_access_findings\(string \$baseUrl\): array\s*\{\s*if \(!toy_is_public_http_url\(\$baseUrl\)\)/', 'Install exposure checks should reject non-public base URLs');
 
 toy_auth_runtime_require('core/helpers/runtime.php', '/class ToyDatabaseSessionHandler implements SessionHandlerInterface/', 'Database session handler is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_is_https_request\(\?array \$config = null\): bool/', 'Proxy-aware HTTPS helper signature is missing');

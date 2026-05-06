@@ -11,6 +11,7 @@
 - 설치 실패 시 `storage/install-failed.json` 복구 marker 기록
 - 이전 설치 실패 단계와 오류 요약 표시
 - 운영 설치 시 현재 접속 host 기준 내부 파일 직접 접근 노출 점검
+- 내부 파일 노출 점검용 HTTP 요청은 public URL만 허용하고 리다이렉트를 따르지 않음
 - 운영 설치 시 HTTPS URL 확인
 - 외부 HTTP 호출 대상은 private/reserved/CGNAT/documentation/multicast IP 범위를 public으로 취급하지 않음
 - `config/config.php` 생성, 설정 임시 파일은 PHP 확장자로 작성

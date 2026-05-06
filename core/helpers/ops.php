@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 function toy_fetch_http_response(string $url): ?array
 {
+    if (!toy_is_public_http_url($url)) {
+        return null;
+    }
+
     $context = stream_context_create([
         'http' => [
             'method' => 'GET',
             'timeout' => 3,
             'ignore_errors' => true,
+            'follow_location' => 0,
+            'max_redirects' => 0,
             'header' => "User-Agent: Toycore-Install-Check\r\n",
         ],
     ]);
@@ -63,6 +69,10 @@ function toy_internal_access_check_urls(string $baseUrl): array
 
 function toy_public_internal_access_findings(string $baseUrl): array
 {
+    if (!toy_is_public_http_url($baseUrl)) {
+        return [];
+    }
+
     $findings = [];
     foreach (toy_internal_access_check_urls($baseUrl) as $check) {
         $response = toy_fetch_http_response((string) $check['url']);
