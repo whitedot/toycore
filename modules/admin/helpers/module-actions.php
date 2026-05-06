@@ -356,6 +356,12 @@ function toy_admin_handle_modules_post(
             $errors[] = 'JSON 설정값이 올바르지 않습니다.';
         }
 
+        if ($errors === [] && toy_admin_setting_value_is_secret($settingKey)) {
+            foreach (toy_admin_module_setting_reauth_errors($pdo, $account, $moduleKey, $settingKey, 'save') as $reauthError) {
+                $errors[] = $reauthError;
+            }
+        }
+
         if ($errors === []) {
             $stmt = $pdo->prepare(
                 'INSERT INTO toy_module_settings
@@ -402,6 +408,12 @@ function toy_admin_handle_modules_post(
         $settingKey = toy_post_string('setting_key', 120);
         if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
             $errors[] = '설정 key 형식이 올바르지 않습니다.';
+        }
+
+        if ($errors === [] && toy_admin_setting_value_is_secret($settingKey)) {
+            foreach (toy_admin_module_setting_reauth_errors($pdo, $account, $moduleKey, $settingKey, 'delete') as $reauthError) {
+                $errors[] = $reauthError;
+            }
         }
 
         if ($errors === []) {
@@ -481,6 +493,48 @@ function toy_admin_handle_modules_post(
     }
 
     return toy_admin_action_result($errors, $notice);
+}
+
+function toy_admin_module_setting_reauth_errors(PDO $pdo, array $account, string $moduleKey, string $settingKey, string $action): array
+{
+    $password = toy_post_string('owner_password', 255);
+    $accountId = (int) ($account['id'] ?? 0);
+    $targetId = $moduleKey . ':' . $settingKey . ':' . $action;
+    if ($accountId < 1) {
+        return ['owner 재인증 계정을 확인할 수 없습니다.'];
+    }
+
+    $throttle = toy_member_reauth_throttle_status($pdo, $accountId);
+    if (!empty($throttle['limited'])) {
+        toy_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
+        toy_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'admin',
+            'event_type' => 'module.setting.reauth_blocked',
+            'target_type' => 'module_setting',
+            'target_id' => $targetId,
+            'result' => 'failure',
+            'message' => 'Sensitive module setting reauthentication blocked by throttle.',
+        ]);
+        return ['재인증 시도가 많습니다. 잠시 후 다시 시도하세요.'];
+    }
+
+    if ($password === '' || !password_verify($password, (string) ($account['password_hash'] ?? ''))) {
+        toy_member_log_auth($pdo, $accountId, 'module_setting_reauth', 'failure');
+        toy_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'admin',
+            'event_type' => 'module.setting.reauth_failed',
+            'target_type' => 'module_setting',
+            'target_id' => $targetId,
+            'result' => 'failure',
+            'message' => 'Sensitive module setting reauthentication failed.',
+        ]);
+        return ['민감한 모듈 설정 변경 전 owner 비밀번호를 다시 입력하세요.'];
+    }
+
+    toy_member_log_auth($pdo, $accountId, 'module_setting_reauth', 'success');
+    return [];
 }
 
 function toy_admin_module_source_reauth_errors(PDO $pdo, array $account, string $intent): array

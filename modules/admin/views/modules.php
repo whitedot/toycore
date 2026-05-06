@@ -358,6 +358,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </label>
             </p>
+            <p>
+                <label>Owner password<br>
+                    <input type="password" name="owner_password" autocomplete="current-password">
+                </label>
+            </p>
             <button type="submit">항목 저장</button>
         </form>
     <?php } ?>
@@ -393,6 +398,9 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="intent" value="delete_module_setting">
                                 <input type="hidden" name="module_key" value="<?php echo toy_e((string) $setting['module_key']); ?>">
                                 <input type="hidden" name="setting_key" value="<?php echo toy_e((string) $setting['setting_key']); ?>">
+                                <?php if (toy_admin_setting_value_is_secret((string) $setting['setting_key'])) { ?>
+                                    <input type="password" name="owner_password" autocomplete="current-password" required>
+                                <?php } ?>
                                 <button type="submit">삭제</button>
                             </form>
                         <?php } else { ?>

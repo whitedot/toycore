@@ -191,6 +191,19 @@ if (is_string($adminSettingsHelper) && (
     $errors[] = 'Admin settings helper must mask secret-like setting values before display.';
 }
 
+if (!isset($adminModuleActionsHelper)) {
+    $adminModuleActionsHelper = file_get_contents($root . '/modules/admin/helpers/module-actions.php');
+}
+if (is_string($adminModuleActionsHelper) && (
+    strpos($adminModuleActionsHelper, 'function toy_admin_module_setting_reauth_errors') === false
+    || substr_count($adminModuleActionsHelper, 'toy_admin_module_setting_reauth_errors($pdo, $account, $moduleKey, $settingKey,') < 2
+    || strpos($adminModuleActionsHelper, 'toy_admin_setting_value_is_secret($settingKey)') === false
+    || strpos($adminModuleActionsHelper, 'module_setting_reauth') === false
+    || strpos($adminModuleActionsHelper, 'module.setting.reauth_failed') === false
+)) {
+    $errors[] = 'Admin module settings helper must require reauthentication for secret-like setting changes.';
+}
+
 $adminSettingsView = file_get_contents($root . '/modules/admin/views/settings.php');
 if (!is_string($adminSettingsView)) {
     $errors[] = 'Admin settings view cannot be read.';
@@ -201,8 +214,12 @@ if (!is_string($adminSettingsView)) {
 $adminModulesView = file_get_contents($root . '/modules/admin/views/modules.php');
 if (!is_string($adminModulesView)) {
     $errors[] = 'Admin modules view cannot be read.';
-} elseif (strpos($adminModulesView, 'toy_admin_module_setting_display_value($setting)') === false) {
-    $errors[] = 'Admin modules view must render module setting values through the masking helper.';
+} elseif (
+    strpos($adminModulesView, 'toy_admin_module_setting_display_value($setting)') === false
+    || substr_count($adminModulesView, 'name="owner_password"') < 2
+    || strpos($adminModulesView, 'toy_admin_setting_value_is_secret((string) $setting[\'setting_key\'])') === false
+) {
+    $errors[] = 'Admin modules view must mask module setting values and collect owner reauth for secret-like setting changes.';
 }
 
 $adminAuditLogsHelper = file_get_contents($root . '/modules/admin/helpers/audit-logs.php');

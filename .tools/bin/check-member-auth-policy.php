@@ -95,6 +95,7 @@ toy_member_auth_policy_assert(
         && in_array('password_change_session_failed', toy_member_reauth_failure_event_types(), true)
         && in_array('withdraw_reauth', toy_member_reauth_failure_event_types(), true)
         && in_array('privacy_export_reauth', toy_member_reauth_failure_event_types(), true)
+        && in_array('module_setting_reauth', toy_member_reauth_failure_event_types(), true)
         && in_array('privacy_request_export_reauth', toy_member_reauth_failure_event_types(), true)
         && in_array('reauth_blocked', toy_member_reauth_failure_event_types(), true),
     'Sensitive reauth failures should count as reauth throttle events.'
