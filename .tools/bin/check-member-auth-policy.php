@@ -333,6 +333,17 @@ if ($privacyRequestsView !== '') {
     );
 }
 
+$adminPrivacyRequestsAction = toy_member_auth_policy_read('modules/admin/actions/privacy-requests.php');
+if ($adminPrivacyRequestsAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsAction, "if (toy_request_method() === 'GET')") !== false
+            && strpos($adminPrivacyRequestsAction, "'event_type' => 'privacy.request.list.viewed'") !== false
+            && strpos($adminPrivacyRequestsAction, "'status_filter' => \$statusFilter") !== false
+            && strpos($adminPrivacyRequestsAction, "'result_count' => count(\$requests)") !== false,
+        'Admin privacy request list views should be audited without logging raw request contents.'
+    );
+}
+
 $registerAction = toy_member_auth_policy_read('modules/member/actions/register.php');
 if ($registerAction !== '') {
     toy_member_auth_policy_assert(

@@ -23,4 +23,20 @@ if (toy_request_method() === 'POST') {
 $statusFilter = toy_admin_privacy_request_status_filter($allowedStatuses);
 $requests = toy_admin_privacy_requests($pdo, $statusFilter);
 
+if (toy_request_method() === 'GET') {
+    toy_audit_log($pdo, [
+        'actor_account_id' => (int) $account['id'],
+        'actor_type' => 'admin',
+        'event_type' => 'privacy.request.list.viewed',
+        'target_type' => 'privacy_request',
+        'target_id' => '',
+        'result' => 'success',
+        'message' => 'Privacy request list viewed.',
+        'metadata' => [
+            'status_filter' => $statusFilter,
+            'result_count' => count($requests),
+        ],
+    ]);
+}
+
 include TOY_ROOT . '/modules/admin/views/privacy-requests.php';
