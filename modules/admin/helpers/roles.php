@@ -58,6 +58,19 @@ function toy_admin_owner_count(PDO $pdo): int
     return is_array($row) ? (int) $row['count_value'] : 0;
 }
 
+function toy_admin_active_owner_count(PDO $pdo): int
+{
+    $stmt = $pdo->query(
+        "SELECT COUNT(DISTINCT r.account_id) AS count_value
+         FROM toy_admin_account_roles r
+         INNER JOIN toy_member_accounts a ON a.id = r.account_id
+         WHERE r.role_key = 'owner'
+           AND a.status = 'active'"
+    );
+    $row = $stmt->fetch();
+    return is_array($row) ? (int) $row['count_value'] : 0;
+}
+
 function toy_admin_allowed_roles(): array
 {
     return ['owner', 'admin', 'manager'];

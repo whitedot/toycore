@@ -92,6 +92,38 @@ foreach (toy_admin_action_security_module_dirs($root) as $moduleDir) {
     }
 }
 
+$adminRolesHelper = file_get_contents($root . '/modules/admin/helpers/roles.php');
+if (!is_string($adminRolesHelper) || strpos($adminRolesHelper, 'function toy_admin_active_owner_count') === false) {
+    $errors[] = 'Admin role helper must expose an active owner count guard.';
+}
+
+$adminMembersHelper = file_get_contents($root . '/modules/admin/helpers/members.php');
+if (!is_string($adminMembersHelper)) {
+    $errors[] = 'Admin members helper cannot be read.';
+} else {
+    if (
+        strpos($adminMembersHelper, "in_array(\$intent, ['status', 'revoke_sessions'], true)") === false
+        || strpos($adminMembersHelper, '회원 작업 값이 올바르지 않습니다.') === false
+    ) {
+        $errors[] = 'Admin members helper must allowlist member management intents.';
+    }
+
+    if (
+        strpos($adminMembersHelper, 'toy_admin_current_roles($pdo, $targetAccountId)') === false
+        || strpos($adminMembersHelper, 'toy_admin_has_role($pdo, (int) $account[\'id\'], [\'owner\'])') === false
+        || strpos($adminMembersHelper, 'owner 계정 상태와 세션은 owner만 변경할 수 있습니다.') === false
+    ) {
+        $errors[] = 'Admin members helper must prevent non-owner admins from changing owner accounts.';
+    }
+
+    if (
+        strpos($adminMembersHelper, 'toy_admin_active_owner_count($pdo) <= 1') === false
+        || strpos($adminMembersHelper, '마지막 active owner 계정은 비활성화할 수 없습니다.') === false
+    ) {
+        $errors[] = 'Admin members helper must prevent deactivating the last active owner.';
+    }
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "admin action security checks failed:\n");
     foreach ($errors as $error) {

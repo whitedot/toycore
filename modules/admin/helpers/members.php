@@ -19,6 +19,10 @@ function toy_admin_handle_members_post(PDO $pdo, array $account, array $allowedS
         $errors[] = '회원을 선택하세요.';
     }
 
+    if (!in_array($intent, ['status', 'revoke_sessions'], true)) {
+        $errors[] = '회원 작업 값이 올바르지 않습니다.';
+    }
+
     if ($intent !== 'revoke_sessions' && !in_array($status, $allowedStatuses, true)) {
         $errors[] = '회원 상태 값이 올바르지 않습니다.';
     }
@@ -34,6 +38,26 @@ function toy_admin_handle_members_post(PDO $pdo, array $account, array $allowedS
 
         if (!is_array($targetAccount)) {
             $errors[] = '회원을 찾을 수 없습니다.';
+        }
+    }
+
+    if ($errors === []) {
+        $targetRoles = toy_admin_current_roles($pdo, $targetAccountId);
+        $targetIsOwner = in_array('owner', $targetRoles, true);
+        $actorIsOwner = toy_admin_has_role($pdo, (int) $account['id'], ['owner']);
+
+        if ($targetIsOwner && !$actorIsOwner) {
+            $errors[] = 'owner 계정 상태와 세션은 owner만 변경할 수 있습니다.';
+        }
+
+        if (
+            $targetIsOwner
+            && $intent !== 'revoke_sessions'
+            && $status !== 'active'
+            && (string) $targetAccount['status'] === 'active'
+            && toy_admin_active_owner_count($pdo) <= 1
+        ) {
+            $errors[] = '마지막 active owner 계정은 비활성화할 수 없습니다.';
         }
     }
 
