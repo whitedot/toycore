@@ -32,6 +32,11 @@ function toy_admin_site_setting_requires_reauth(string $settingKey): bool
     return isset(toy_admin_sensitive_site_setting_keys()[$settingKey]);
 }
 
+function toy_admin_site_setting_requires_bool(string $settingKey): bool
+{
+    return toy_admin_site_setting_requires_reauth($settingKey);
+}
+
 function toy_admin_site_setting_values(?array $site): array
 {
     return [
@@ -123,6 +128,10 @@ function toy_admin_handle_settings_post(
 
         if (!in_array($valueType, $allowedSettingTypes, true)) {
             $errors[] = '설정 타입이 올바르지 않습니다.';
+        }
+
+        if (toy_admin_site_setting_requires_bool($settingKey) && $valueType !== 'bool') {
+            $errors[] = '고위험 사이트 설정은 bool 타입으로만 저장할 수 있습니다.';
         }
 
         if (isset($reservedSiteSettingKeys[$settingKey])) {

@@ -86,7 +86,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>Owner 비밀번호<br>
                     <input type="password" name="owner_password" autocomplete="current-password">
                 </label>
-                <span class="toy-install-help">고위험 설정 저장 시 필요합니다. 예: <code>admin.module_sources_enabled</code></span>
+                <span class="toy-install-help">고위험 설정 저장 시 필요하며 bool 타입만 허용됩니다. 예: <code>admin.module_sources_enabled</code></span>
             </p>
             <button type="submit">항목 저장</button>
         </form>

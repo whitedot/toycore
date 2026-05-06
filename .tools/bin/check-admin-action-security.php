@@ -142,6 +142,9 @@ if (is_string($adminSettingsHelper) && (
     strpos($adminSettingsHelper, 'function toy_admin_sensitive_site_setting_keys') === false
     || strpos($adminSettingsHelper, "'admin.module_sources_enabled' => true") === false
     || strpos($adminSettingsHelper, "'admin.repository_archive_unchecked_enabled' => true") === false
+    || strpos($adminSettingsHelper, 'function toy_admin_site_setting_requires_bool') === false
+    || strpos($adminSettingsHelper, "toy_admin_site_setting_requires_bool(\$settingKey) && \$valueType !== 'bool'") === false
+    || strpos($adminSettingsHelper, '고위험 사이트 설정은 bool 타입으로만 저장할 수 있습니다.') === false
     || substr_count($adminSettingsHelper, 'toy_admin_site_setting_reauth_errors($pdo, $account, $settingKey,') < 2
     || strpos($adminSettingsHelper, 'site_setting_reauth') === false
 )) {

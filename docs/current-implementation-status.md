@@ -33,6 +33,8 @@
 - 각 모듈 리포지토리에 설치용 zip 생성 스크립트 추가
 - 모듈 설치/관리 화면에 설치 버전, 코드 버전, Toycore 호환 버전 표기
 - 모듈 설치/관리 화면에서 owner 전용 zip 업로드와 공식 registry release zip 다운로드 지원
+- 운영 환경의 모듈 소스 반영은 `admin.module_sources_enabled` bool 설정으로 명시 활성화해야 사용 가능
+- 모듈 소스 반영과 파일 버전 동기화는 owner 비밀번호 재인증 필요
 - 모듈 registry/repository zip 다운로드는 URL 검증 후 HTTP redirect를 따르지 않음
 - 모듈 registry/repository zip 다운로드는 HTTP 2xx 응답만 저장 대상으로 처리
 - 모듈 zip은 checksum, 항목 수, symlink, 경로 제어 문자/콜론/모호한 segment, 압축 해제 크기, module key, version, downgrade, 교체 확인을 검증
@@ -41,6 +43,7 @@
 - `.tools/bin/check-module-index.php`로 공식 모듈 registry 구조와 release zip/checksum 쌍 검증 가능
 - registry에 등록된 공식 GitHub repository는 owner가 고급 UI에서 ref를 지정해 archive zip으로 다운로드 가능
 - repository archive 반영은 운영 환경에서 `repository_refs`에 등록된 40자 commit SHA와 sha256 checksum 쌍만 허용하며, branch/tag ref는 개발/스테이징용으로 제한
+- checksum 미등록 repository archive 허용 설정은 개발/스테이징에서만 동작하며 bool 타입만 허용
 - `.tools/bin/update-module-index`로 release zip checksum을 계산해 공식 모듈 registry를 갱신 가능
 - `.tools/bin/update-module-index --repository-refs`로 운영용 repository archive commit SHA/checksum 등록 가능
 - `.tools/bin/publish-module-release`로 공식 모듈 zip 수집, registry 갱신, GitHub Release 업로드 보조 가능
@@ -251,12 +254,16 @@
 ### 관리자
 
 - 관리자 대시보드
+- 관리자 대시보드 설치 보호 상태 요약
 - 관리자 대시보드 인증 런타임 설정 요약
+- 관리자 대시보드 클라이언트 IP 판정과 인증 제한 설정 요약
 - 관리자 대시보드 운영 모듈 요약
 - 관리자 대시보드 복구 marker와 모듈 백업 요약
 - 사이트 설정 조회/저장
 - 사이트 설정 intent 허용 목록 검증
 - 사이트 설정 항목 조회/저장/삭제
+- 보안 경계를 바꾸는 고위험 사이트 설정 저장/삭제 owner 재인증
+- 고위험 사이트 설정 bool 타입 강제
 - 모듈 목록/상태 관리
 - 코드에 있지만 DB에 등록되지 않은 모듈 설치
 - 모듈 설치 중 실패 상태 표시와 재설치
