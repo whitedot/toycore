@@ -344,6 +344,13 @@ if (is_string($adminModuleSourcesHelper) && (
 )) {
     $errors[] = 'Admin module source downloads must reject non-2xx HTTP responses before saving zip bodies.';
 }
+if (is_string($adminModuleSourcesHelper) && (
+    strpos($adminModuleSourcesHelper, 'function toy_admin_install_module_source_files') === false
+    || strpos($adminModuleSourcesHelper, '!rename($backupDir, $targetDir)') === false
+    || strpos($adminModuleSourcesHelper, "throw new RuntimeException('기존 모듈 백업을 복구할 수 없습니다.', 0, \$exception)") === false
+)) {
+    $errors[] = 'Admin module source replacement must fail closed when backup restore fails.';
+}
 
 $adminModuleActionsHelper = file_get_contents($root . '/modules/admin/helpers/module-actions.php');
 if (!is_string($adminModuleActionsHelper)) {

@@ -1055,8 +1055,8 @@ function toy_admin_install_module_source_files(string $moduleKey, string $source
             toy_admin_remove_directory($targetDir);
         }
 
-        if ($backupDir !== '' && is_dir($backupDir) && !is_dir($targetDir)) {
-            rename($backupDir, $targetDir);
+        if ($backupDir !== '' && is_dir($backupDir) && !is_dir($targetDir) && !rename($backupDir, $targetDir)) {
+            throw new RuntimeException('기존 모듈 백업을 복구할 수 없습니다.', 0, $exception);
         }
 
         throw $exception;
