@@ -76,6 +76,7 @@
 - 기본 mail helper
 - SMTP/HTTP API mail transport 설정 지원
 - HTTP API mail transport 발신자 payload 포함
+- HTTP API 인증 메일 공개 HTTPS endpoint 검증
 - HMAC hash helper
 - 환경변수 기반 app key 주입 지원
 - 기본 보안 응답 헤더

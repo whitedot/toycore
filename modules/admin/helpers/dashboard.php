@@ -156,7 +156,7 @@ function toy_admin_dashboard_mail_transport_ready(string $transport, array $mail
     }
 
     if ($transport === 'http_api') {
-        return toy_is_http_url((string) ($mail['endpoint'] ?? ''))
+        return toy_mail_http_api_endpoint_is_allowed((string) ($mail['endpoint'] ?? ''))
             && filter_var($fromEmail, FILTER_VALIDATE_EMAIL) !== false;
     }
 

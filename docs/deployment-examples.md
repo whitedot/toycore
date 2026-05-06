@@ -154,7 +154,7 @@ server {
 
 `app_key_env`를 사용하면 환경변수 또는 secret manager에서 앱 비밀값을 주입할 수 있다. 운영 중 `app_key`를 바꾸면 로그인 식별자 HMAC 조회가 깨질 수 있으므로 기존 값과 동일한 값을 주입해야 한다.
 
-`mail.transport`는 `php_mail`, `smtp`, `http_api`를 지원한다. `smtp`와 `http_api`는 `from_email`이 유효한 이메일이어야 하며, `http_api`는 `endpoint`와 선택적인 `bearer_token`을 사용해 JSON payload를 전송한다.
+`mail.transport`는 `php_mail`, `smtp`, `http_api`를 지원한다. `smtp`와 `http_api`는 `from_email`이 유효한 이메일이어야 하며, `http_api`는 `endpoint`와 선택적인 `bearer_token`을 사용해 JSON payload를 전송한다. HTTP API endpoint는 공개망 HTTPS URL이어야 하며, localhost, 사설망, link-local, 예약 IP 주소는 인증 메일 발송 대상으로 사용하지 않는다.
 
 ## 공유호스팅
 

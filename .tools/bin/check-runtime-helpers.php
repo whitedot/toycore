@@ -102,6 +102,22 @@ toy_runtime_helper_assert(
     toy_session_cookie_secure(['security' => ['force_https' => true]]) === true,
     'force_https should force Secure session cookies.'
 );
+toy_runtime_helper_assert(
+    toy_mail_http_api_endpoint_is_allowed('https://93.184.216.34/mail'),
+    'Public HTTPS mail API endpoint should be allowed.'
+);
+toy_runtime_helper_assert(
+    !toy_mail_http_api_endpoint_is_allowed('http://93.184.216.34/mail'),
+    'HTTP mail API endpoint should be rejected.'
+);
+toy_runtime_helper_assert(
+    !toy_mail_http_api_endpoint_is_allowed('https://127.0.0.1/mail'),
+    'Local mail API endpoint should be rejected.'
+);
+toy_runtime_helper_assert(
+    !toy_mail_http_api_endpoint_is_allowed('https://169.254.169.254/latest/meta-data'),
+    'Link-local mail API endpoint should be rejected.'
+);
 
 putenv('TOY_TEST_APP_KEY=env-secret');
 toy_runtime_helper_assert(

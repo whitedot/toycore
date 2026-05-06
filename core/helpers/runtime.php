@@ -842,7 +842,7 @@ function toy_send_smtp_mail(?array $site, array $mailConfig, string $to, string 
 function toy_send_http_api_mail(array $mailConfig, string $to, string $subject, string $body): bool
 {
     $endpoint = (string) ($mailConfig['endpoint'] ?? '');
-    if ($endpoint === '' || !toy_is_http_url($endpoint)) {
+    if ($endpoint === '' || !toy_mail_http_api_endpoint_is_allowed($endpoint)) {
         return false;
     }
 
@@ -898,6 +898,15 @@ function toy_send_http_api_mail(array $mailConfig, string $to, string $subject, 
     }
 
     return false;
+}
+
+function toy_mail_http_api_endpoint_is_allowed(string $endpoint): bool
+{
+    if (!toy_is_public_http_url($endpoint)) {
+        return false;
+    }
+
+    return strtolower((string) parse_url($endpoint, PHP_URL_SCHEME)) === 'https';
 }
 
 function toy_mail_header_encode(string $value): string
