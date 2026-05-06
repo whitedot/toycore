@@ -292,8 +292,9 @@ if ($accountAction !== '') {
     );
     toy_member_auth_policy_assert(
         strpos($accountAction, '!toy_is_safe_relative_url($profile[\'avatar_path\'])') !== false
-            && strpos($accountAction, '!toy_is_http_url($profile[\'avatar_path\'])') !== false,
-        'Account action should validate avatar_path before saving it.'
+            && strpos($accountAction, '!toy_is_public_http_url($profile[\'avatar_path\'])') !== false
+            && strpos($accountAction, '공개 http(s) URL') !== false,
+        'Account action should allow only safe relative or public http avatar URLs before saving.'
     );
     toy_member_auth_policy_assert(
         strpos($accountAction, 'toy_is_local_host((string) ($site[\'base_url\'] ?? \'\'))') !== false

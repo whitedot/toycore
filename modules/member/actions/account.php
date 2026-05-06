@@ -105,9 +105,9 @@ if (toy_request_method() === 'POST') {
             $profileFields['avatar_path']
             && $profile['avatar_path'] !== ''
             && !toy_is_safe_relative_url($profile['avatar_path'])
-            && !toy_is_http_url($profile['avatar_path'])
+            && !toy_is_public_http_url($profile['avatar_path'])
         ) {
-            $errors[] = '아바타 경로는 /로 시작하는 상대 URL 또는 http(s) URL이어야 합니다.';
+            $errors[] = '아바타 경로는 /로 시작하는 상대 URL 또는 공개 http(s) URL이어야 합니다.';
         }
 
         if ($errors === []) {
