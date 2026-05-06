@@ -91,13 +91,21 @@ function toy_write_config(array $config): void
 
     $content = "<?php\n\nreturn " . var_export($config, true) . ";\n";
     $target = $configDir . '/config.php';
-    $temporary = $target . '.tmp';
+    try {
+        $suffix = bin2hex(random_bytes(6));
+    } catch (Throwable $exception) {
+        $suffix = str_replace('.', '', uniqid('', true));
+    }
+    $temporary = $configDir . '/config-' . $suffix . '.tmp.php';
 
     if (file_put_contents($temporary, $content, LOCK_EX) === false) {
         throw new RuntimeException('config file cannot be written.');
     }
 
     if (!rename($temporary, $target)) {
+        if (is_file($temporary)) {
+            unlink($temporary);
+        }
         throw new RuntimeException('config file cannot be moved into place.');
     }
 }

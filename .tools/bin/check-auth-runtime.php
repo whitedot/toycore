@@ -63,6 +63,9 @@ toy_auth_runtime_require('core/actions/install.php', "/'session'\\s*=>\\s*\\[/",
 toy_auth_runtime_require('core/actions/install.php', "/'handler'\\s*=>\\s*'database'/", 'Install config database session handler is missing');
 toy_auth_runtime_require('core/actions/install.php', "/'mail'\\s*=>\\s*\\[/", 'Install config mail block is missing');
 
+toy_auth_runtime_require('core/helpers/ops.php', "/\\\$temporary\\s*=\\s*\\\$configDir\\s*\\.\\s*'\\/config-'\\s*\\.\\s*\\\$suffix\\s*\\.\\s*'\\.tmp\\.php'/", 'Config writer temporary file should keep a PHP extension');
+toy_auth_runtime_require('core/helpers/ops.php', '/bin2hex\(random_bytes\(6\)\)/', 'Config writer temporary file should use a random suffix');
+
 toy_auth_runtime_require('core/helpers/runtime.php', '/class ToyDatabaseSessionHandler implements SessionHandlerInterface/', 'Database session handler is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_is_https_request\(\?array \$config = null\): bool/', 'Proxy-aware HTTPS helper signature is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/HTTP_X_FORWARDED_PROTO/', 'Forwarded proto handling is missing');

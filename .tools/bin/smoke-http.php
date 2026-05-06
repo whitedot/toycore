@@ -58,7 +58,7 @@ $checks = [
     [
         'label' => 'config directory protection',
         'path' => '/config/.gitignore',
-        'must_not_expose' => ['config.php.tmp'],
+        'must_not_expose' => ['config-*.tmp.php'],
     ],
     [
         'label' => 'storage directory protection',
