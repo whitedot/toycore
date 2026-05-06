@@ -244,6 +244,10 @@ if (!is_string($adminAuditLogsHelper)) {
     $errors[] = 'Admin audit logs helper cannot be read.';
 } elseif (
     strpos($adminAuditLogsHelper, 'function toy_admin_audit_metadata_redact') === false
+    || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_identifier_filter') === false
+    || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_result_filter') === false
+    || strpos($adminAuditLogsHelper, "preg_match('/\\A[a-z][a-z0-9_.-]*\\z/', \$value)") === false
+    || strpos($adminAuditLogsHelper, "in_array(\$value, ['success', 'failure'], true)") === false
     || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_display_metadata') === false
     || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_display_message') === false
     || strpos($adminAuditLogsHelper, 'toy_admin_setting_value_is_secret($key)') === false
@@ -252,7 +256,7 @@ if (!is_string($adminAuditLogsHelper)) {
     || strpos($adminAuditLogsHelper, 'json_decode($metadataJson, true)') === false
     || strpos($adminAuditLogsHelper, "'[invalid metadata]'") === false
 ) {
-    $errors[] = 'Admin audit logs helper must redact secret-like metadata before display.';
+    $errors[] = 'Admin audit logs helper must validate filters and redact secret-like metadata before display.';
 }
 
 $adminAuditLogsView = file_get_contents($root . '/modules/admin/views/audit-logs.php');

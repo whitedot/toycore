@@ -14,6 +14,20 @@ function toy_admin_audit_log_filters(): array
     ];
 }
 
+function toy_admin_audit_log_identifier_filter(string $value, int $maxLength): string
+{
+    if ($value === '' || strlen($value) > $maxLength) {
+        return '';
+    }
+
+    return preg_match('/\A[a-z][a-z0-9_.-]*\z/', $value) === 1 ? $value : '';
+}
+
+function toy_admin_audit_log_result_filter(string $value): string
+{
+    return in_array($value, ['success', 'failure'], true) ? $value : '';
+}
+
 function toy_admin_audit_metadata_redact(mixed $value, string $key = ''): mixed
 {
     if ($key !== '' && toy_admin_setting_value_is_secret($key)) {
@@ -62,6 +76,9 @@ function toy_admin_audit_log_query_parts(array &$filters): array
 {
     $where = [];
     $params = [];
+    $filters['event_type'] = toy_admin_audit_log_identifier_filter($filters['event_type'], 80);
+    $filters['target_type'] = toy_admin_audit_log_identifier_filter($filters['target_type'], 60);
+    $filters['result'] = toy_admin_audit_log_result_filter($filters['result']);
 
     if ($filters['event_type'] !== '') {
         $where[] = 'event_type = :event_type';
