@@ -149,6 +149,12 @@ if (!is_string($adminModuleSourcesHelper)) {
 ) {
     $errors[] = 'Admin module source zip checks must reject symlink entries before extraction.';
 }
+if (is_string($adminModuleSourcesHelper) && (
+    strpos($adminModuleSourcesHelper, "preg_match('/[\\x00-\\x1F\\x7F]/', \$name)") === false
+    || strpos($adminModuleSourcesHelper, "str_contains(\$name, ':')") === false
+)) {
+    $errors[] = 'Admin module source zip paths must reject control characters and colon separators.';
+}
 
 if ($errors !== []) {
     fwrite(STDERR, "admin action security checks failed:\n");

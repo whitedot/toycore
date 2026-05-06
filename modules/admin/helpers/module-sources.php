@@ -370,7 +370,12 @@ function toy_admin_copy_directory(string $source, string $target): void
 function toy_admin_zip_entry_is_safe(string $name): bool
 {
     $name = str_replace('\\', '/', $name);
-    if ($name === '' || str_contains($name, "\0") || str_starts_with($name, '/') || preg_match('/\A[A-Za-z]:\//', $name) === 1) {
+    if (
+        $name === ''
+        || preg_match('/[\x00-\x1F\x7F]/', $name) === 1
+        || str_starts_with($name, '/')
+        || str_contains($name, ':')
+    ) {
         return false;
     }
 
