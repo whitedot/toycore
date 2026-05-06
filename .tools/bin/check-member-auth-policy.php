@@ -352,10 +352,12 @@ if ($privacyHelper !== '') {
             && strpos($privacyHelper, '$moduleExportData = $moduleExport($pdo, $accountId)') !== false
             && strpos($privacyHelper, 'if (is_array($moduleExportData))') !== false
             && strpos($privacyHelper, 'toy_member_privacy_export_sanitize_module_data($moduleExportData)') !== false
+            && strpos($privacyHelper, 'catch (Throwable $exception)') !== false
+            && strpos($privacyHelper, "toy_log_exception(\$exception, 'privacy_export_module_' . \$moduleKey)") !== false
             && strpos($privacyHelper, 'password|token|secret|credential|bearer|authorization') !== false
             && strpos($privacyHelper, "str_ends_with(\$normalizedKey, '_token_hash')") !== false
             && strpos($privacyHelper, "str_ends_with(\$normalizedKey, '_hash')") !== false,
-        'Privacy helper should remove internal hash/token/secret fields from module privacy exports.'
+        'Privacy helper should isolate module privacy export failures and remove internal hash/token/secret fields.'
     );
 }
 

@@ -198,14 +198,18 @@ function toy_member_module_privacy_exports(PDO $pdo, int $accountId): array
             continue;
         }
 
-        $moduleExport = include $exportFile;
-        if (is_callable($moduleExport)) {
-            $moduleExportData = $moduleExport($pdo, $accountId);
-            if (is_array($moduleExportData)) {
-                $exports[$moduleKey] = toy_member_privacy_export_sanitize_module_data($moduleExportData);
+        try {
+            $moduleExport = include $exportFile;
+            if (is_callable($moduleExport)) {
+                $moduleExportData = $moduleExport($pdo, $accountId);
+                if (is_array($moduleExportData)) {
+                    $exports[$moduleKey] = toy_member_privacy_export_sanitize_module_data($moduleExportData);
+                }
+            } elseif (is_array($moduleExport)) {
+                $exports[$moduleKey] = toy_member_privacy_export_sanitize_module_data($moduleExport);
             }
-        } elseif (is_array($moduleExport)) {
-            $exports[$moduleKey] = toy_member_privacy_export_sanitize_module_data($moduleExport);
+        } catch (Throwable $exception) {
+            toy_log_exception($exception, 'privacy_export_module_' . $moduleKey);
         }
     }
 
