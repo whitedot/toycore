@@ -118,11 +118,69 @@ function toy_is_https_request(?array $config = null): bool
 function toy_current_base_url(): string
 {
     $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
-    if ($host === '' || preg_match('/[\x00-\x1F\x7F]/', $host) === 1) {
+    if (!toy_http_host_is_valid($host)) {
         return '';
     }
 
     return (toy_is_https_request() ? 'https://' : 'http://') . $host . toy_base_path();
+}
+
+function toy_http_host_is_valid(string $host): bool
+{
+    if ($host === '' || strlen($host) > 255 || preg_match('/[\x00-\x1F\x7F\/\\\\@]/', $host) === 1) {
+        return false;
+    }
+
+    if (preg_match('/\A\[([0-9A-Fa-f:.]+)\](?::([0-9]{1,5}))?\z/', $host, $matches) === 1) {
+        return filter_var($matches[1], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false
+            && toy_http_port_is_valid((string) ($matches[2] ?? ''));
+    }
+
+    if (substr_count($host, ':') > 1) {
+        return false;
+    }
+
+    $hostname = $host;
+    $port = '';
+    if (strpos($host, ':') !== false) {
+        [$hostname, $port] = explode(':', $host, 2);
+    }
+
+    return toy_http_hostname_is_valid($hostname) && toy_http_port_is_valid($port);
+}
+
+function toy_http_hostname_is_valid(string $hostname): bool
+{
+    $hostname = strtolower($hostname);
+    if ($hostname === 'localhost' || filter_var($hostname, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false) {
+        return true;
+    }
+
+    if ($hostname === '' || strlen($hostname) > 253 || preg_match('/\A[a-z0-9.-]+\z/', $hostname) !== 1) {
+        return false;
+    }
+
+    foreach (explode('.', $hostname) as $label) {
+        if ($label === '' || strlen($label) > 63 || $label[0] === '-' || substr($label, -1) === '-') {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function toy_http_port_is_valid(string $port): bool
+{
+    if ($port === '') {
+        return true;
+    }
+
+    if (preg_match('/\A[0-9]{1,5}\z/', $port) !== 1) {
+        return false;
+    }
+
+    $portNumber = (int) $port;
+    return $portNumber >= 1 && $portNumber <= 65535;
 }
 
 function toy_is_local_host(string $baseUrl): bool
@@ -797,6 +855,11 @@ function toy_mail_from_address(?array $site, array $mailConfig): string
     if (!is_string($host) || $host === '') {
         $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
     }
+    if (!toy_http_host_is_valid($host)) {
+        $host = 'localhost';
+    }
+    $host = preg_replace('/:\d+\z/', '', trim($host, '[]'));
+    $host = is_string($host) && $host !== '' ? $host : 'localhost';
 
     return 'no-reply@' . preg_replace('/[^A-Za-z0-9.-]/', '', $host);
 }

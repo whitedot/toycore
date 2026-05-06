@@ -99,6 +99,43 @@ toy_runtime_helper_assert(
 );
 
 toy_runtime_helper_assert(
+    toy_http_host_is_valid('example.com'),
+    'Normal host should be valid.'
+);
+toy_runtime_helper_assert(
+    toy_http_host_is_valid('example.com:8443'),
+    'Host with valid port should be valid.'
+);
+toy_runtime_helper_assert(
+    toy_http_host_is_valid('[2001:db8::1]:8443'),
+    'Bracketed IPv6 host with valid port should be valid.'
+);
+toy_runtime_helper_assert(
+    !toy_http_host_is_valid('example.com:99999'),
+    'Host with invalid port should be rejected.'
+);
+toy_runtime_helper_assert(
+    !toy_http_host_is_valid('example.com/path'),
+    'Host with slash should be rejected.'
+);
+toy_runtime_helper_assert(
+    !toy_http_host_is_valid('example.com\\evil.test'),
+    'Host with backslash should be rejected.'
+);
+toy_runtime_helper_assert(
+    !toy_http_host_is_valid('user@example.com'),
+    'Host with userinfo separator should be rejected.'
+);
+toy_runtime_helper_server([
+    'HTTP_HOST' => 'example.com\\evil.test',
+    'SCRIPT_NAME' => '/index.php',
+]);
+toy_runtime_helper_assert(
+    toy_current_base_url() === '',
+    'Invalid HTTP_HOST should not produce a current base URL.'
+);
+
+toy_runtime_helper_assert(
     toy_session_cookie_secure(['security' => ['force_https' => true]]) === true,
     'force_https should force Secure session cookies.'
 );

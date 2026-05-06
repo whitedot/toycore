@@ -71,6 +71,7 @@
 - redirect helper
 - 리다이렉트/URL 제어 문자 차단
 - 사이트 Base URL http/https scheme 검증
+- 현재 요청 Host 형식 검증
 - canonical URL helper
 - title, description, canonical, robots, Open Graph 출력 슬롯
 - 활성 모듈 `extension-points.php` 기반 확장 지점 조회
