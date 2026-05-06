@@ -73,6 +73,7 @@ if (toy_request_method() === 'POST') {
 
     if ($errors === []) {
         try {
+            $verificationMailSent = null;
             $accountId = toy_member_create_account($pdo, $config, [
                 'email' => $values['email'],
                 'password' => $password,
@@ -85,13 +86,13 @@ if (toy_request_method() === 'POST') {
             if ($emailVerificationEnabled) {
                 $verificationToken = toy_member_create_email_verification($pdo, $config, $accountId, $values['email']);
                 $verificationUrl = toy_absolute_url($site, '/email/verify?token=' . rawurlencode($verificationToken));
-                $mailSent = toy_send_mail(
+                $verificationMailSent = toy_send_mail(
                     $site,
                     $values['email'],
                     '이메일 인증 안내',
                     "아래 링크를 열어 이메일 인증을 완료하세요.\n\n" . $verificationUrl
                 );
-                if (!$mailSent || !empty($config['debug'])) {
+                if (!$verificationMailSent || !empty($config['debug'])) {
                     $_SESSION['toy_debug_email_verification_url'] = $verificationUrl;
                 }
             }
@@ -107,6 +108,9 @@ if (toy_request_method() === 'POST') {
                 'target_id' => (string) $accountId,
                 'result' => 'success',
                 'message' => 'Member registered.',
+                'metadata' => [
+                    'email_verification_mail_sent' => $verificationMailSent,
+                ],
             ]);
 
             $newAccount = toy_member_find_by_identifier($pdo, $config, $values['email']);

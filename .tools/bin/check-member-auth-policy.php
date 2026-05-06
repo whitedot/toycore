@@ -112,6 +112,10 @@ if ($loginAction !== '') {
         strpos($loginAction, 'login_email_unverified') !== false,
         'Login action should log unverified email login blocks.'
     );
+    toy_member_auth_policy_assert(
+        strpos($loginAction, "'mail_sent' => \$mailSent") !== false,
+        'Login action should audit email verification resend mail delivery result.'
+    );
 }
 
 $accountHelper = toy_member_auth_policy_read('modules/member/helpers/accounts.php');
@@ -225,6 +229,19 @@ if ($registerAction !== '') {
             && strpos($registerAction, '이메일 인증을 완료한 뒤 로그인하세요') !== false,
         'Register action should not auto-login unverified accounts.'
     );
+    toy_member_auth_policy_assert(
+        strpos($registerAction, '$verificationMailSent = null') !== false
+            && strpos($registerAction, "'email_verification_mail_sent' => \$verificationMailSent") !== false,
+        'Register action should audit email verification mail delivery result without storing token values.'
+    );
+}
+
+$emailVerificationRequestAction = toy_member_auth_policy_read('modules/member/actions/email-verification-request.php');
+if ($emailVerificationRequestAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($emailVerificationRequestAction, "'mail_sent' => \$mailSent") !== false,
+        'Email verification request action should audit mail delivery result.'
+    );
 }
 
 $loginAction = toy_member_auth_policy_read('modules/member/actions/login.php');
@@ -278,6 +295,15 @@ if ($passwordResetAction !== '') {
         strpos($passwordResetAction, 'if ($revokedSessions < 0)') !== false
             && strpos($passwordResetAction, 'Member sessions could not be revoked after password reset.') !== false,
         'Password reset should not complete when account sessions cannot be revoked.'
+    );
+}
+
+$passwordResetRequestAction = toy_member_auth_policy_read('modules/member/actions/password-reset-request.php');
+if ($passwordResetRequestAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($passwordResetRequestAction, '$mailSent = toy_send_mail') !== false
+            && strpos($passwordResetRequestAction, "'mail_sent' => \$mailSent") !== false,
+        'Password reset request action should audit reset mail delivery result.'
     );
 }
 

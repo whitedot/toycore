@@ -79,6 +79,9 @@ if (toy_request_method() === 'POST') {
                 'target_id' => (string) $account['id'],
                 'result' => 'success',
                 'message' => 'Member email verification requested.',
+                'metadata' => [
+                    'mail_sent' => $mailSent,
+                ],
             ]);
         }
         toy_member_log_auth($pdo, (int) $account['id'], 'login_email_unverified', 'failure');

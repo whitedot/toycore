@@ -49,6 +49,9 @@ if (!empty($memberSettings['email_verification_enabled']) && $account['email_ver
             'target_id' => (string) $account['id'],
             'result' => 'success',
             'message' => 'Member email verification requested.',
+            'metadata' => [
+                'mail_sent' => $mailSent,
+            ],
         ]);
     }
 }

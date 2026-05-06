@@ -36,7 +36,7 @@ if (toy_request_method() === 'POST') {
         } elseif ($activeAccount !== null) {
             $token = toy_member_create_password_reset($pdo, $config, (int) $activeAccount['id']);
             $resetUrl = toy_absolute_url($site, '/password/reset/confirm?token=' . rawurlencode($token));
-            toy_send_mail(
+            $mailSent = toy_send_mail(
                 $site,
                 (string) $activeAccount['email'],
                 '비밀번호 재설정 안내',
@@ -51,6 +51,9 @@ if (toy_request_method() === 'POST') {
                 'target_id' => (string) $activeAccount['id'],
                 'result' => 'success',
                 'message' => 'Member password reset requested.',
+                'metadata' => [
+                    'mail_sent' => $mailSent,
+                ],
             ]);
         } else {
             toy_member_log_auth($pdo, null, 'password_reset_request', 'failure');
