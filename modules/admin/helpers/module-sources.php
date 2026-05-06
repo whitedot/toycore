@@ -775,6 +775,8 @@ function toy_admin_download_registry_module_zip(array $entry): array
             'method' => 'GET',
             'timeout' => 20,
             'ignore_errors' => true,
+            'follow_location' => 0,
+            'max_redirects' => 0,
             'header' => "User-Agent: Toycore-Module-Registry\r\n",
         ],
     ]);
@@ -870,6 +872,8 @@ function toy_admin_download_registry_repository_archive(array $entry, string $re
             'method' => 'GET',
             'timeout' => 20,
             'ignore_errors' => true,
+            'follow_location' => 0,
+            'max_redirects' => 0,
             'header' => "User-Agent: Toycore-Module-Repository\r\n",
         ],
     ]);

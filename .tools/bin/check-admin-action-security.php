@@ -163,6 +163,12 @@ if (is_string($adminModuleSourcesHelper) && (
 )) {
     $errors[] = 'Admin module source registry URLs must be restricted to HTTPS public URLs at runtime.';
 }
+if (is_string($adminModuleSourcesHelper) && (
+    substr_count($adminModuleSourcesHelper, "'follow_location' => 0") < 2
+    || substr_count($adminModuleSourcesHelper, "'max_redirects' => 0") < 2
+)) {
+    $errors[] = 'Admin module source downloads must not follow redirects after registry URL validation.';
+}
 
 if ($errors !== []) {
     fwrite(STDERR, "admin action security checks failed:\n");

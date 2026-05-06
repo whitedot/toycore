@@ -79,6 +79,8 @@ toy_auth_runtime_require('core/helpers/runtime.php', "/'from_email'\\s*=>\\s*\\\
 toy_auth_runtime_require('core/helpers/runtime.php', '/preg_match\([^;]+\$bearerToken\)/', 'HTTP API bearer token control character guard is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_mail_http_api_endpoint_is_allowed\(/', 'HTTP API mail endpoint validation helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/toy_mail_http_api_endpoint_is_allowed\(\$endpoint\)/', 'HTTP API mail transport does not validate endpoint scope');
+toy_auth_runtime_require('core/helpers/runtime.php', "/'follow_location'\\s*=>\\s*0/", 'HTTP API mail transport should not follow redirects after endpoint validation');
+toy_auth_runtime_require('core/helpers/runtime.php', "/'max_redirects'\\s*=>\\s*0/", 'HTTP API mail transport should disable redirects after endpoint validation');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_rate_limit_count\(/', 'Rate limit count helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_rate_limit_increment\(/', 'Rate limit increment helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_app_key\(array \$config\): string/', 'App key resolver is missing');
