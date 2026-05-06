@@ -155,6 +155,28 @@ toy_runtime_helper_assert(
     !toy_mail_http_api_endpoint_is_allowed('https://169.254.169.254/latest/meta-data'),
     'Link-local mail API endpoint should be rejected.'
 );
+toy_runtime_helper_assert(
+    toy_mail_header_encode("Hello\r\nBcc: bad@example.com") === 'HelloBcc: bad@example.com',
+    'Mail header encoder should remove CRLF from ASCII values.'
+);
+toy_runtime_helper_assert(
+    strpos(toy_mail_header_encode("인증\r\nBcc: bad@example.com"), "\n") === false,
+    'Mail header encoder should remove CRLF from encoded values.'
+);
+toy_runtime_helper_server([
+    'SERVER_NAME' => "example.com\r\nQUIT",
+]);
+toy_runtime_helper_assert(
+    toy_smtp_server_name() === 'localhost',
+    'SMTP server name should reject command injection characters.'
+);
+toy_runtime_helper_server([
+    'SERVER_NAME' => 'example.com',
+]);
+toy_runtime_helper_assert(
+    toy_smtp_server_name() === 'example.com',
+    'SMTP server name should keep valid hostnames.'
+);
 
 putenv('TOY_TEST_APP_KEY=env-secret');
 toy_runtime_helper_assert(

@@ -70,8 +70,10 @@ toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_forwarded_cl
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_trusted_proxy_entries\(array \$config\): array/', 'Trusted proxy entry helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_trusted_proxy_config_errors\(array \$config\): array/', 'Trusted proxy config validation is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_send_smtp_mail\(/', 'SMTP mail transport helper is missing');
+toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_smtp_server_name\(\): string/', 'SMTP server name sanitizer is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_send_http_api_mail\(/', 'HTTP API mail transport helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', "/'from_email'\\s*=>\\s*\\\$fromEmail/", 'HTTP API mail payload from email is missing');
+toy_auth_runtime_require('core/helpers/runtime.php', '/preg_match\([^;]+\$bearerToken\)/', 'HTTP API bearer token control character guard is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_mail_http_api_endpoint_is_allowed\(/', 'HTTP API mail endpoint validation helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/toy_mail_http_api_endpoint_is_allowed\(\$endpoint\)/', 'HTTP API mail transport does not validate endpoint scope');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_rate_limit_count\(/', 'Rate limit count helper is missing');

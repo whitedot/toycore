@@ -840,7 +840,7 @@ function toy_send_mail(?array $site, string $to, string $subject, string $body):
         'Content-Type: text/plain; charset=UTF-8',
     ];
 
-    return mail($to, $subject, $body, implode("\r\n", $headers));
+    return mail($to, toy_mail_header_encode($subject), str_replace(["\r\n", "\r"], "\n", $body), implode("\r\n", $headers));
 }
 
 function toy_mail_from_address(?array $site, array $mailConfig): string
@@ -900,7 +900,7 @@ function toy_send_smtp_mail(?array $site, array $mailConfig, string $to, string 
             return false;
         }
 
-        $serverName = (string) ($_SERVER['SERVER_NAME'] ?? 'localhost');
+        $serverName = toy_smtp_server_name();
         if (!toy_smtp_command($socket, 'EHLO ' . $serverName, [250])) {
             fclose($socket);
             return false;
@@ -977,6 +977,9 @@ function toy_send_http_api_mail(array $mailConfig, string $to, string $subject, 
         'User-Agent: Toycore-Mail/1.0',
     ];
     $bearerToken = (string) ($mailConfig['bearer_token'] ?? '');
+    if (preg_match('/[\x00-\x1F\x7F]/', $bearerToken) === 1) {
+        return false;
+    }
     if ($bearerToken !== '') {
         $headers[] = 'Authorization: Bearer ' . $bearerToken;
     }
@@ -1021,11 +1024,22 @@ function toy_mail_http_api_endpoint_is_allowed(string $endpoint): bool
 
 function toy_mail_header_encode(string $value): string
 {
+    $value = str_replace(["\r", "\n"], '', $value);
     if (preg_match('/^[\x20-\x7E]*$/', $value) === 1) {
-        return str_replace(["\r", "\n"], '', $value);
+        return $value;
     }
 
     return '=?UTF-8?B?' . base64_encode($value) . '?=';
+}
+
+function toy_smtp_server_name(): string
+{
+    $serverName = (string) ($_SERVER['SERVER_NAME'] ?? '');
+    if (toy_http_hostname_is_valid($serverName)) {
+        return $serverName;
+    }
+
+    return 'localhost';
 }
 
 function toy_smtp_command($socket, string $command, array $expectedCodes): bool
