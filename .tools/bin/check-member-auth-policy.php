@@ -92,6 +92,26 @@ if ($emailVerifyAction !== '') {
     );
 }
 
+$passwordResetAction = toy_member_auth_policy_read('modules/member/actions/password-reset.php');
+if ($passwordResetAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($passwordResetAction, 'toy_password_reset_token') !== false,
+        'Password reset confirm action should keep the reset token in session after initial validation.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($passwordResetAction, "toy_redirect('/password/reset/confirm')") !== false,
+        'Password reset confirm action should redirect token query URLs to a tokenless form URL.'
+    );
+}
+
+$passwordResetView = toy_member_auth_policy_read('modules/member/views/password-reset.php');
+if ($passwordResetView !== '') {
+    toy_member_auth_policy_assert(
+        strpos($passwordResetView, 'name="token"') === false,
+        'Password reset form should not render the reset token into HTML.'
+    );
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "member auth policy checks failed:\n");
     foreach ($errors as $error) {

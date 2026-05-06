@@ -648,11 +648,12 @@ GET /password/reset/confirm
 -> token 형식 확인
 -> token hash 조회
 -> 만료/사용 여부 확인
+-> session에 token을 보관하고 token 없는 confirm URL로 redirect
 -> 새 비밀번호 form 출력
 
 POST /password/reset/confirm
 -> CSRF 검증
--> token hash 재검증
+-> session token hash 재검증
 -> 새 비밀번호 검증
 -> password_hash() 저장
 -> reset token used_at 기록

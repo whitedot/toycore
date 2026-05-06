@@ -32,7 +32,6 @@ $seo = [
 
             <form method="post" action="<?php echo toy_e(toy_url('/password/reset/confirm')); ?>">
                 <?php echo toy_csrf_field(); ?>
-                <input type="hidden" name="token" value="<?php echo toy_e($token); ?>">
                 <p>
                     <label>새 비밀번호<br>
                         <input type="password" name="password" required>

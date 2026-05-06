@@ -6,19 +6,39 @@ require_once TOY_ROOT . '/modules/member/helpers.php';
 
 $errors = [];
 $notice = '';
-$token = toy_request_method() === 'POST' ? toy_post_string('token', 80) : toy_get_string('token', 80);
+$method = toy_request_method();
+$token = $method === 'POST' ? (string) ($_SESSION['toy_password_reset_token'] ?? '') : toy_get_string('token', 80);
+
+if ($method === 'GET' && $token !== '') {
+    $reset = toy_member_find_password_reset($pdo, $config, $token);
+    if ($reset === null) {
+        unset($_SESSION['toy_password_reset_token']);
+        toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
+        exit;
+    }
+
+    $_SESSION['toy_password_reset_token'] = $token;
+    toy_redirect('/password/reset/confirm');
+}
+
+if ($method === 'GET') {
+    $token = (string) ($_SESSION['toy_password_reset_token'] ?? '');
+}
+
 $reset = toy_member_find_password_reset($pdo, $config, $token);
 
 if ($reset === null) {
+    unset($_SESSION['toy_password_reset_token']);
     toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
     exit;
 }
 
-if (toy_request_method() === 'POST') {
+if ($method === 'POST') {
     toy_require_csrf();
 
     $reset = toy_member_find_password_reset($pdo, $config, $token);
     if ($reset === null) {
+        unset($_SESSION['toy_password_reset_token']);
         toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
         exit;
     }
@@ -66,6 +86,7 @@ if (toy_request_method() === 'POST') {
                 ],
             ]);
 
+            unset($_SESSION['toy_password_reset_token']);
             $notice = '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.';
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
