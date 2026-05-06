@@ -100,6 +100,11 @@ if ($loginAction !== '') {
         'Login action should enforce email verification policy.'
     );
     toy_member_auth_policy_assert(
+        strpos($loginAction, 'toy_member_email_verification_throttle_status($pdo, (int) $account[\'id\'])') !== false
+            && strpos($loginAction, 'toy_member_create_email_verification($pdo, $config, (int) $account[\'id\'], (string) $account[\'email\'])') !== false,
+        'Login action should resend email verification within throttle limits after a valid password for an unverified account.'
+    );
+    toy_member_auth_policy_assert(
         strpos($loginAction, 'login_email_unverified') !== false,
         'Login action should log unverified email login blocks.'
     );

@@ -46,6 +46,41 @@ if (toy_request_method() === 'POST') {
         ($passwordVerified = toy_member_verify_login_password($account, $password))
         && toy_member_email_verification_blocks_login($memberSettings, $account)
     ) {
+        $verificationThrottle = toy_member_email_verification_throttle_status($pdo, (int) $account['id']);
+        if (!empty($verificationThrottle['limited'])) {
+            toy_member_log_auth($pdo, (int) $account['id'], 'email_verification_request_blocked', 'failure');
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'member',
+                'event_type' => 'member.email_verification.blocked',
+                'target_type' => 'member_account',
+                'target_id' => (string) $account['id'],
+                'result' => 'failure',
+                'message' => 'Member email verification request blocked by throttle.',
+            ]);
+        } else {
+            $verificationToken = toy_member_create_email_verification($pdo, $config, (int) $account['id'], (string) $account['email']);
+            $verificationUrl = toy_absolute_url($site, '/email/verify?token=' . rawurlencode($verificationToken));
+            $mailSent = toy_send_mail(
+                $site,
+                (string) $account['email'],
+                '이메일 인증 안내',
+                "아래 링크를 열어 이메일 인증을 완료하세요.\n\n" . $verificationUrl
+            );
+            if (!$mailSent || !empty($config['debug'])) {
+                $_SESSION['toy_debug_email_verification_url'] = $verificationUrl;
+            }
+            toy_member_log_auth($pdo, (int) $account['id'], 'email_verification_request', 'success');
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'member',
+                'event_type' => 'member.email_verification.requested',
+                'target_type' => 'member_account',
+                'target_id' => (string) $account['id'],
+                'result' => 'success',
+                'message' => 'Member email verification requested.',
+            ]);
+        }
         toy_member_log_auth($pdo, (int) $account['id'], 'login_email_unverified', 'failure');
         toy_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
@@ -56,7 +91,7 @@ if (toy_request_method() === 'POST') {
             'result' => 'failure',
             'message' => 'Member login blocked until email verification.',
         ]);
-        $errors[] = '이메일 인증을 완료한 뒤 로그인할 수 있습니다.';
+        $errors[] = '이메일 인증을 완료한 뒤 로그인할 수 있습니다. 인증 안내 메일을 다시 확인하세요.';
     } elseif ($passwordVerified) {
         toy_member_rehash_login_password_if_needed($pdo, (int) $account['id'], $password, (string) $account['password_hash']);
         toy_member_login($pdo, $account);
