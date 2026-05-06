@@ -37,6 +37,27 @@ function toy_member_latest_consents(PDO $pdo, int $accountId): array
     return $stmt->fetchAll();
 }
 
+function toy_member_record_consent_withdrawals(PDO $pdo, int $accountId): int
+{
+    $count = 0;
+    foreach (toy_member_latest_consents($pdo, $accountId) as $consent) {
+        if (empty($consent['consented'])) {
+            continue;
+        }
+
+        toy_member_record_consent(
+            $pdo,
+            $accountId,
+            (string) $consent['consent_key'],
+            (string) $consent['consent_version'],
+            false
+        );
+        $count++;
+    }
+
+    return $count;
+}
+
 function toy_member_privacy_export_data(PDO $pdo, int $accountId): array
 {
     $stmt = $pdo->prepare(

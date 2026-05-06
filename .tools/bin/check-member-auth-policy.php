@@ -284,6 +284,21 @@ if ($withdrawAction !== '') {
             && strpos($withdrawAction, 'Member sessions could not be revoked before account withdrawal.') !== false,
         'Withdraw should not continue when account sessions cannot be revoked.'
     );
+    toy_member_auth_policy_assert(
+        strpos($withdrawAction, 'toy_member_record_consent_withdrawals($pdo, (int) $account[\'id\'])') !== false
+            && strpos($withdrawAction, "'withdrawn_consents' => \$withdrawnConsents") !== false,
+        'Withdraw should record consent withdrawals before account anonymization.'
+    );
+}
+
+$privacyHelper = toy_member_auth_policy_read('modules/member/helpers/privacy.php');
+if ($privacyHelper !== '') {
+    toy_member_auth_policy_assert(
+        strpos($privacyHelper, 'function toy_member_record_consent_withdrawals') !== false
+            && strpos($privacyHelper, 'toy_member_latest_consents($pdo, $accountId)') !== false
+            && strpos($privacyHelper, 'false') !== false,
+        'Privacy helper should record false consent history rows for withdrawn latest consents.'
+    );
 }
 
 $registerAction = toy_member_auth_policy_read('modules/member/actions/register.php');

@@ -27,6 +27,7 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        $withdrawnConsents = 0;
         $pdo->beginTransaction();
         try {
             toy_member_delete_profile($pdo, (int) $account['id']);
@@ -34,6 +35,7 @@ if (toy_request_method() === 'POST') {
             if ($revokedSessions < 0) {
                 throw new RuntimeException('Member sessions could not be revoked before account withdrawal.');
             }
+            $withdrawnConsents = toy_member_record_consent_withdrawals($pdo, (int) $account['id']);
             toy_member_anonymize_account($pdo, $config, (int) $account['id']);
             $pdo->commit();
         } catch (Throwable $exception) {
@@ -53,6 +55,10 @@ if (toy_request_method() === 'POST') {
             'target_id' => (string) $account['id'],
             'result' => 'success',
             'message' => 'Member account withdrawn and anonymized.',
+            'metadata' => [
+                'revoked_sessions' => $revokedSessions,
+                'withdrawn_consents' => $withdrawnConsents,
+            ],
         ]);
 
         toy_member_logout($pdo);
