@@ -42,50 +42,92 @@ function toy_admin_handle_members_post(PDO $pdo, array $account, array $allowedS
             $errors[] = '현재 로그인한 관리자 계정의 세션은 여기서 폐기할 수 없습니다.';
         } else {
             $revokedCount = toy_member_revoke_account_sessions($pdo, $targetAccountId);
+            if ($revokedCount < 0) {
+                $errors[] = '회원 세션을 폐기할 수 없습니다.';
+                toy_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'member.sessions.revoked',
+                    'target_type' => 'member_account',
+                    'target_id' => (string) $targetAccountId,
+                    'result' => 'failure',
+                    'message' => 'Member sessions could not be revoked.',
+                ]);
+            } else {
+                toy_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'member.sessions.revoked',
+                    'target_type' => 'member_account',
+                    'target_id' => (string) $targetAccountId,
+                    'result' => 'success',
+                    'message' => 'Member sessions revoked.',
+                    'metadata' => [
+                        'revoked_count' => $revokedCount,
+                    ],
+                ]);
+
+                $notice = '회원 세션을 폐기했습니다.';
+            }
+        }
+    } elseif ($errors === []) {
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare(
+                'UPDATE toy_member_accounts
+                 SET status = :status, updated_at = :updated_at
+                 WHERE id = :id'
+            );
+            $stmt->execute([
+                'status' => $status,
+                'updated_at' => toy_now(),
+                'id' => $targetAccountId,
+            ]);
+            $revokedSessions = $status === 'active' ? 0 : toy_member_revoke_account_sessions($pdo, $targetAccountId);
+            if ($revokedSessions < 0) {
+                throw new RuntimeException('Member sessions could not be revoked after status update.');
+            }
+            $pdo->commit();
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            $errors[] = '회원 상태를 저장할 수 없습니다.';
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
-                'event_type' => 'member.sessions.revoked',
+                'event_type' => 'member.status.updated',
+                'target_type' => 'member_account',
+                'target_id' => (string) $targetAccountId,
+                'result' => 'failure',
+                'message' => 'Member status update failed.',
+                'metadata' => [
+                    'before_status' => (string) $targetAccount['status'],
+                    'after_status' => $status,
+                    'reason' => 'session_revoke_failed',
+                ],
+            ]);
+        }
+
+        if ($errors === []) {
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'member.status.updated',
                 'target_type' => 'member_account',
                 'target_id' => (string) $targetAccountId,
                 'result' => 'success',
-                'message' => 'Member sessions revoked.',
+                'message' => 'Member status updated.',
                 'metadata' => [
-                    'revoked_count' => $revokedCount,
+                    'before_status' => (string) $targetAccount['status'],
+                    'after_status' => $status,
+                    'revoked_sessions' => $revokedSessions,
                 ],
             ]);
 
-            $notice = '회원 세션을 폐기했습니다.';
+            $notice = '회원 상태를 저장했습니다.';
         }
-    } elseif ($errors === []) {
-        $stmt = $pdo->prepare(
-            'UPDATE toy_member_accounts
-             SET status = :status, updated_at = :updated_at
-             WHERE id = :id'
-        );
-        $stmt->execute([
-            'status' => $status,
-            'updated_at' => toy_now(),
-            'id' => $targetAccountId,
-        ]);
-        $revokedSessions = $status === 'active' ? 0 : toy_member_revoke_account_sessions($pdo, $targetAccountId);
-
-        toy_audit_log($pdo, [
-            'actor_account_id' => (int) $account['id'],
-            'actor_type' => 'admin',
-            'event_type' => 'member.status.updated',
-            'target_type' => 'member_account',
-            'target_id' => (string) $targetAccountId,
-            'result' => 'success',
-            'message' => 'Member status updated.',
-            'metadata' => [
-                'before_status' => (string) $targetAccount['status'],
-                'after_status' => $status,
-                'revoked_sessions' => $revokedSessions,
-            ],
-        ]);
-
-        $notice = '회원 상태를 저장했습니다.';
     }
 
     return toy_admin_action_result($errors, $notice);

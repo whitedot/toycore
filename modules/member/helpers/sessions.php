@@ -127,6 +127,10 @@ function toy_member_revoke_current_session(PDO $pdo): void
 
 function toy_member_revoke_account_sessions(PDO $pdo, int $accountId): int
 {
+    if (!toy_member_sessions_table_exists($pdo)) {
+        return 0;
+    }
+
     try {
         $stmt = $pdo->prepare(
             'UPDATE toy_member_sessions
@@ -139,7 +143,7 @@ function toy_member_revoke_account_sessions(PDO $pdo, int $accountId): int
             'account_id' => $accountId,
         ]);
     } catch (PDOException $exception) {
-        return 0;
+        return -1;
     }
 
     return $stmt->rowCount();
@@ -147,6 +151,10 @@ function toy_member_revoke_account_sessions(PDO $pdo, int $accountId): int
 
 function toy_member_revoke_other_sessions(PDO $pdo, int $accountId): int
 {
+    if (!toy_member_sessions_table_exists($pdo)) {
+        return 0;
+    }
+
     $sessionTokenHash = $_SESSION['toy_session_token_hash'] ?? '';
     if (!is_string($sessionTokenHash) || preg_match('/\A[a-f0-9]{64}\z/', $sessionTokenHash) !== 1) {
         return toy_member_revoke_account_sessions($pdo, $accountId);
@@ -166,7 +174,7 @@ function toy_member_revoke_other_sessions(PDO $pdo, int $accountId): int
             'session_token_hash' => $sessionTokenHash,
         ]);
     } catch (PDOException $exception) {
-        return 0;
+        return -1;
     }
 
     return $stmt->rowCount();

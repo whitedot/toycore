@@ -30,7 +30,10 @@ if (toy_request_method() === 'POST') {
         $pdo->beginTransaction();
         try {
             toy_member_delete_profile($pdo, (int) $account['id']);
-            toy_member_revoke_account_sessions($pdo, (int) $account['id']);
+            $revokedSessions = toy_member_revoke_account_sessions($pdo, (int) $account['id']);
+            if ($revokedSessions < 0) {
+                throw new RuntimeException('Member sessions could not be revoked before account withdrawal.');
+            }
             toy_member_anonymize_account($pdo, $config, (int) $account['id']);
             $pdo->commit();
         } catch (Throwable $exception) {

@@ -165,6 +165,12 @@ if ($sessionHelper !== '') {
         'Member login should fail clearly when DB session creation fails while the session table exists.'
     );
     toy_member_auth_policy_assert(
+        strpos($sessionHelper, 'function toy_member_revoke_account_sessions') !== false
+            && strpos($sessionHelper, 'function toy_member_revoke_other_sessions') !== false
+            && strpos($sessionHelper, 'return -1;') !== false,
+        'Member session revocation helpers should distinguish DB failure from zero revoked sessions.'
+    );
+    toy_member_auth_policy_assert(
         strpos($sessionHelper, 'function toy_member_logout_current_session_if_account') !== false
             && strpos($sessionHelper, 'toy_member_current_session_account_id()') !== false,
         'Session helper should support immediate logout of the current session for a target account.'
@@ -176,6 +182,11 @@ if ($accountAction !== '') {
     toy_member_auth_policy_assert(
         strpos($accountAction, 'toy_member_rotate_current_session($pdo, (int) $account[\'id\'])') !== false,
         'Password change should rotate the current member session.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($accountAction, 'if ($revokedSessions < 0)') !== false
+            && strpos($accountAction, 'Other member sessions could not be revoked after password change.') !== false,
+        'Password change should not silently continue when other sessions cannot be revoked.'
     );
     toy_member_auth_policy_assert(
         strpos($accountAction, 'toy_member_reauth_throttle_status($pdo, (int) $account[\'id\'])') !== false
@@ -190,6 +201,11 @@ if ($withdrawAction !== '') {
         strpos($withdrawAction, 'toy_member_reauth_throttle_status($pdo, (int) $account[\'id\'])') !== false
             && strpos($withdrawAction, 'withdraw_reauth') !== false,
         'Withdraw should throttle current-password reauth failures.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($withdrawAction, 'if ($revokedSessions < 0)') !== false
+            && strpos($withdrawAction, 'Member sessions could not be revoked before account withdrawal.') !== false,
+        'Withdraw should not continue when account sessions cannot be revoked.'
     );
 }
 
@@ -253,6 +269,11 @@ if ($passwordResetAction !== '') {
     toy_member_auth_policy_assert(
         strpos($passwordResetAction, 'toy_member_logout_current_session_if_account($pdo, (int) $reset[\'account_id\'])') !== false,
         'Password reset completion should immediately clear the current PHP session for the reset account.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($passwordResetAction, 'if ($revokedSessions < 0)') !== false
+            && strpos($passwordResetAction, 'Member sessions could not be revoked after password reset.') !== false,
+        'Password reset should not complete when account sessions cannot be revoked.'
     );
 }
 

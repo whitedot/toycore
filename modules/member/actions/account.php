@@ -115,8 +115,22 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            toy_member_update_password($pdo, (int) $account['id'], $newPassword);
-            $revokedSessions = toy_member_revoke_other_sessions($pdo, (int) $account['id']);
+            $pdo->beginTransaction();
+            try {
+                toy_member_update_password($pdo, (int) $account['id'], $newPassword);
+                $revokedSessions = toy_member_revoke_other_sessions($pdo, (int) $account['id']);
+                if ($revokedSessions < 0) {
+                    throw new RuntimeException('Other member sessions could not be revoked after password change.');
+                }
+                $pdo->commit();
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+                throw $exception;
+            }
+
             $rotatedSession = toy_member_rotate_current_session($pdo, (int) $account['id']);
             toy_member_log_auth($pdo, (int) $account['id'], 'password_change', 'success');
             toy_audit_log($pdo, [

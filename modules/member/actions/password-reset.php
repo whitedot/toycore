@@ -70,6 +70,9 @@ if ($method === 'POST') {
 
             toy_member_update_password($pdo, (int) $reset['account_id'], $password);
             $revokedSessions = toy_member_revoke_account_sessions($pdo, (int) $reset['account_id']);
+            if ($revokedSessions < 0) {
+                throw new RuntimeException('Member sessions could not be revoked after password reset.');
+            }
             $shouldLogoutCurrentSession = toy_member_current_session_account_id() === (int) $reset['account_id'];
             $pdo->commit();
 
