@@ -7,6 +7,7 @@ $root = dirname(__DIR__, 2);
 define('TOY_ROOT', $root);
 
 require_once $root . '/modules/member/helpers/accounts.php';
+require_once $root . '/modules/member/helpers/tokens.php';
 
 $errors = [];
 
@@ -64,6 +65,23 @@ toy_member_auth_policy_assert(
     'Missing account should not be treated as email verification block.'
 );
 
+$_SESSION = [];
+$sampleTokenHash = str_repeat('a', 64);
+toy_member_store_password_reset_session_hash($sampleTokenHash);
+toy_member_auth_policy_assert(
+    toy_member_password_reset_session_hash(900) === $sampleTokenHash,
+    'Password reset session hash should be readable within its lifetime.'
+);
+$_SESSION['toy_password_reset_token_stored_at'] = (string) (time() - 901);
+toy_member_auth_policy_assert(
+    toy_member_password_reset_session_hash(900) === '',
+    'Password reset session hash should expire after its short lifetime.'
+);
+toy_member_auth_policy_assert(
+    !isset($_SESSION['toy_password_reset_token_hash'], $_SESSION['toy_password_reset_token_stored_at']),
+    'Expired password reset session hash should be cleared.'
+);
+
 $loginAction = toy_member_auth_policy_read('modules/member/actions/login.php');
 if ($loginAction !== '') {
     toy_member_auth_policy_assert(
@@ -95,12 +113,38 @@ if ($emailVerifyAction !== '') {
 $passwordResetAction = toy_member_auth_policy_read('modules/member/actions/password-reset.php');
 if ($passwordResetAction !== '') {
     toy_member_auth_policy_assert(
-        strpos($passwordResetAction, 'toy_password_reset_token') !== false,
-        'Password reset confirm action should keep the reset token in session after initial validation.'
+        strpos($passwordResetAction, 'toy_member_store_password_reset_session_hash') !== false,
+        'Password reset confirm action should keep only the reset token hash in session after initial validation.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($passwordResetAction, 'toy_member_password_reset_session_hash($resetTokenSessionSeconds)') !== false,
+        'Password reset confirm action should enforce a short session hash lifetime.'
     );
     toy_member_auth_policy_assert(
         strpos($passwordResetAction, "toy_redirect('/password/reset/confirm')") !== false,
         'Password reset confirm action should redirect token query URLs to a tokenless form URL.'
+    );
+}
+
+$tokenHelper = toy_member_auth_policy_read('modules/member/helpers/tokens.php');
+if ($tokenHelper !== '') {
+    toy_member_auth_policy_assert(
+        strpos($tokenHelper, 'function toy_member_password_reset_token_hash') !== false,
+        'Password reset token hash helper is missing.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($tokenHelper, 'function toy_member_password_reset_session_hash') !== false,
+        'Password reset session hash helper is missing.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($tokenHelper, 'toy_password_reset_token_hash') !== false
+            && strpos($tokenHelper, 'toy_password_reset_token_stored_at') !== false,
+        'Password reset session should store hash and stored_at only.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($tokenHelper, 'toy_password_reset_token\'') === false
+            && strpos($tokenHelper, 'toy_password_reset_token"') === false,
+        'Password reset session should not store the raw reset token.'
     );
 }
 

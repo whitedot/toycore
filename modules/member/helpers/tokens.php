@@ -40,7 +40,29 @@ function toy_member_find_password_reset(PDO $pdo, array $config, string $token):
         return null;
     }
 
-    $tokenHash = toy_hmac_hash($token, $config);
+    $tokenHash = toy_member_password_reset_token_hash($config, $token);
+    if ($tokenHash === '') {
+        return null;
+    }
+
+    return toy_member_find_password_reset_by_hash($pdo, $tokenHash);
+}
+
+function toy_member_password_reset_token_hash(array $config, string $token): string
+{
+    if (preg_match('/\A[a-f0-9]{64}\z/', $token) !== 1) {
+        return '';
+    }
+
+    return toy_hmac_hash($token, $config);
+}
+
+function toy_member_find_password_reset_by_hash(PDO $pdo, string $tokenHash): ?array
+{
+    if (preg_match('/\A[a-f0-9]{64}\z/', $tokenHash) !== 1) {
+        return null;
+    }
+
     $stmt = $pdo->prepare(
         'SELECT r.id, r.account_id, r.reset_token_hash, r.expires_at, r.used_at, r.created_at,
                 a.email, a.status
@@ -57,6 +79,42 @@ function toy_member_find_password_reset(PDO $pdo, array $config, string $token):
     }
 
     return $reset;
+}
+
+function toy_member_store_password_reset_session_hash(string $tokenHash): void
+{
+    if (preg_match('/\A[a-f0-9]{64}\z/', $tokenHash) !== 1) {
+        toy_member_clear_password_reset_session_hash();
+        return;
+    }
+
+    $_SESSION['toy_password_reset_token_hash'] = $tokenHash;
+    $_SESSION['toy_password_reset_token_stored_at'] = (string) time();
+}
+
+function toy_member_password_reset_session_hash(int $maxAgeSeconds = 900): string
+{
+    $tokenHash = $_SESSION['toy_password_reset_token_hash'] ?? '';
+    $storedAt = $_SESSION['toy_password_reset_token_stored_at'] ?? '';
+    $maxAgeSeconds = max(60, min(3600, $maxAgeSeconds));
+
+    if (
+        !is_string($tokenHash)
+        || preg_match('/\A[a-f0-9]{64}\z/', $tokenHash) !== 1
+        || !is_string($storedAt)
+        || preg_match('/\A\d{10,}\z/', $storedAt) !== 1
+        || (int) $storedAt < time() - $maxAgeSeconds
+    ) {
+        toy_member_clear_password_reset_session_hash();
+        return '';
+    }
+
+    return $tokenHash;
+}
+
+function toy_member_clear_password_reset_session_hash(): void
+{
+    unset($_SESSION['toy_password_reset_token_hash'], $_SESSION['toy_password_reset_token_stored_at']);
 }
 
 function toy_member_mark_password_reset_used(PDO $pdo, int $resetId): bool

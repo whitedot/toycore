@@ -7,28 +7,28 @@ require_once TOY_ROOT . '/modules/member/helpers.php';
 $errors = [];
 $notice = '';
 $method = toy_request_method();
-$token = $method === 'POST' ? (string) ($_SESSION['toy_password_reset_token'] ?? '') : toy_get_string('token', 80);
+$resetTokenSessionSeconds = 900;
+$token = $method === 'GET' ? toy_get_string('token', 80) : '';
+$tokenHash = $method === 'GET' && $token !== ''
+    ? toy_member_password_reset_token_hash($config, $token)
+    : toy_member_password_reset_session_hash($resetTokenSessionSeconds);
 
 if ($method === 'GET' && $token !== '') {
-    $reset = toy_member_find_password_reset($pdo, $config, $token);
+    $reset = $tokenHash !== '' ? toy_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
     if ($reset === null) {
-        unset($_SESSION['toy_password_reset_token']);
+        toy_member_clear_password_reset_session_hash();
         toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
         exit;
     }
 
-    $_SESSION['toy_password_reset_token'] = $token;
+    toy_member_store_password_reset_session_hash($tokenHash);
     toy_redirect('/password/reset/confirm');
 }
 
-if ($method === 'GET') {
-    $token = (string) ($_SESSION['toy_password_reset_token'] ?? '');
-}
-
-$reset = toy_member_find_password_reset($pdo, $config, $token);
+$reset = $tokenHash !== '' ? toy_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
 
 if ($reset === null) {
-    unset($_SESSION['toy_password_reset_token']);
+    toy_member_clear_password_reset_session_hash();
     toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
     exit;
 }
@@ -36,9 +36,9 @@ if ($reset === null) {
 if ($method === 'POST') {
     toy_require_csrf();
 
-    $reset = toy_member_find_password_reset($pdo, $config, $token);
+    $reset = $tokenHash !== '' ? toy_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
     if ($reset === null) {
-        unset($_SESSION['toy_password_reset_token']);
+        toy_member_clear_password_reset_session_hash();
         toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
         exit;
     }
@@ -86,7 +86,7 @@ if ($method === 'POST') {
                 ],
             ]);
 
-            unset($_SESSION['toy_password_reset_token']);
+            toy_member_clear_password_reset_session_hash();
             $notice = '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.';
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
