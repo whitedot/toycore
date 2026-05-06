@@ -885,6 +885,9 @@ function toy_client_ip(): string
 function toy_client_user_agent(): string
 {
     $userAgent = (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
+    $userAgent = preg_replace('/[\x00-\x1F\x7F]/', '', $userAgent);
+    $userAgent = is_string($userAgent) ? $userAgent : '';
+
     if (function_exists('mb_substr')) {
         return mb_substr($userAgent, 0, 500);
     }

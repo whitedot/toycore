@@ -97,6 +97,13 @@ toy_runtime_helper_assert(
     toy_client_ip() === '198.51.100.25',
     'Client IP should use trusted forwarded address.'
 );
+toy_runtime_helper_server([
+    'HTTP_USER_AGENT' => "Toycore\tTest\r\nInjected: value",
+]);
+toy_runtime_helper_assert(
+    toy_client_user_agent() === 'ToycoreTestInjected: value',
+    'Client user agent should remove control characters before logging.'
+);
 
 toy_runtime_helper_assert(
     toy_http_host_is_valid('example.com'),
