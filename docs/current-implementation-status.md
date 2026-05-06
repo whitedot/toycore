@@ -71,6 +71,7 @@
 - redirect helper
 - 리다이렉트/URL 제어 문자 차단
 - 사이트 Base URL http/https scheme 검증
+- 사이트 Base URL query/fragment/userinfo 제외 검증
 - 현재 요청 Host 형식 검증
 - canonical URL helper
 - title, description, canonical, robots, Open Graph 출력 슬롯

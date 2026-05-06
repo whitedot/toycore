@@ -45,6 +45,14 @@ toy_output_helper_assert(
     toy_url('/\\example.com') === '/',
     'Unsafe relative URL should fall back to the site root.'
 );
+toy_output_helper_assert(
+    toy_absolute_url(['base_url' => 'https://example.com/base?bad=1'], '/login') === '/login',
+    'Absolute URL should reject site base URLs with query strings.'
+);
+toy_output_helper_assert(
+    toy_absolute_url(['base_url' => 'https://example.com/base'], '/\\evil.test') === 'https://example.com/base/',
+    'Absolute URL should replace unsafe paths with the site root path.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "output helper checks failed:\n");

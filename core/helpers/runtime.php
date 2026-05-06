@@ -195,7 +195,7 @@ function toy_is_local_host(string $baseUrl): bool
 
 function toy_is_http_url(string $url): bool
 {
-    if ($url === '' || preg_match('/[\x00-\x1F\x7F]/', $url) === 1) {
+    if ($url === '' || strpos($url, '\\') !== false || preg_match('/[\x00-\x1F\x7F]/', $url) === 1) {
         return false;
     }
 
@@ -203,7 +203,39 @@ function toy_is_http_url(string $url): bool
         return false;
     }
 
+    if (parse_url($url, PHP_URL_USER) !== null || parse_url($url, PHP_URL_PASS) !== null) {
+        return false;
+    }
+
+    $host = parse_url($url, PHP_URL_HOST);
+    if (!is_string($host) || !toy_url_host_is_valid($host)) {
+        return false;
+    }
+
+    $port = parse_url($url, PHP_URL_PORT);
+    if ($port !== null && !toy_http_port_is_valid((string) $port)) {
+        return false;
+    }
+
     return in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true);
+}
+
+function toy_is_site_base_url(string $url): bool
+{
+    if (!toy_is_http_url($url)) {
+        return false;
+    }
+
+    return parse_url($url, PHP_URL_QUERY) === null && parse_url($url, PHP_URL_FRAGMENT) === null;
+}
+
+function toy_url_host_is_valid(string $host): bool
+{
+    if (filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false) {
+        return true;
+    }
+
+    return toy_http_hostname_is_valid($host);
 }
 
 function toy_is_public_http_url(string $url): bool

@@ -172,8 +172,8 @@ function toy_admin_handle_settings_post(
             $errors[] = '사이트 이름을 입력하세요.';
         }
 
-        if ($values['base_url'] !== '' && !toy_is_http_url($values['base_url'])) {
-            $errors[] = 'Base URL은 http 또는 https URL이어야 합니다.';
+        if ($values['base_url'] !== '' && !toy_is_site_base_url($values['base_url'])) {
+            $errors[] = 'Base URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.';
         }
 
         if (!in_array($values['timezone'], timezone_identifiers_list(), true)) {

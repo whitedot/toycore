@@ -344,8 +344,12 @@ function toy_send_download_headers(string $contentType, string $filename): void
 
 function toy_absolute_url(?array $site, string $path): string
 {
+    if (!toy_is_safe_relative_url($path)) {
+        $path = '/';
+    }
+
     $baseUrl = is_array($site) ? rtrim((string) ($site['base_url'] ?? ''), '/') : '';
-    if ($baseUrl === '' || !toy_is_http_url($baseUrl)) {
+    if ($baseUrl === '' || !toy_is_site_base_url($baseUrl)) {
         return toy_url($path);
     }
 

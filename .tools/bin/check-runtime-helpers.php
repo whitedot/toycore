@@ -156,6 +156,26 @@ toy_runtime_helper_assert(
     'Link-local mail API endpoint should be rejected.'
 );
 toy_runtime_helper_assert(
+    !toy_is_http_url('https://user@example.com/path'),
+    'HTTP URL with userinfo should be rejected.'
+);
+toy_runtime_helper_assert(
+    !toy_is_http_url('https://example.com\\evil.test/path'),
+    'HTTP URL with backslash should be rejected.'
+);
+toy_runtime_helper_assert(
+    toy_is_site_base_url('https://example.com/base'),
+    'Site base URL with path should be allowed.'
+);
+toy_runtime_helper_assert(
+    !toy_is_site_base_url('https://example.com/base?token=1'),
+    'Site base URL with query should be rejected.'
+);
+toy_runtime_helper_assert(
+    !toy_is_site_base_url('https://example.com/base#fragment'),
+    'Site base URL with fragment should be rejected.'
+);
+toy_runtime_helper_assert(
     toy_mail_header_encode("Hello\r\nBcc: bad@example.com") === 'HelloBcc: bad@example.com',
     'Mail header encoder should remove CRLF from ASCII values.'
 );

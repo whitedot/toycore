@@ -93,7 +93,7 @@ $values = [
 ];
 
 $currentBaseUrl = toy_current_base_url();
-if ($values['base_url'] === '' && toy_is_http_url($currentBaseUrl)) {
+if ($values['base_url'] === '' && toy_is_site_base_url($currentBaseUrl)) {
     $values['base_url'] = $currentBaseUrl;
 }
 
@@ -253,8 +253,8 @@ if (toy_request_method() === 'POST') {
         $errors[] = '기본 locale은 ko 또는 en-US 같은 형식으로 입력하세요.';
     }
 
-    if ($values['base_url'] !== '' && !toy_is_http_url($values['base_url'])) {
-        $errors[] = 'Base URL은 http 또는 https URL이어야 합니다.';
+    if ($values['base_url'] !== '' && !toy_is_site_base_url($values['base_url'])) {
+        $errors[] = 'Base URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.';
     }
 
     if (strlen($adminPassword) < 8) {
@@ -475,7 +475,7 @@ if (
 
 if (
     $values['base_url'] !== ''
-    && toy_is_http_url($values['base_url'])
+    && toy_is_site_base_url($values['base_url'])
     && !toy_is_local_host($values['base_url'])
     && parse_url($values['base_url'], PHP_URL_SCHEME) !== 'https'
 ) {
