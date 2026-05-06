@@ -42,4 +42,4 @@ toy_audit_log($pdo, [
 
 unset($_SESSION['toy_debug_email_verification_url']);
 
-include TOY_ROOT . '/modules/member/views/email-verified.php';
+toy_redirect('/email/verified');

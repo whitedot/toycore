@@ -16,6 +16,7 @@ return [
     'POST /account/privacy-export' => 'actions/privacy-export.php',
     'POST /account/email-verification' => 'actions/email-verification-request.php',
     'GET /email/verify' => 'actions/email-verify.php',
+    'GET /email/verified' => 'actions/email-verified.php',
     'GET /password/reset' => 'actions/password-reset-request.php',
     'POST /password/reset' => 'actions/password-reset-request.php',
     'GET /password/reset/confirm' => 'actions/password-reset.php',

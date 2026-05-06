@@ -76,6 +76,22 @@ if ($loginAction !== '') {
     );
 }
 
+$paths = toy_member_auth_policy_read('modules/member/paths.php');
+if ($paths !== '') {
+    toy_member_auth_policy_assert(
+        strpos($paths, "'GET /email/verified' => 'actions/email-verified.php'") !== false,
+        'Email verification success route should be tokenless.'
+    );
+}
+
+$emailVerifyAction = toy_member_auth_policy_read('modules/member/actions/email-verify.php');
+if ($emailVerifyAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($emailVerifyAction, "toy_redirect('/email/verified')") !== false,
+        'Email verification action should redirect to a tokenless success page.'
+    );
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "member auth policy checks failed:\n");
     foreach ($errors as $error) {
