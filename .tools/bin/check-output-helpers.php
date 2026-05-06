@@ -53,6 +53,22 @@ toy_output_helper_assert(
     toy_absolute_url(['base_url' => 'https://example.com/base'], '/\\evil.test') === 'https://example.com/base/',
     'Absolute URL should replace unsafe paths with the site root path.'
 );
+toy_output_helper_assert(
+    toy_download_content_type("application/json; charset=UTF-8\r\nX-Bad: 1") === 'application/octet-stream',
+    'Download content type should reject header control characters.'
+);
+toy_output_helper_assert(
+    toy_download_content_type('application/json; charset=UTF-8') === 'application/json; charset=UTF-8',
+    'Download content type should allow normal MIME values with charset.'
+);
+toy_output_helper_assert(
+    toy_download_filename("../report\r\nInjected: yes.json") === 'report-Injected-yes.json',
+    'Download filename should remove path and header separator characters.'
+);
+toy_output_helper_assert(
+    toy_download_filename("\r\n") === 'download.bin',
+    'Download filename should fall back when no safe characters remain.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "output helper checks failed:\n");

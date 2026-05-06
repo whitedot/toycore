@@ -335,11 +335,41 @@ function toy_get_string(string $key, int $maxLength): string
 
 function toy_send_download_headers(string $contentType, string $filename): void
 {
-    header('Content-Type: ' . $contentType);
-    header('Content-Disposition: attachment; filename="' . str_replace(['"', "\r", "\n"], '', $filename) . '"');
+    header('Content-Type: ' . toy_download_content_type($contentType));
+    header('Content-Disposition: attachment; filename="' . toy_download_filename($filename) . '"');
     header('X-Content-Type-Options: nosniff');
     header('Cache-Control: no-store, no-cache, must-revalidate');
     header('Pragma: no-cache');
+}
+
+function toy_download_content_type(string $contentType): string
+{
+    $contentType = trim($contentType);
+    if (preg_match('/\A[A-Za-z0-9][A-Za-z0-9.+-]*\/[A-Za-z0-9][A-Za-z0-9.+-]*(?:;\s*charset=[A-Za-z0-9._-]+)?\z/', $contentType) !== 1) {
+        return 'application/octet-stream';
+    }
+
+    return $contentType;
+}
+
+function toy_download_filename(string $filename): string
+{
+    $filename = str_replace(['\\', '/'], '-', $filename);
+    $filename = preg_replace('/[\x00-\x1F\x7F]+/', '-', $filename);
+    $filename = is_string($filename) ? $filename : '';
+    $filename = preg_replace('/[^A-Za-z0-9._-]+/', '-', $filename);
+    $filename = is_string($filename) ? preg_replace('/-+/', '-', $filename) : '';
+    $filename = is_string($filename) ? trim($filename, '.-_') : '';
+
+    if ($filename === '') {
+        return 'download.bin';
+    }
+
+    if (function_exists('mb_substr')) {
+        return mb_substr($filename, 0, 120);
+    }
+
+    return substr($filename, 0, 120);
 }
 
 function toy_absolute_url(?array $site, string $path): string
