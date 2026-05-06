@@ -231,12 +231,14 @@ if (!is_string($coreOpsHelper)) {
 } elseif (
     strpos($coreOpsHelper, 'function toy_audit_metadata_sanitize') === false
     || strpos($coreOpsHelper, 'function toy_audit_metadata_key_is_secret') === false
+    || strpos($coreOpsHelper, 'function toy_log_sensitive_text_sanitize') === false
+    || strpos($coreOpsHelper, 'toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 1000))') === false
     || strpos($coreOpsHelper, 'toy_audit_metadata_sanitize($metadata)') === false
     || strpos($coreOpsHelper, 'toy_audit_metadata_sanitize($payload)') === false
     || strpos($coreOpsHelper, 'password|token|secret|credential|bearer') === false
     || strpos($coreOpsHelper, "'[masked]'") === false
 ) {
-    $errors[] = 'Core ops helper must sanitize secret-like metadata before storing audit logs and markers.';
+    $errors[] = 'Core ops helper must sanitize secret-like values before storing audit logs, markers, and exception logs.';
 }
 
 $adminPrivacyRequestsHelper = file_get_contents($root . '/modules/admin/helpers/privacy-requests.php');

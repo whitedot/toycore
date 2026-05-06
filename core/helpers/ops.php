@@ -151,10 +151,10 @@ function toy_log_exception(Throwable $exception, string $context): void
     $line = sprintf(
         "[%s] %s %s: %s in %s:%d\n",
         toy_now(),
-        toy_log_line_value($context, 120),
+        toy_log_sensitive_text_sanitize(toy_log_line_value($context, 120)),
         toy_log_line_value(get_class($exception), 120),
-        toy_log_line_value($exception->getMessage(), 1000),
-        toy_log_line_value($exception->getFile(), 500),
+        toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 1000)),
+        toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getFile(), 500)),
         $exception->getLine()
     );
 
@@ -172,6 +172,13 @@ function toy_log_line_value(string $value, int $maxLength = 1000): string
     }
 
     return substr($normalized, 0, $maxLength);
+}
+
+function toy_log_sensitive_text_sanitize(string $value): string
+{
+    $pattern = '/((?:^|[?&\s;,"\'\[\]{}])(?:password|token|secret|credential|bearer|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)\s*[=:]\s*)([^&\s;,"\'\]\}]+)/i';
+
+    return preg_replace($pattern, '$1[masked]', $value) ?? $value;
 }
 
 function toy_write_operational_marker(string $filename, array $data): void
