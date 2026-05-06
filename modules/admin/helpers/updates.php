@@ -274,18 +274,16 @@ function toy_admin_handle_updates_post(PDO $pdo, array $account): array
                             'schema.update.failed',
                             'failure',
                             'Schema update failed.',
-                            ['error' => $exception->getMessage()]
+                            ['error' => toy_log_line_value($exception->getMessage(), 500)]
                         );
                         $errors[] = (string) $update['label'] . ' ' . (string) $update['version'] . ' 업데이트 중 오류가 발생했습니다.';
-                        $failureMessage = $exception->getMessage();
-                        $failureMessage = function_exists('mb_substr') ? mb_substr($failureMessage, 0, 500) : substr($failureMessage, 0, 500);
                         toy_write_operational_marker('update-failed.json', [
                             'stage' => 'apply_update',
                             'scope' => (string) $update['scope'],
                             'module_key' => (string) $update['module_key'],
                             'version' => (string) $update['version'],
                             'checksum' => (string) ($update['checksum'] ?? ''),
-                            'message' => $failureMessage,
+                            'message' => toy_log_line_value($exception->getMessage(), 500),
                         ]);
                         break;
                     }

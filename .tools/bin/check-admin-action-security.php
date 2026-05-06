@@ -205,6 +205,17 @@ if (!is_string($adminModuleActionsHelper)) {
     $errors[] = 'Admin module source failures must write sanitized audit log entries.';
 }
 
+$adminUpdatesHelper = file_get_contents($root . '/modules/admin/helpers/updates.php');
+if (!is_string($adminUpdatesHelper)) {
+    $errors[] = 'Admin updates helper cannot be read.';
+} elseif (
+    substr_count($adminUpdatesHelper, 'toy_log_line_value($exception->getMessage(), 500)') < 2
+    || strpos($adminUpdatesHelper, "'schema.update.failed'") === false
+    || strpos($adminUpdatesHelper, '\'message\' => toy_log_line_value($exception->getMessage(), 500)') === false
+) {
+    $errors[] = 'Admin schema update failures must write sanitized audit and marker messages.';
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "admin action security checks failed:\n");
     foreach ($errors as $error) {
