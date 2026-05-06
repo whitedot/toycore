@@ -14,7 +14,7 @@ if ($verification === null || $verification['status'] !== 'active') {
 
 $pdo->beginTransaction();
 try {
-    if (!toy_member_mark_email_verified($pdo, (int) $verification['id'], (int) $verification['account_id'])) {
+    if (!toy_member_mark_email_verified($pdo, (int) $verification['id'], (int) $verification['account_id'], (string) $verification['email'])) {
         $pdo->rollBack();
         toy_render_error(400, '이메일 인증 링크가 올바르지 않거나 만료되었습니다.');
         exit;

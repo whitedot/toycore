@@ -242,6 +242,12 @@ if ($tokenHelper !== '') {
         'Password reset session hash helper is missing.'
     );
     toy_member_auth_policy_assert(
+        strpos($tokenHelper, 'a.email AS account_email') !== false
+            && strpos($tokenHelper, "toy_normalize_identifier((string) \$verification['email']) !== toy_normalize_identifier((string) \$verification['account_email'])") !== false
+            && strpos($tokenHelper, 'AND email = :email') !== false,
+        'Email verification should only verify the current account email that matches the issued token.'
+    );
+    toy_member_auth_policy_assert(
         strpos($tokenHelper, 'toy_password_reset_token_hash') !== false
             && strpos($tokenHelper, 'toy_password_reset_token_stored_at') !== false,
         'Password reset session should store hash and stored_at only.'

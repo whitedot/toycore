@@ -175,7 +175,7 @@ function toy_member_find_email_verification(PDO $pdo, array $config, string $tok
     $tokenHash = toy_hmac_hash($token, $config);
     $stmt = $pdo->prepare(
         'SELECT v.id, v.account_id, v.email, v.verification_token_hash, v.expires_at, v.verified_at, v.created_at,
-                a.status
+                a.email AS account_email, a.status
          FROM toy_member_email_verifications v
          INNER JOIN toy_member_accounts a ON a.id = v.account_id
          WHERE v.verification_token_hash = :verification_token_hash
@@ -184,16 +184,23 @@ function toy_member_find_email_verification(PDO $pdo, array $config, string $tok
     $stmt->execute(['verification_token_hash' => $tokenHash]);
     $verification = $stmt->fetch();
 
-    if (!is_array($verification) || $verification['verified_at'] !== null || (string) $verification['expires_at'] < toy_now()) {
+    if (
+        !is_array($verification)
+        || $verification['verified_at'] !== null
+        || (string) $verification['expires_at'] < toy_now()
+        || toy_normalize_identifier((string) $verification['email']) !== toy_normalize_identifier((string) $verification['account_email'])
+    ) {
         return null;
     }
 
     return $verification;
 }
 
-function toy_member_mark_email_verified(PDO $pdo, int $verificationId, int $accountId): bool
+function toy_member_mark_email_verified(PDO $pdo, int $verificationId, int $accountId, string $email): bool
 {
     $now = toy_now();
+    $email = toy_normalize_identifier($email);
+
     $stmt = $pdo->prepare(
         'UPDATE toy_member_email_verifications
          SET verified_at = :verified_at
@@ -208,12 +215,18 @@ function toy_member_mark_email_verified(PDO $pdo, int $verificationId, int $acco
         return false;
     }
 
-    $stmt = $pdo->prepare('UPDATE toy_member_accounts SET email_verified_at = :email_verified_at, updated_at = :updated_at WHERE id = :id');
+    $stmt = $pdo->prepare(
+        'UPDATE toy_member_accounts
+         SET email_verified_at = :email_verified_at, updated_at = :updated_at
+         WHERE id = :id
+           AND email = :email'
+    );
     $stmt->execute([
         'email_verified_at' => $now,
         'updated_at' => $now,
+        'email' => $email,
         'id' => $accountId,
     ]);
 
-    return true;
+    return $stmt->rowCount() === 1;
 }

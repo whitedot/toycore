@@ -125,6 +125,7 @@
 - 이메일 인증 token 생성/검증/사용 처리
 - 이메일 인증 token 원자적 사용 처리
 - 새 이메일 인증 token 발급 시 기존 미사용 token 무효화
+- 이메일 인증 token의 발급 이메일과 현재 계정 이메일 일치 검증
 - 이메일 인증 성공 후 token 없는 완료 URL로 이동
 - DB 기반 로그인 세션 기록
 - PHP 세션 strict/cookie-only 모드 적용
