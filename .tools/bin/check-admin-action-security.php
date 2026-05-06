@@ -138,6 +138,15 @@ if (!is_string($adminSettingsHelper)) {
 ) {
     $errors[] = 'Admin settings helper must allowlist site setting intents.';
 }
+if (is_string($adminSettingsHelper) && (
+    strpos($adminSettingsHelper, 'function toy_admin_sensitive_site_setting_keys') === false
+    || strpos($adminSettingsHelper, "'admin.module_sources_enabled' => true") === false
+    || strpos($adminSettingsHelper, "'admin.repository_archive_unchecked_enabled' => true") === false
+    || substr_count($adminSettingsHelper, 'toy_admin_site_setting_reauth_errors($pdo, $account, $settingKey,') < 2
+    || strpos($adminSettingsHelper, 'site_setting_reauth') === false
+)) {
+    $errors[] = 'Admin settings helper must require reauthentication for sensitive site setting changes.';
+}
 
 $coreSettingsHelper = file_get_contents($root . '/core/helpers/settings.php');
 if (!is_string($coreSettingsHelper)) {

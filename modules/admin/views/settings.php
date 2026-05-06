@@ -82,6 +82,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </label>
             </p>
+            <p>
+                <label>Owner 비밀번호<br>
+                    <input type="password" name="owner_password" autocomplete="current-password">
+                </label>
+                <span class="toy-install-help">고위험 설정 저장 시 필요합니다. 예: <code>admin.module_sources_enabled</code></span>
+            </p>
             <button type="submit">항목 저장</button>
         </form>
     <?php } ?>
@@ -114,6 +120,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo toy_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="delete_site_setting">
                                 <input type="hidden" name="setting_key" value="<?php echo toy_e((string) $setting['setting_key']); ?>">
+                                <?php if (toy_admin_site_setting_requires_reauth((string) $setting['setting_key'])) { ?>
+                                    <label>Owner 비밀번호<br>
+                                        <input type="password" name="owner_password" autocomplete="current-password" required>
+                                    </label>
+                                <?php } ?>
                                 <button type="submit">삭제</button>
                             </form>
                         <?php } else { ?>
