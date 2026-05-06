@@ -91,6 +91,7 @@
 - DB 기반 PHP 세션 저장소
 - PHP 런타임 session ID 원문 대신 hash 저장
 - 독립 rate limit 카운터 저장소
+- rate limit subject HMAC hash 저장
 - 토큰 URL 보호를 위한 referrer 전송 차단
 - 동적 PHP 응답 캐시 방지 헤더
 - 감사 로그 helper

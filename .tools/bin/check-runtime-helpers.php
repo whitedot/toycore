@@ -167,6 +167,16 @@ toy_runtime_helper_assert(
     !toy_public_network_addresses_are_allowed(['93.184.216.34', '::1']),
     'A loopback IPv6 DNS address should reject the public network host.'
 );
+toy_set_runtime_config(['app_key' => 'runtime-helper-test-key']);
+toy_runtime_helper_assert(
+    toy_rate_limit_key('member.login.ip', '203.0.113.10') === hash_hmac('sha256', 'member.login.ip|203.0.113.10', 'runtime-helper-test-key'),
+    'Rate limit keys should use the app key HMAC when runtime config is available.'
+);
+toy_runtime_helper_assert(
+    toy_rate_limit_hash('203.0.113.10') === hash_hmac('sha256', '203.0.113.10', 'runtime-helper-test-key'),
+    'Rate limit subject hashes should use the app key HMAC when runtime config is available.'
+);
+toy_set_runtime_config([]);
 toy_runtime_helper_assert(
     !toy_is_http_url('https://user@example.com/path'),
     'HTTP URL with userinfo should be rejected.'

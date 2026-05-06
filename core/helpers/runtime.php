@@ -1205,7 +1205,7 @@ function toy_rate_limit_increment(PDO $pdo, string $bucket, string $subject, int
         $stmt->execute([
             'rate_key' => toy_rate_limit_key($bucket, $subject),
             'bucket' => $bucket,
-            'subject_hash' => hash('sha256', $subject),
+            'subject_hash' => toy_rate_limit_hash($subject),
             'expires_at' => $expiresAt,
             'created_at' => $now,
             'updated_at' => $now,
@@ -1232,7 +1232,17 @@ function toy_rate_limit_input_is_valid(string $bucket, string $subject, int $win
 
 function toy_rate_limit_key(string $bucket, string $subject): string
 {
-    return hash('sha256', $bucket . '|' . $subject);
+    return toy_rate_limit_hash($bucket . '|' . $subject);
+}
+
+function toy_rate_limit_hash(string $value): string
+{
+    $appKey = toy_app_key(toy_runtime_config());
+    if ($appKey !== '') {
+        return hash_hmac('sha256', $value, $appKey);
+    }
+
+    return hash('sha256', $value);
 }
 
 function toy_hmac_hash(string $value, array $config): string
