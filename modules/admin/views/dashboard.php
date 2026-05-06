@@ -41,6 +41,34 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 </section>
 
 <section>
+    <h2>고위험 설정</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>항목</th>
+                <th>Key</th>
+                <th>상태</th>
+                <th>판정</th>
+                <th>Updated</th>
+                <th>상세</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($sensitiveSettingSummary as $summary) { ?>
+                <tr>
+                    <td><?php echo toy_e((string) $summary['label']); ?></td>
+                    <td><?php echo toy_e((string) $summary['setting_key']); ?></td>
+                    <td><?php echo toy_e((string) $summary['value']); ?></td>
+                    <td><?php echo toy_e((string) $summary['state']); ?></td>
+                    <td><?php echo toy_e((string) $summary['updated_at']); ?></td>
+                    <td><?php echo toy_e((string) $summary['detail']); ?></td>
+                </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+</section>
+
+<section>
     <h2>인증 런타임</h2>
     <table>
         <thead>

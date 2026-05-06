@@ -107,10 +107,12 @@ toy_auth_runtime_require('modules/member/helpers/accounts.php', '/toy_member_rec
 toy_auth_runtime_require('modules/admin/helpers/retention.php', "/'runtime_sessions'\\s*=>\\s*\\[/", 'Runtime sessions retention target is missing');
 toy_auth_runtime_require('modules/admin/helpers/retention.php', "/'rate_limits'\\s*=>\\s*\\[/", 'Rate limits retention target is missing');
 toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/function toy_admin_dashboard_auth_runtime_summary\(/', 'Auth runtime dashboard summary is missing');
+toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/function toy_admin_dashboard_sensitive_setting_summary\(/', 'Sensitive setting dashboard summary is missing');
 toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/toy_trusted_proxy_config_errors/', 'Dashboard trusted proxy validation is missing');
 toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/toy_admin_dashboard_mail_transport_ready/', 'Mail transport dashboard validation is missing');
 toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/toy_mail_http_api_endpoint_is_allowed/', 'Dashboard HTTP API mail endpoint validation is missing');
 toy_auth_runtime_require('modules/admin/views/dashboard.php', '/인증 런타임/', 'Auth runtime dashboard view is missing');
+toy_auth_runtime_require('modules/admin/views/dashboard.php', '/고위험 설정/', 'Sensitive setting dashboard view is missing');
 toy_auth_runtime_require('docs/deployment-examples.md', '/로드밸런서와 클라우드 런타임/', 'Cloud runtime deployment documentation is missing');
 toy_auth_runtime_require('docs/deployment-examples.md', '/http_api/', 'HTTP API mail documentation is missing');
 

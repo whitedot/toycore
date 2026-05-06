@@ -241,6 +241,59 @@ function toy_admin_dashboard_install_protection_summary(array $config): array
     return $summary;
 }
 
+function toy_admin_dashboard_sensitive_setting_summary(PDO $pdo, array $config): array
+{
+    $labels = [
+        'admin.module_sources_enabled' => '모듈 소스 반영',
+        'admin.repository_archive_unchecked_enabled' => 'Checksum 미등록 archive',
+    ];
+    $settings = [];
+    $stmt = $pdo->query(
+        "SELECT setting_key, setting_value, value_type, updated_at
+         FROM toy_site_settings
+         WHERE setting_key IN ('admin.module_sources_enabled', 'admin.repository_archive_unchecked_enabled')
+         ORDER BY setting_key ASC"
+    );
+    foreach ($stmt->fetchAll() as $row) {
+        $settings[(string) $row['setting_key']] = $row;
+    }
+
+    $summary = [];
+    foreach (toy_admin_sensitive_site_setting_keys() as $settingKey => $_enabled) {
+        $row = is_array($settings[$settingKey] ?? null) ? $settings[$settingKey] : null;
+        $valueType = is_array($row) ? (string) ($row['value_type'] ?? '') : '';
+        $enabled = is_array($row) && $valueType === 'bool'
+            ? (bool) toy_cast_setting_value($row['setting_value'] ?? '', $valueType)
+            : false;
+        $state = $enabled ? '주의' : '정상';
+        $detail = '기본값 또는 비활성 상태';
+
+        if ($settingKey === 'admin.module_sources_enabled' && $enabled) {
+            $detail = toy_admin_runtime_is_production($config)
+                ? '운영 환경에서 모듈 파일 반영 경로가 열려 있음'
+                : '개발/스테이징에서 모듈 파일 반영 경로가 열려 있음';
+        } elseif ($settingKey === 'admin.repository_archive_unchecked_enabled' && $enabled) {
+            $detail = toy_admin_runtime_is_production($config)
+                ? '운영 환경에서는 이 설정이 무시됨'
+                : 'checksum 미등록 repository archive 반영이 허용됨';
+        } elseif (is_array($row) && $valueType !== 'bool') {
+            $state = '주의';
+            $detail = '고위험 설정은 bool 타입으로 다시 저장해야 함';
+        }
+
+        $summary[] = [
+            'label' => (string) ($labels[$settingKey] ?? $settingKey),
+            'setting_key' => $settingKey,
+            'value' => $enabled ? '활성' : '비활성',
+            'state' => $state,
+            'updated_at' => is_array($row) ? (string) ($row['updated_at'] ?? '') : '',
+            'detail' => $detail,
+        ];
+    }
+
+    return $summary;
+}
+
 function toy_admin_dashboard_mail_transport_ready(string $transport, array $mail): bool
 {
     $fromEmail = (string) ($mail['from_email'] ?? '');
