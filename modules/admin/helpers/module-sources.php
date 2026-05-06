@@ -299,6 +299,32 @@ function toy_admin_registry_repository_archive_url(array $entry, string $ref): s
     return 'https://codeload.github.com/' . $path . '/zip/' . rawurlencode($ref);
 }
 
+function toy_admin_http_stream_status_is_success($stream): bool
+{
+    if (!is_resource($stream)) {
+        return false;
+    }
+
+    $metadata = stream_get_meta_data($stream);
+    $headers = $metadata['wrapper_data'] ?? [];
+    if (!is_array($headers)) {
+        return false;
+    }
+
+    $statusCode = 0;
+    foreach ($headers as $header) {
+        if (!is_string($header)) {
+            continue;
+        }
+
+        if (preg_match('/\AHTTP\/\S+\s+(\d{3})\b/', $header, $matches) === 1) {
+            $statusCode = (int) $matches[1];
+        }
+    }
+
+    return $statusCode >= 200 && $statusCode < 300;
+}
+
 function toy_admin_random_suffix(): string
 {
     try {
@@ -789,6 +815,11 @@ function toy_admin_download_registry_module_zip(array $entry): array
         throw new RuntimeException('registry release zip을 다운로드할 수 없습니다.');
     }
 
+    if (!toy_admin_http_stream_status_is_success($source)) {
+        fclose($source);
+        throw new RuntimeException('registry release zip 다운로드 응답이 성공 상태가 아닙니다.');
+    }
+
     $targetHandle = fopen($target, 'wb');
     if (!is_resource($targetHandle)) {
         fclose($source);
@@ -884,6 +915,11 @@ function toy_admin_download_registry_repository_archive(array $entry, string $re
     $source = fopen($archiveUrl, 'rb', false, $context);
     if (!is_resource($source)) {
         throw new RuntimeException('repository archive zip을 다운로드할 수 없습니다.');
+    }
+
+    if (!toy_admin_http_stream_status_is_success($source)) {
+        fclose($source);
+        throw new RuntimeException('repository archive zip 다운로드 응답이 성공 상태가 아닙니다.');
     }
 
     $targetHandle = fopen($target, 'wb');

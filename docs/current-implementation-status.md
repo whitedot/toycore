@@ -33,6 +33,7 @@
 - 모듈 설치/관리 화면에 설치 버전, 코드 버전, Toycore 호환 버전 표기
 - 모듈 설치/관리 화면에서 owner 전용 zip 업로드와 공식 registry release zip 다운로드 지원
 - 모듈 registry/repository zip 다운로드는 URL 검증 후 HTTP redirect를 따르지 않음
+- 모듈 registry/repository zip 다운로드는 HTTP 2xx 응답만 저장 대상으로 처리
 - 모듈 zip은 checksum, 항목 수, symlink, 경로 제어 문자/콜론/모호한 segment, 압축 해제 크기, module key, version, downgrade, 교체 확인을 검증
 - 공식 모듈 registry는 `docs/module-index.json`에 두고 HTTPS release zip URL과 checksum이 등록된 항목만 다운로드 가능
 - `.tools/bin/check-module-index.php`로 공식 모듈 registry 구조와 release zip/checksum 쌍 검증 가능

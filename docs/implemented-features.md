@@ -25,6 +25,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 관리자 모듈 화면에서 owner 전용 모듈 zip 업로드
 - 공식 registry에 URL과 checksum이 등록된 모듈 release zip 다운로드
 - 공식 registry에 등록된 GitHub repository의 고급 ref archive zip 다운로드
+- 모듈 registry/repository zip 다운로드의 HTTP 성공 응답 검증
 - 공식 모듈 registry 구조와 release zip/checksum 쌍 검증 도구
 - 운영용 repository archive commit SHA/checksum 등록 보조 도구
 - 모듈 파일 교체 전 백업과 교체 확인, downgrade 차단, checksum/압축 크기 검증

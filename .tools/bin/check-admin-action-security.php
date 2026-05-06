@@ -183,6 +183,15 @@ if (is_string($adminModuleSourcesHelper) && (
 )) {
     $errors[] = 'Admin module source downloads must not follow redirects after registry URL validation.';
 }
+if (is_string($adminModuleSourcesHelper) && (
+    strpos($adminModuleSourcesHelper, 'function toy_admin_http_stream_status_is_success') === false
+    || strpos($adminModuleSourcesHelper, 'stream_get_meta_data($stream)') === false
+    || substr_count($adminModuleSourcesHelper, 'toy_admin_http_stream_status_is_success($source)') < 2
+    || strpos($adminModuleSourcesHelper, 'registry release zip 다운로드 응답이 성공 상태가 아닙니다.') === false
+    || strpos($adminModuleSourcesHelper, 'repository archive zip 다운로드 응답이 성공 상태가 아닙니다.') === false
+)) {
+    $errors[] = 'Admin module source downloads must reject non-2xx HTTP responses before saving zip bodies.';
+}
 
 if ($errors !== []) {
     fwrite(STDERR, "admin action security checks failed:\n");
