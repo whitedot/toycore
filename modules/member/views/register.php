@@ -70,6 +70,12 @@ $seo = [
                         개인정보 처리방침에 동의합니다.
                     </label>
                 </p>
+                <p>
+                    <label>
+                        <input type="checkbox" name="marketing_consent" value="1"<?php echo $marketingConsent ? ' checked' : ''; ?>>
+                        마케팅 수신에 동의합니다.
+                    </label>
+                </p>
                 <button type="submit">가입</button>
             </form>
         <?php } else { ?>

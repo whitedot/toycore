@@ -341,6 +341,11 @@ if ($registerAction !== '') {
         'Register action should send email only after the account transaction commits.'
     );
     toy_member_auth_policy_assert(
+        strpos($registerAction, "\$marketingConsent = (\$_POST['marketing_consent'] ?? '') === '1';") !== false
+            && strpos($registerAction, "toy_member_record_consent(\$pdo, \$accountId, 'marketing', '2026.04.001', \$marketingConsent)") !== false,
+        'Register action should record optional marketing consent history.'
+    );
+    toy_member_auth_policy_assert(
         strpos($registerAction, "\$loginIdentifierMode = (string) \$memberSettings['login_identifier'];") !== false
             && strpos($registerAction, "'login_id' => toy_member_normalize_login_id") !== false
             && strpos($registerAction, "toy_member_is_valid_login_id(\$values['login_id'])") !== false
@@ -355,6 +360,11 @@ if ($registerView !== '') {
         strpos($registerView, '$loginIdentifierMode === \'login_id\'') !== false
             && strpos($registerView, 'name="login_id"') !== false,
         'Register view should render login_id input only when login_id identifier mode is enabled.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($registerView, 'name="marketing_consent"') !== false
+            && strpos($registerView, '$marketingConsent ? \' checked\' : \'\'') !== false,
+        'Register view should render optional marketing consent and preserve submitted state.'
     );
 }
 

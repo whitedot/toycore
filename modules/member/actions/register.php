@@ -14,6 +14,7 @@ $registrationAllowed = (bool) $memberSettings['allow_registration'];
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $loginIdentifierMode = (string) $memberSettings['login_identifier'];
 $errors = [];
+$marketingConsent = false;
 $values = [
     'email' => '',
     'login_id' => '',
@@ -36,6 +37,7 @@ if (toy_request_method() === 'POST') {
     $passwordConfirm = toy_post_string('password_confirm', 255);
     $termsConsent = ($_POST['terms_consent'] ?? '') === '1';
     $privacyConsent = ($_POST['privacy_consent'] ?? '') === '1';
+    $marketingConsent = ($_POST['marketing_consent'] ?? '') === '1';
 
     if (!filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
         $errors[] = '이메일 형식이 올바르지 않습니다.';
@@ -102,6 +104,7 @@ if (toy_request_method() === 'POST') {
             }
             toy_member_record_consent($pdo, $accountId, 'terms', '2026.04.001', true);
             toy_member_record_consent($pdo, $accountId, 'privacy', '2026.04.001', true);
+            toy_member_record_consent($pdo, $accountId, 'marketing', '2026.04.001', $marketingConsent);
 
             $pdo->commit();
         } catch (Throwable $exception) {
