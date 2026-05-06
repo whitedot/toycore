@@ -201,8 +201,8 @@ if (toy_request_method() === 'POST') {
         $selectedOptionalModuleKeys = array_values($selectedOptionalModuleKeys);
     }
 
-    $adminPassword = toy_post_string('admin_password', 255);
-    $adminPasswordConfirm = toy_post_string('admin_password_confirm', 255);
+    $adminPassword = toy_post_string_without_truncation('admin_password', 255);
+    $adminPasswordConfirm = toy_post_string_without_truncation('admin_password_confirm', 255);
 
     if (!extension_loaded('pdo_mysql')) {
         $errors[] = 'pdo_mysql PHP 확장을 사용할 수 없습니다.';
@@ -255,6 +255,12 @@ if (toy_request_method() === 'POST') {
 
     if ($values['base_url'] !== '' && !toy_is_site_base_url($values['base_url'])) {
         $errors[] = 'Base URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.';
+    }
+
+    if ($adminPassword === null || $adminPasswordConfirm === null) {
+        $errors[] = '관리자 비밀번호는 255자 이하로 입력하세요.';
+        $adminPassword = '';
+        $adminPasswordConfirm = '';
     }
 
     if (strlen($adminPassword) < 8) {

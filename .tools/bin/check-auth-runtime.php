@@ -65,6 +65,9 @@ toy_auth_runtime_require('core/actions/install.php', "/'mail'\\s*=>\\s*\\[/", 'I
 toy_auth_runtime_require('core/actions/install.php', '/\'message\'\s*=>\s*toy_log_sensitive_text_sanitize\(toy_log_line_value\(\$exception->getMessage\(\), 500\)\)/', 'Install failure marker message should be normalized and secret-masked');
 toy_auth_runtime_require('core/actions/install.php', '/toy_log_sensitive_text_sanitize\(toy_log_line_value\(\(string\) \(\$decodedPreviousInstallFailure\[\'message\'\] \?\? \'\'\), 500\)\)/', 'Previous install failure marker message should be secret-masked before display');
 toy_auth_runtime_require('core/actions/install.php', '/\$errors\[\]\s*=\s*toy_log_sensitive_text_sanitize\(toy_log_line_value\(\$exception->getMessage\(\), 500\)\)/', 'Install debug exception message should be secret-masked before display');
+toy_auth_runtime_require('core/actions/install.php', "/toy_post_string_without_truncation\\('admin_password', 255\\)/", 'Install admin password should reject overlong raw input instead of truncating it');
+toy_auth_runtime_require('core/actions/install.php', "/toy_post_string_without_truncation\\('admin_password_confirm', 255\\)/", 'Install admin password confirmation should reject overlong raw input instead of truncating it');
+toy_auth_runtime_require('core/actions/install.php', '/\$adminPassword === null \|\| \$adminPasswordConfirm === null/', 'Install admin password overlong check is missing');
 toy_auth_runtime_require('core/views/error.php', '/toy_log_sensitive_text_sanitize\(toy_log_line_value\(\$exception->getMessage\(\), 1000\)\)/', 'Debug error view exception message should be secret-masked before display');
 
 toy_auth_runtime_require('core/helpers/ops.php', "/\\\$temporary\\s*=\\s*\\\$configDir\\s*\\.\\s*'\\/config-'\\s*\\.\\s*\\\$suffix\\s*\\.\\s*'\\.tmp\\.php'/", 'Config writer temporary file should keep a PHP extension');

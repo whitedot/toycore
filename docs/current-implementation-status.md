@@ -15,6 +15,7 @@
 - 운영 설치 시 현재 접속 host 기준 내부 파일 직접 접근 노출 점검
 - 내부 파일 노출 점검용 HTTP 요청은 public URL만 허용하고 리다이렉트를 따르지 않음
 - 운영 설치 시 HTTPS URL 확인
+- 설치 최초 관리자 비밀번호 원문 길이 초과 입력 차단
 - 외부 HTTP 호출 대상은 private/reserved/CGNAT/documentation/multicast IP 범위를 public으로 취급하지 않음
 - `config/config.php` 생성, 설정 임시 파일은 PHP 확장자로 작성
 - `storage/installed.lock` 생성
