@@ -282,6 +282,12 @@ if ($accountAction !== '') {
         'Password change should throttle current-password reauth failures.'
     );
     toy_member_auth_policy_assert(
+        strpos($accountAction, "toy_post_string_without_truncation('new_password', 255)") !== false
+            && strpos($accountAction, "toy_post_string_without_truncation('new_password_confirm', 255)") !== false
+            && strpos($accountAction, '$newPassword === null || $newPasswordConfirm === null') !== false,
+        'Password change should reject overlong raw new-password inputs instead of truncating them.'
+    );
+    toy_member_auth_policy_assert(
         strpos($accountAction, '$profileFields = toy_member_profile_field_settings($memberSettings)') !== false
             && strpos($accountAction, 'if ($profileFields[\'nickname\'])') !== false
             && strpos($accountAction, 'if ($profileFields[\'phone\'])') !== false
@@ -492,6 +498,12 @@ if ($adminPrivacyRequestExportAction !== '') {
 $registerAction = toy_member_auth_policy_read('modules/member/actions/register.php');
 if ($registerAction !== '') {
     toy_member_auth_policy_assert(
+        strpos($registerAction, "toy_post_string_without_truncation('password', 255)") !== false
+            && strpos($registerAction, "toy_post_string_without_truncation('password_confirm', 255)") !== false
+            && strpos($registerAction, '$password === null || $passwordConfirm === null') !== false,
+        'Register action should reject overlong raw password inputs instead of truncating them.'
+    );
+    toy_member_auth_policy_assert(
         strpos($registerAction, 'toy_member_login($pdo, $newAccount)') !== false
             && strpos($registerAction, '로그인 세션을 만들 수 없습니다') !== false,
         'Register action should keep auto-login for immediately verified accounts.'
@@ -666,6 +678,12 @@ if ($emailVerifyAction !== '') {
 
 $passwordResetAction = toy_member_auth_policy_read('modules/member/actions/password-reset.php');
 if ($passwordResetAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($passwordResetAction, "toy_post_string_without_truncation('password', 255)") !== false
+            && strpos($passwordResetAction, "toy_post_string_without_truncation('password_confirm', 255)") !== false
+            && strpos($passwordResetAction, '$password === null || $passwordConfirm === null') !== false,
+        'Password reset should reject overlong raw password inputs instead of truncating them.'
+    );
     toy_member_auth_policy_assert(
         strpos($passwordResetAction, 'toy_member_store_password_reset_session_hash') !== false,
         'Password reset confirm action should keep only the reset token hash in session after initial validation.'

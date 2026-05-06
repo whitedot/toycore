@@ -33,8 +33,8 @@ if (toy_request_method() === 'POST') {
         'login_id' => toy_member_normalize_login_id(toy_post_string('login_id', 80)),
         'display_name' => toy_post_string('display_name', 120),
     ];
-    $password = toy_post_string('password', 255);
-    $passwordConfirm = toy_post_string('password_confirm', 255);
+    $password = toy_post_string_without_truncation('password', 255);
+    $passwordConfirm = toy_post_string_without_truncation('password_confirm', 255);
     $termsConsent = ($_POST['terms_consent'] ?? '') === '1';
     $privacyConsent = ($_POST['privacy_consent'] ?? '') === '1';
     $marketingConsent = ($_POST['marketing_consent'] ?? '') === '1';
@@ -49,6 +49,12 @@ if (toy_request_method() === 'POST') {
 
     if ($values['display_name'] === '') {
         $errors[] = '표시 이름을 입력하세요.';
+    }
+
+    if ($password === null || $passwordConfirm === null) {
+        $errors[] = '비밀번호는 255자 이하로 입력하세요.';
+        $password = '';
+        $passwordConfirm = '';
     }
 
     if (strlen($password) < 8) {

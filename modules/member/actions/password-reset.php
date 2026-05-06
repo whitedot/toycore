@@ -43,8 +43,14 @@ if ($method === 'POST') {
         exit;
     }
 
-    $password = toy_post_string('password', 255);
-    $passwordConfirm = toy_post_string('password_confirm', 255);
+    $password = toy_post_string_without_truncation('password', 255);
+    $passwordConfirm = toy_post_string_without_truncation('password_confirm', 255);
+
+    if ($password === null || $passwordConfirm === null) {
+        $errors[] = '새 비밀번호는 255자 이하로 입력하세요.';
+        $password = '';
+        $passwordConfirm = '';
+    }
 
     if (strlen($password) < 8) {
         $errors[] = '새 비밀번호는 8자 이상이어야 합니다.';

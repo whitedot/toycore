@@ -125,8 +125,8 @@ if (toy_request_method() === 'POST') {
         }
     } elseif ($errors === [] && $intent === 'password') {
         $currentPassword = toy_post_string('current_password', 255);
-        $newPassword = toy_post_string('new_password', 255);
-        $newPasswordConfirm = toy_post_string('new_password_confirm', 255);
+        $newPassword = toy_post_string_without_truncation('new_password', 255);
+        $newPasswordConfirm = toy_post_string_without_truncation('new_password_confirm', 255);
         $reauthFailureLogged = false;
 
         $reauthThrottle = toy_member_reauth_throttle_status($pdo, (int) $account['id']);
@@ -138,6 +138,12 @@ if (toy_request_method() === 'POST') {
             $errors[] = '현재 비밀번호가 올바르지 않습니다.';
             toy_member_log_auth($pdo, (int) $account['id'], 'password_change_reauth', 'failure');
             $reauthFailureLogged = true;
+        }
+
+        if ($newPassword === null || $newPasswordConfirm === null) {
+            $errors[] = '새 비밀번호는 255자 이하로 입력하세요.';
+            $newPassword = '';
+            $newPasswordConfirm = '';
         }
 
         if (strlen($newPassword) < 8) {

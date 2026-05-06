@@ -318,6 +318,17 @@ function toy_post_string(string $key, int $maxLength): string
     return substr($value, 0, $maxLength);
 }
 
+function toy_post_string_without_truncation(string $key, int $maxLength): ?string
+{
+    $value = $_POST[$key] ?? '';
+    if (is_array($value)) {
+        return null;
+    }
+
+    $value = trim((string) $value);
+    return strlen($value) <= $maxLength ? $value : null;
+}
+
 function toy_get_string(string $key, int $maxLength): string
 {
     $value = $_GET[$key] ?? '';

@@ -74,6 +74,23 @@ toy_output_helper_assert(
     toy_download_filename("\r\n") === 'download.bin',
     'Download filename should fall back when no safe characters remain.'
 );
+$_POST = [
+    'short_value' => 'abc',
+    'long_value' => str_repeat('a', 256),
+    'array_value' => ['abc'],
+];
+toy_output_helper_assert(
+    toy_post_string_without_truncation('short_value', 255) === 'abc',
+    'Untruncated POST helper should return values within the limit.'
+);
+toy_output_helper_assert(
+    toy_post_string_without_truncation('long_value', 255) === null,
+    'Untruncated POST helper should reject overlong values.'
+);
+toy_output_helper_assert(
+    toy_post_string_without_truncation('array_value', 255) === null,
+    'Untruncated POST helper should reject array values.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "output helper checks failed:\n");
