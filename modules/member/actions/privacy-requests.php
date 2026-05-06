@@ -8,14 +8,20 @@ $account = toy_member_require_login($pdo);
 $allowedTypes = ['access', 'rectification', 'erasure', 'restriction', 'portability', 'objection', 'withdrawal'];
 $errors = [];
 $notice = '';
+$values = [
+    'request_type' => 'access',
+    'request_message' => '',
+];
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
 
-    $requestType = toy_post_string('request_type', 40);
-    $requestMessage = toy_post_string('request_message', 2000);
+    $values = [
+        'request_type' => toy_post_string('request_type', 40),
+        'request_message' => toy_post_string('request_message', 2000),
+    ];
 
-    if (!in_array($requestType, $allowedTypes, true)) {
+    if (!in_array($values['request_type'], $allowedTypes, true)) {
         $errors[] = '요청 유형이 올바르지 않습니다.';
     }
 
@@ -29,11 +35,11 @@ if (toy_request_method() === 'POST') {
         );
         $stmt->execute([
             'account_id' => (int) $account['id'],
-            'request_type' => $requestType,
+            'request_type' => $values['request_type'],
             'status' => 'requested',
             'requester_email_hash' => toy_hmac_hash(toy_normalize_identifier((string) $account['email']), $config),
             'requester_snapshot' => (string) $account['email'],
-            'request_message' => $requestMessage,
+            'request_message' => $values['request_message'],
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -48,11 +54,15 @@ if (toy_request_method() === 'POST') {
             'result' => 'success',
             'message' => 'Privacy request created.',
             'metadata' => [
-                'request_type' => $requestType,
+                'request_type' => $values['request_type'],
             ],
         ]);
 
         $notice = '개인정보 요청을 접수했습니다.';
+        $values = [
+            'request_type' => 'access',
+            'request_message' => '',
+        ];
     }
 }
 

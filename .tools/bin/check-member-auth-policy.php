@@ -309,6 +309,25 @@ if ($privacyHelper !== '') {
     );
 }
 
+$privacyRequestsAction = toy_member_auth_policy_read('modules/member/actions/privacy-requests.php');
+if ($privacyRequestsAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($privacyRequestsAction, "\$values = [\n    'request_type' => 'access',\n    'request_message' => '',\n];") !== false
+            && strpos($privacyRequestsAction, "'request_type' => toy_post_string('request_type', 40)") !== false
+            && strpos($privacyRequestsAction, "'request_message' => toy_post_string('request_message', 2000)") !== false,
+        'Privacy request action should preserve submitted form values.'
+    );
+}
+
+$privacyRequestsView = toy_member_auth_policy_read('modules/member/views/privacy-requests.php');
+if ($privacyRequestsView !== '') {
+    toy_member_auth_policy_assert(
+        strpos($privacyRequestsView, "\$values['request_type'] === \$requestType ? ' selected' : ''") !== false
+            && strpos($privacyRequestsView, "toy_e(\$values['request_message'])") !== false,
+        'Privacy request view should render preserved form values safely.'
+    );
+}
+
 $registerAction = toy_member_auth_policy_read('modules/member/actions/register.php');
 if ($registerAction !== '') {
     toy_member_auth_policy_assert(
