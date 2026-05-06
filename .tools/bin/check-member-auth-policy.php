@@ -577,6 +577,13 @@ if ($adminSettingsAction !== '') {
             && strpos($adminSettingsAction, "'profile_fields' => toy_member_profile_field_settings(\$settings)") !== false,
         'Member settings action should save optional profile field settings and audit them.'
     );
+    toy_member_auth_policy_assert(
+        strpos($adminSettingsAction, 'toy_admin_post_int_in_range($key, (int) $limits[\'min\'], (int) $limits[\'max\'])') !== false
+            && strpos($adminSettingsAction, '$integerValue === null') !== false
+            && strpos($adminSettingsAction, '$settings[$key] = $integerValue;') !== false
+            && strpos($adminSettingsAction, 'toy_member_clamp_int((int) $rawValue') === false,
+        'Member settings action should reject out-of-range integer settings instead of truncating or clamping submitted values.'
+    );
 }
 
 $adminSettingsView = toy_member_auth_policy_read('modules/member/views/admin-settings.php');

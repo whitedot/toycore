@@ -29,13 +29,13 @@ if (toy_request_method() === 'POST') {
     }
 
     foreach ($integerSettingKeys as $key => $limits) {
-        $rawValue = toy_post_string($key, 10);
-        if ($rawValue === '' || preg_match('/\A\d+\z/', $rawValue) !== 1) {
-            $errors[] = $key . ' 값은 0 이상의 정수여야 합니다.';
+        $integerValue = toy_admin_post_int_in_range($key, (int) $limits['min'], (int) $limits['max']);
+        if ($integerValue === null) {
+            $errors[] = $key . ' 값은 ' . (int) $limits['min'] . ' 이상 ' . (int) $limits['max'] . ' 이하의 정수여야 합니다.';
             continue;
         }
 
-        $settings[$key] = toy_member_clamp_int((int) $rawValue, (int) $limits['min'], (int) $limits['max']);
+        $settings[$key] = $integerValue;
     }
 
     $stmt = $pdo->prepare("SELECT id FROM toy_modules WHERE module_key = 'member' LIMIT 1");

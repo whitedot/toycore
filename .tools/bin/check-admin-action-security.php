@@ -107,14 +107,17 @@ if (!is_string($adminInputHelper)) {
     $errors[] = 'Admin input helper cannot be read.';
 } elseif (
     strpos($adminInputHelper, 'function toy_admin_post_positive_int') === false
+    || strpos($adminInputHelper, 'function toy_admin_post_int_in_range') === false
     || strpos($adminInputHelper, "\$value = \$_POST[\$key] ?? '';") === false
     || strpos($adminInputHelper, 'is_array($value)') === false
     || strpos($adminInputHelper, 'strlen($value) > $maxLength') === false
     || strpos($adminInputHelper, "preg_match('/\\A[1-9][0-9]*\\z/', \$value)") === false
+    || strpos($adminInputHelper, "preg_match('/\\A\\d+\\z/', \$value)") === false
+    || strpos($adminInputHelper, '$integerValue < $min || $integerValue > $max') === false
     || strpos($adminInputHelper, 'return (int) $value;') === false
     || strpos($adminRolesHelper, "toy_admin_post_positive_int('account_id')") === false
 ) {
-    $errors[] = 'Admin POST id inputs must be accepted only as positive integer strings.';
+    $errors[] = 'Admin POST numeric inputs must be accepted only as strict integer strings.';
 }
 
 $adminMembersHelper = file_get_contents($root . '/modules/admin/helpers/members.php');
