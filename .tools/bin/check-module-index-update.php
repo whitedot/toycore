@@ -97,7 +97,7 @@ try {
     $expectedChecksums = [];
     foreach ($index['modules'] as $module) {
         $moduleKey = is_array($module) ? (string) ($module['module_key'] ?? '') : '';
-        if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+        if (preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) !== 1) {
             continue;
         }
 

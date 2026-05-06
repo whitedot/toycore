@@ -43,10 +43,15 @@ function toy_module_index_safe_repository_ref(string $ref): bool
         && preg_match('/\A[A-Za-z0-9._\/-]+\z/', $ref) === 1;
 }
 
+function toy_module_index_safe_module_key(string $moduleKey): bool
+{
+    return preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) === 1;
+}
+
 function toy_module_index_validate_entry(array $entry, array &$seenModuleKeys): void
 {
     $moduleKey = toy_module_index_string($entry, 'module_key', '');
-    if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+    if (!toy_module_index_safe_module_key($moduleKey)) {
         toy_module_index_error('module-index module_key is invalid: ' . $moduleKey);
         return;
     }

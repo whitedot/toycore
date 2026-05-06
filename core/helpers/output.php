@@ -102,7 +102,7 @@ function toy_load_translations(string $locale, string $moduleKey = ''): array
         $locale = 'ko';
     }
 
-    if ($moduleKey !== '' && preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+    if ($moduleKey !== '' && !toy_is_safe_module_key($moduleKey)) {
         return [];
     }
 

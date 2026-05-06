@@ -132,7 +132,7 @@ function toy_member_module_privacy_exports(PDO $pdo, int $accountId): array
 {
     $exports = [];
     foreach (toy_enabled_module_keys($pdo) as $moduleKey) {
-        if ($moduleKey === 'member' || preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+        if ($moduleKey === 'member' || !toy_is_safe_module_key($moduleKey)) {
             continue;
         }
 

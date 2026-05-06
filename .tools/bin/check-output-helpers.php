@@ -7,6 +7,7 @@ $root = dirname(__DIR__, 2);
 define('TOY_ROOT', $root);
 
 require_once $root . '/core/helpers/runtime.php';
+require_once $root . '/core/helpers/settings.php';
 require_once $root . '/core/helpers/output.php';
 
 $errors = [];
@@ -52,6 +53,10 @@ toy_output_helper_assert(
 toy_output_helper_assert(
     toy_absolute_url(['base_url' => 'https://example.com/base'], '/\\evil.test') === 'https://example.com/base/',
     'Absolute URL should replace unsafe paths with the site root path.'
+);
+toy_output_helper_assert(
+    toy_load_translations('ko', '0module') === [],
+    'Translation loader should reject module keys outside the shared module key policy.'
 );
 toy_output_helper_assert(
     toy_download_content_type("application/json; charset=UTF-8\r\nX-Bad: 1") === 'application/octet-stream',
