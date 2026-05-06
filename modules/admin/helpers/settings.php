@@ -72,6 +72,36 @@ function toy_admin_module_setting_display_value(array $setting): string
     return toy_admin_setting_display_value($setting);
 }
 
+function toy_admin_setting_value_type_errors(string $settingValue, string $valueType): array
+{
+    if ($valueType === 'int' && preg_match('/\A-?\d+\z/', $settingValue) !== 1) {
+        return ['int 설정값은 정수 문자열이어야 합니다.'];
+    }
+
+    if ($valueType === 'bool' && !in_array(strtolower($settingValue), ['0', '1', 'true', 'false', 'yes', 'no', 'on', 'off'], true)) {
+        return ['bool 설정값은 1/0, true/false, yes/no, on/off 중 하나여야 합니다.'];
+    }
+
+    if ($valueType === 'json' && json_decode($settingValue, true) === null && json_last_error() !== JSON_ERROR_NONE) {
+        return ['JSON 설정값이 올바르지 않습니다.'];
+    }
+
+    return [];
+}
+
+function toy_admin_normalize_setting_value(string $settingValue, string $valueType): string
+{
+    if ($valueType === 'int') {
+        return (string) (int) $settingValue;
+    }
+
+    if ($valueType === 'bool') {
+        return in_array(strtolower($settingValue), ['1', 'true', 'yes', 'on'], true) ? '1' : '0';
+    }
+
+    return $settingValue;
+}
+
 function toy_admin_site_setting_values(?array $site): array
 {
     return [
@@ -173,8 +203,8 @@ function toy_admin_handle_settings_post(
             $errors[] = '기본 사이트 설정은 위의 전용 양식에서 수정하세요.';
         }
 
-        if ($valueType === 'json' && json_decode($settingValue, true) === null && json_last_error() !== JSON_ERROR_NONE) {
-            $errors[] = 'JSON 설정값이 올바르지 않습니다.';
+        foreach (toy_admin_setting_value_type_errors($settingValue, $valueType) as $valueError) {
+            $errors[] = $valueError;
         }
 
         if ($errors === [] && toy_admin_site_setting_requires_reauth($settingKey)) {
@@ -184,6 +214,7 @@ function toy_admin_handle_settings_post(
         }
 
         if ($errors === []) {
+            $settingValue = toy_admin_normalize_setting_value($settingValue, $valueType);
             toy_save_site_setting($pdo, $settingKey, $settingValue, $valueType);
 
             toy_audit_log($pdo, [

@@ -182,6 +182,8 @@ if (is_string($adminSettingsHelper) && (
 if (is_string($adminSettingsHelper) && (
     strpos($adminSettingsHelper, 'function toy_admin_setting_value_is_secret') === false
     || strpos($adminSettingsHelper, 'function toy_admin_setting_display_value') === false
+    || strpos($adminSettingsHelper, 'function toy_admin_setting_value_type_errors') === false
+    || strpos($adminSettingsHelper, 'function toy_admin_normalize_setting_value') === false
     || strpos($adminSettingsHelper, 'function toy_admin_site_setting_value_is_secret') === false
     || strpos($adminSettingsHelper, 'function toy_admin_site_setting_display_value') === false
     || strpos($adminSettingsHelper, 'function toy_admin_module_setting_display_value') === false
@@ -189,6 +191,15 @@ if (is_string($adminSettingsHelper) && (
     || strpos($adminSettingsHelper, "'[masked]'") === false
 )) {
     $errors[] = 'Admin settings helper must mask secret-like setting values before display.';
+}
+if (is_string($adminSettingsHelper) && (
+    strpos($adminSettingsHelper, "preg_match('/\\A-?\\d+\\z/', \$settingValue)") === false
+    || strpos($adminSettingsHelper, 'bool 설정값은 1/0, true/false, yes/no, on/off 중 하나여야 합니다.') === false
+    || strpos($adminSettingsHelper, "return in_array(strtolower(\$settingValue), ['1', 'true', 'yes', 'on'], true) ? '1' : '0';") === false
+    || strpos($adminSettingsHelper, 'toy_admin_setting_value_type_errors($settingValue, $valueType)') === false
+    || strpos($adminSettingsHelper, 'toy_admin_normalize_setting_value($settingValue, $valueType)') === false
+)) {
+    $errors[] = 'Admin settings helper must validate and normalize int/bool/json setting values before storage.';
 }
 
 if (!isset($adminModuleActionsHelper)) {
@@ -202,6 +213,12 @@ if (is_string($adminModuleActionsHelper) && (
     || strpos($adminModuleActionsHelper, 'module.setting.reauth_failed') === false
 )) {
     $errors[] = 'Admin module settings helper must require reauthentication for secret-like setting changes.';
+}
+if (is_string($adminModuleActionsHelper) && (
+    strpos($adminModuleActionsHelper, 'toy_admin_setting_value_type_errors($settingValue, $valueType)') === false
+    || strpos($adminModuleActionsHelper, 'toy_admin_normalize_setting_value($settingValue, $valueType)') === false
+)) {
+    $errors[] = 'Admin module settings helper must validate and normalize typed setting values before storage.';
 }
 
 $adminSettingsView = file_get_contents($root . '/modules/admin/views/settings.php');

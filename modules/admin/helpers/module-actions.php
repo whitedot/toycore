@@ -352,8 +352,8 @@ function toy_admin_handle_modules_post(
             $errors[] = '설정 타입이 올바르지 않습니다.';
         }
 
-        if ($valueType === 'json' && json_decode($settingValue, true) === null && json_last_error() !== JSON_ERROR_NONE) {
-            $errors[] = 'JSON 설정값이 올바르지 않습니다.';
+        foreach (toy_admin_setting_value_type_errors($settingValue, $valueType) as $valueError) {
+            $errors[] = $valueError;
         }
 
         if ($errors === [] && toy_admin_setting_value_is_secret($settingKey)) {
@@ -363,6 +363,7 @@ function toy_admin_handle_modules_post(
         }
 
         if ($errors === []) {
+            $settingValue = toy_admin_normalize_setting_value($settingValue, $valueType);
             $stmt = $pdo->prepare(
                 'INSERT INTO toy_module_settings
                     (module_id, setting_key, setting_value, value_type, created_at, updated_at)
