@@ -156,6 +156,18 @@ toy_runtime_helper_assert(
     'Link-local mail API endpoint should be rejected.'
 );
 toy_runtime_helper_assert(
+    toy_public_network_addresses_are_allowed(['93.184.216.34', '2606:2800:220:1:248:1893:25c8:1946']),
+    'Public IPv4 and IPv6 DNS addresses should be allowed.'
+);
+toy_runtime_helper_assert(
+    !toy_public_network_addresses_are_allowed(['93.184.216.34', 'fd00::1']),
+    'A private IPv6 DNS address should reject the public network host.'
+);
+toy_runtime_helper_assert(
+    !toy_public_network_addresses_are_allowed(['93.184.216.34', '::1']),
+    'A loopback IPv6 DNS address should reject the public network host.'
+);
+toy_runtime_helper_assert(
     !toy_is_http_url('https://user@example.com/path'),
     'HTTP URL with userinfo should be rejected.'
 );

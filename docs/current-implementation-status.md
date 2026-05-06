@@ -82,6 +82,7 @@
 - 메일 subject와 SMTP EHLO 값 개행 문자 방어
 - HTTP API mail transport 발신자 payload 포함
 - HTTP API 인증 메일 공개 HTTPS endpoint 검증
+- 공개 HTTP URL DNS A/AAAA 사설망 주소 차단
 - HMAC hash helper
 - 환경변수 기반 app key 주입 지원
 - 기본 보안 응답 헤더

@@ -267,12 +267,56 @@ function toy_is_public_network_host(string $host): bool
         return false;
     }
 
-    $addresses = gethostbynamel($host);
-    if ($addresses === false || $addresses === []) {
+    return toy_public_network_addresses_are_allowed(toy_dns_ip_addresses($host));
+}
+
+function toy_dns_ip_addresses(string $host): array
+{
+    $addresses = [];
+
+    set_error_handler(static function (): bool {
+        return true;
+    });
+
+    try {
+        $ipv4Addresses = gethostbynamel($host);
+        if (is_array($ipv4Addresses)) {
+            foreach ($ipv4Addresses as $address) {
+                if (is_string($address) && filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false) {
+                    $addresses[$address] = $address;
+                }
+            }
+        }
+
+        if (function_exists('dns_get_record')) {
+            $records = dns_get_record($host, DNS_AAAA);
+            if (is_array($records)) {
+                foreach ($records as $record) {
+                    $address = is_array($record) ? (string) ($record['ipv6'] ?? '') : '';
+                    if ($address !== '' && filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false) {
+                        $addresses[$address] = $address;
+                    }
+                }
+            }
+        }
+    } finally {
+        restore_error_handler();
+    }
+
+    return array_values($addresses);
+}
+
+function toy_public_network_addresses_are_allowed(array $addresses): bool
+{
+    if ($addresses === []) {
         return false;
     }
 
     foreach ($addresses as $address) {
+        if (!is_string($address)) {
+            return false;
+        }
+
         if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
             return false;
         }
