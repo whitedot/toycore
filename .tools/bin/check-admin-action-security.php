@@ -193,6 +193,18 @@ if (is_string($adminModuleSourcesHelper) && (
     $errors[] = 'Admin module source downloads must reject non-2xx HTTP responses before saving zip bodies.';
 }
 
+$adminModuleActionsHelper = file_get_contents($root . '/modules/admin/helpers/module-actions.php');
+if (!is_string($adminModuleActionsHelper)) {
+    $errors[] = 'Admin module actions helper cannot be read.';
+} elseif (
+    strpos($adminModuleActionsHelper, "'result' => 'failure'") === false
+    || strpos($adminModuleActionsHelper, 'Module source zip upload failed.') === false
+    || strpos($adminModuleActionsHelper, 'Module source zip download failed.') === false
+    || strpos($adminModuleActionsHelper, 'toy_log_line_value($exception->getMessage(), 500)') === false
+) {
+    $errors[] = 'Admin module source failures must write sanitized audit log entries.';
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "admin action security checks failed:\n");
     foreach ($errors as $error) {

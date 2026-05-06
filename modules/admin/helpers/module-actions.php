@@ -129,6 +129,8 @@ function toy_admin_handle_modules_post(
     if ($errors === [] && in_array($intent, ['upload_module_zip', 'download_registry_module', 'download_repository_archive'], true)) {
         $extractDir = '';
         $downloadedZip = '';
+        $sourceType = $intent === 'download_repository_archive' ? 'repository' : ($intent === 'download_registry_module' ? 'registry' : 'upload');
+        $repositoryRef = '';
         try {
             if ($intent === 'download_registry_module' || $intent === 'download_repository_archive') {
                 $registryEntry = toy_admin_module_registry_entry($moduleKey);
@@ -178,7 +180,7 @@ function toy_admin_handle_modules_post(
                 'message' => $intent === 'upload_module_zip' ? 'Module source zip uploaded.' : 'Module source zip downloaded.',
                 'metadata' => [
                     'version' => $moduleVersion,
-                    'source' => $intent === 'download_repository_archive' ? 'repository' : ($intent === 'download_registry_module' ? 'registry' : 'upload'),
+                    'source' => $sourceType,
                     'replace_confirmed' => $replaceConfirmed,
                     'allow_downgrade' => $allowDowngrade,
                     'upload_filename' => (string) ($uploadStats['filename'] ?? ''),
@@ -198,6 +200,20 @@ function toy_admin_handle_modules_post(
             $notice = $moduleKey . ' 모듈 파일을 반영했습니다. 새 모듈이면 아래 목록에서 설치하고, 기존 모듈이면 업데이트 화면에서 미적용 SQL을 확인하세요.';
         } catch (Throwable $exception) {
             toy_log_exception($exception, 'module_source_upload_failed');
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => $intent === 'upload_module_zip' ? 'module.source.uploaded' : 'module.source.downloaded',
+                'target_type' => 'module',
+                'target_id' => $moduleKey,
+                'result' => 'failure',
+                'message' => $intent === 'upload_module_zip' ? 'Module source zip upload failed.' : 'Module source zip download failed.',
+                'metadata' => [
+                    'source' => $sourceType,
+                    'repository_ref' => $repositoryRef,
+                    'reason' => toy_log_line_value($exception->getMessage(), 500),
+                ],
+            ]);
             $errors[] = $exception->getMessage();
         } finally {
             if ($extractDir !== '') {
