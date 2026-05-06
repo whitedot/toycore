@@ -55,9 +55,15 @@ function toy_check_module_index_update_run(string $command, array $env = []): vo
     }
 
     try {
-        passthru($command, $exitCode);
+        $output = [];
+        exec($command . ' 2>&1', $output, $exitCode);
         if ($exitCode !== 0) {
-            throw new RuntimeException('Command failed: ' . $command);
+            $message = 'Command failed: ' . $command;
+            if ($output !== []) {
+                $message .= "\n" . implode("\n", $output);
+            }
+
+            throw new RuntimeException($message);
         }
     } finally {
         foreach ($previousValues as $name => $previousValue) {
