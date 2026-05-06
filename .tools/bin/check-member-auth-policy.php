@@ -86,6 +86,12 @@ toy_member_auth_policy_assert(
     in_array('login_email_unverified', toy_member_login_failure_event_types(), true),
     'Unverified email login blocks should count as login failure throttle events.'
 );
+toy_member_auth_policy_assert(
+    in_array('password_change_reauth', toy_member_reauth_failure_event_types(), true)
+        && in_array('withdraw_reauth', toy_member_reauth_failure_event_types(), true)
+        && in_array('reauth_blocked', toy_member_reauth_failure_event_types(), true),
+    'Sensitive reauth failures should count as reauth throttle events.'
+);
 
 $loginAction = toy_member_auth_policy_read('modules/member/actions/login.php');
 if ($loginAction !== '') {
@@ -118,6 +124,12 @@ if ($throttleHelper !== '') {
         strpos($throttleHelper, 'toy_member_login_failure_event_types()') !== false,
         'Login throttle should use the shared login failure event list.'
     );
+    toy_member_auth_policy_assert(
+        strpos($throttleHelper, 'function toy_member_reauth_throttle_status') !== false
+            && strpos($throttleHelper, 'member.reauth.account') !== false
+            && strpos($throttleHelper, 'member.reauth.ip') !== false,
+        'Sensitive reauth throttle should track account and IP failures.'
+    );
 }
 
 $sessionHelper = toy_member_auth_policy_read('modules/member/helpers/sessions.php');
@@ -135,6 +147,20 @@ if ($accountAction !== '') {
     toy_member_auth_policy_assert(
         strpos($accountAction, 'toy_member_rotate_current_session($pdo, (int) $account[\'id\'])') !== false,
         'Password change should rotate the current member session.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($accountAction, 'toy_member_reauth_throttle_status($pdo, (int) $account[\'id\'])') !== false
+            && strpos($accountAction, 'password_change_reauth') !== false,
+        'Password change should throttle current-password reauth failures.'
+    );
+}
+
+$withdrawAction = toy_member_auth_policy_read('modules/member/actions/withdraw.php');
+if ($withdrawAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($withdrawAction, 'toy_member_reauth_throttle_status($pdo, (int) $account[\'id\'])') !== false
+            && strpos($withdrawAction, 'withdraw_reauth') !== false,
+        'Withdraw should throttle current-password reauth failures.'
     );
 }
 

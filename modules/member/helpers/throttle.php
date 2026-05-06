@@ -132,9 +132,47 @@ function toy_member_register_throttle_status(PDO $pdo): array
     return ['limited' => false, 'reason' => ''];
 }
 
+function toy_member_reauth_throttle_status(PDO $pdo, int $accountId): array
+{
+    if ($accountId < 1) {
+        return ['limited' => false, 'reason' => ''];
+    }
+
+    $settings = toy_member_settings($pdo);
+    $windowSeconds = min(86400, max(60, (int) $settings['login_throttle_window_seconds']));
+    $accountLimit = min(100, max(1, (int) $settings['login_throttle_account_limit']));
+    $ipLimit = min(500, max(1, (int) $settings['login_throttle_ip_limit']));
+    $windowStartedAt = date('Y-m-d H:i:s', time() - $windowSeconds);
+    $ipAddress = toy_client_ip();
+    $useRateLimits = toy_member_rate_limits_table_exists($pdo);
+
+    $failureCount = $useRateLimits
+        ? toy_rate_limit_count($pdo, 'member.reauth.account', (string) $accountId, $windowSeconds)
+        : toy_member_auth_log_count($pdo, toy_member_reauth_failure_event_types(), 'failure', $accountId, '', $windowStartedAt);
+    if ($failureCount >= $accountLimit) {
+        return ['limited' => true, 'reason' => 'account'];
+    }
+
+    if ($ipAddress !== '') {
+        $failureCount = $useRateLimits
+            ? toy_rate_limit_count($pdo, 'member.reauth.ip', $ipAddress, $windowSeconds)
+            : toy_member_auth_log_count($pdo, toy_member_reauth_failure_event_types(), 'failure', null, $ipAddress, $windowStartedAt);
+        if ($failureCount >= $ipLimit) {
+            return ['limited' => true, 'reason' => 'ip'];
+        }
+    }
+
+    return ['limited' => false, 'reason' => ''];
+}
+
 function toy_member_login_failure_event_types(): array
 {
     return ['login', 'login_blocked', 'login_email_unverified'];
+}
+
+function toy_member_reauth_failure_event_types(): array
+{
+    return ['password_change_reauth', 'withdraw_reauth', 'reauth_blocked'];
 }
 
 function toy_member_rate_limits_table_exists(PDO $pdo): bool
@@ -221,6 +259,17 @@ function toy_member_record_auth_rate_limits(PDO $pdo, ?int $accountId, string $e
         }
         if ($ipAddress !== '') {
             toy_rate_limit_increment($pdo, 'member.login.ip', $ipAddress, $windowSeconds);
+        }
+        return;
+    }
+
+    if (in_array($eventType, toy_member_reauth_failure_event_types(), true) && $result === 'failure') {
+        $windowSeconds = min(86400, max(60, (int) $settings['login_throttle_window_seconds']));
+        if ($accountId !== null) {
+            toy_rate_limit_increment($pdo, 'member.reauth.account', (string) $accountId, $windowSeconds);
+        }
+        if ($ipAddress !== '') {
+            toy_rate_limit_increment($pdo, 'member.reauth.ip', $ipAddress, $windowSeconds);
         }
         return;
     }

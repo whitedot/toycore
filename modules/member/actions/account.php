@@ -93,9 +93,17 @@ if (toy_request_method() === 'POST') {
         $currentPassword = toy_post_string('current_password', 255);
         $newPassword = toy_post_string('new_password', 255);
         $newPasswordConfirm = toy_post_string('new_password_confirm', 255);
+        $reauthFailureLogged = false;
 
-        if (!password_verify($currentPassword, (string) $account['password_hash'])) {
+        $reauthThrottle = toy_member_reauth_throttle_status($pdo, (int) $account['id']);
+        if (!empty($reauthThrottle['limited'])) {
+            $errors[] = '비밀번호 확인 시도가 많습니다. 잠시 후 다시 시도하세요.';
+            toy_member_log_auth($pdo, (int) $account['id'], 'reauth_blocked', 'failure');
+            $reauthFailureLogged = true;
+        } elseif (!password_verify($currentPassword, (string) $account['password_hash'])) {
             $errors[] = '현재 비밀번호가 올바르지 않습니다.';
+            toy_member_log_auth($pdo, (int) $account['id'], 'password_change_reauth', 'failure');
+            $reauthFailureLogged = true;
         }
 
         if (strlen($newPassword) < 8) {
@@ -127,7 +135,7 @@ if (toy_request_method() === 'POST') {
 
             $account = toy_member_current_account($pdo);
             $notice = '비밀번호를 변경했습니다.';
-        } else {
+        } elseif (!$reauthFailureLogged) {
             toy_member_log_auth($pdo, (int) $account['id'], 'password_change', 'failure');
         }
     }

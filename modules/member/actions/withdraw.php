@@ -13,8 +13,13 @@ if (toy_request_method() === 'POST') {
     $password = toy_post_string('password', 255);
     $confirmText = toy_post_string('confirm_text', 20);
 
-    if (!password_verify($password, (string) $account['password_hash'])) {
+    $reauthThrottle = toy_member_reauth_throttle_status($pdo, (int) $account['id']);
+    if (!empty($reauthThrottle['limited'])) {
+        $errors[] = '비밀번호 확인 시도가 많습니다. 잠시 후 다시 시도하세요.';
+        toy_member_log_auth($pdo, (int) $account['id'], 'reauth_blocked', 'failure');
+    } elseif (!password_verify($password, (string) $account['password_hash'])) {
         $errors[] = '비밀번호가 올바르지 않습니다.';
+        toy_member_log_auth($pdo, (int) $account['id'], 'withdraw_reauth', 'failure');
     }
 
     if ($confirmText !== '탈퇴') {
