@@ -7,6 +7,7 @@ require_once TOY_ROOT . '/modules/member/helpers.php';
 $errors = [];
 $notice = '';
 $resetUrl = '';
+$showResetUrl = false;
 $email = '';
 
 if (toy_request_method() === 'POST') {
@@ -36,6 +37,7 @@ if (toy_request_method() === 'POST') {
         } elseif ($activeAccount !== null) {
             $token = toy_member_create_password_reset($pdo, $config, (int) $activeAccount['id']);
             $resetUrl = toy_absolute_url($site, '/password/reset/confirm?token=' . rawurlencode($token));
+            $showResetUrl = !empty($config['debug']) && toy_is_local_host((string) ($site['base_url'] ?? ''));
             $mailSent = toy_send_mail(
                 $site,
                 (string) $activeAccount['email'],

@@ -545,6 +545,11 @@ if ($passwordResetRequestAction !== '') {
         strpos($passwordResetRequestAction, 'password_reset_mail_failed') !== false,
         'Password reset request action should write an auth log event when reset mail delivery fails.'
     );
+    toy_member_auth_policy_assert(
+        strpos($passwordResetRequestAction, '$showResetUrl = false;') !== false
+            && strpos($passwordResetRequestAction, '$showResetUrl = !empty($config[\'debug\']) && toy_is_local_host((string) ($site[\'base_url\'] ?? \'\'));') !== false,
+        'Password reset request action should only expose debug reset URLs when the configured site base URL is localhost.'
+    );
 }
 
 $tokenHelper = toy_member_auth_policy_read('modules/member/helpers/tokens.php');
@@ -580,6 +585,15 @@ if ($passwordResetView !== '') {
     toy_member_auth_policy_assert(
         strpos($passwordResetView, 'name="token"') === false,
         'Password reset form should not render the reset token into HTML.'
+    );
+}
+
+$passwordResetRequestView = toy_member_auth_policy_read('modules/member/views/password-reset-request.php');
+if ($passwordResetRequestView !== '') {
+    toy_member_auth_policy_assert(
+        strpos($passwordResetRequestView, '$resetUrl !== \'\' && $showResetUrl') !== false
+            && strpos($passwordResetRequestView, '!empty($config[\'debug\'])') === false,
+        'Password reset request view should not decide public token exposure directly from debug config.'
     );
 }
 

@@ -22,7 +22,7 @@ $seo = [
             <p><?php echo toy_e($notice); ?></p>
         <?php } ?>
 
-        <?php if ($resetUrl !== '' && !empty($config['debug'])) { ?>
+        <?php if ($resetUrl !== '' && $showResetUrl) { ?>
             <p><a href="<?php echo toy_e($resetUrl); ?>">재설정 링크</a></p>
         <?php } ?>
 
