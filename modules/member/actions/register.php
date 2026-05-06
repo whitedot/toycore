@@ -34,9 +34,17 @@ if (toy_request_method() === 'POST') {
         $email = '';
     }
 
+    $loginId = toy_post_string_without_truncation('login_id', 40);
+    if ($loginId === null) {
+        $loginId = '';
+        if ($loginIdentifierMode === 'login_id') {
+            $errors[] = '로그인 아이디는 40자 이하로 입력하세요.';
+        }
+    }
+
     $values = [
         'email' => $email,
-        'login_id' => toy_member_normalize_login_id(toy_post_string('login_id', 80)),
+        'login_id' => toy_member_normalize_login_id($loginId),
         'display_name' => toy_post_string('display_name', 120),
     ];
     $password = toy_post_string_without_truncation('password', 255);

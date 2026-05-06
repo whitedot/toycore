@@ -508,6 +508,11 @@ if ($registerAction !== '') {
         'Register action should reject overlong raw email inputs instead of truncating them.'
     );
     toy_member_auth_policy_assert(
+        strpos($registerAction, "toy_post_string_without_truncation('login_id', 40)") !== false
+            && strpos($registerAction, '$loginId === null') !== false,
+        'Register action should reject overlong raw login_id inputs instead of truncating them.'
+    );
+    toy_member_auth_policy_assert(
         strpos($registerAction, "toy_post_string_without_truncation('password', 255)") !== false
             && strpos($registerAction, "toy_post_string_without_truncation('password_confirm', 255)") !== false
             && strpos($registerAction, '$password === null || $passwordConfirm === null') !== false,
@@ -566,7 +571,7 @@ if ($registerAction !== '') {
     );
     toy_member_auth_policy_assert(
         strpos($registerAction, "\$loginIdentifierMode = (string) \$memberSettings['login_identifier'];") !== false
-            && strpos($registerAction, "'login_id' => toy_member_normalize_login_id") !== false
+            && strpos($registerAction, "'login_id' => toy_member_normalize_login_id(\$loginId)") !== false
             && strpos($registerAction, "toy_member_is_valid_login_id(\$values['login_id'])") !== false
             && strpos($registerAction, "'login_id' => \$loginIdentifierMode === 'login_id' ? \$values['login_id'] : ''") !== false,
         'Register action should collect and validate login_id when login_id identifier mode is enabled.'
