@@ -667,6 +667,7 @@ POST /password/reset/confirm
 -> reset token used_at 기록
 -> 기존 session/remember token 폐기
 -> 현재 PHP session이 같은 계정이면 즉시 정리
+-> 현재 PHP session 정리 필요 여부와 실제 성공 여부를 감사 로그에 분리 기록
 -> 인증 로그 기록
 -> 로그인 화면으로 redirect
 ```

@@ -327,6 +327,12 @@ if ($passwordResetAction !== '') {
         'Password reset completion should immediately clear the current PHP session for the reset account.'
     );
     toy_member_auth_policy_assert(
+        strpos($passwordResetAction, '$loggedOutCurrentSession = toy_member_logout_current_session_if_account($pdo, (int) $reset[\'account_id\'])') !== false
+            && strpos($passwordResetAction, "'current_session_logout_required' => \$shouldLogoutCurrentSession") !== false
+            && strpos($passwordResetAction, "'logged_out_current_session' => \$loggedOutCurrentSession") !== false,
+        'Password reset audit metadata should record the actual current-session logout result.'
+    );
+    toy_member_auth_policy_assert(
         strpos($passwordResetAction, 'if ($revokedSessions < 0)') !== false
             && strpos($passwordResetAction, 'Member sessions could not be revoked after password reset.') !== false,
         'Password reset should not complete when account sessions cannot be revoked.'
