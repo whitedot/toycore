@@ -232,6 +232,10 @@ function toy_member_privacy_export_internal_key(string $key): bool
     $normalizedKey = strtolower($key);
     return $normalizedKey === 'password_hash'
         || $normalizedKey === 'account_identifier_hash'
+        || preg_match(
+            '/(?:^|[._-])(?:password|token|secret|credential|bearer|authorization|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)(?:$|[._-])/',
+            $normalizedKey
+        ) === 1
         || str_ends_with($normalizedKey, '_token_hash')
         || str_ends_with($normalizedKey, '_hash');
 }
