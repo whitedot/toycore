@@ -92,6 +92,7 @@ toy_member_auth_policy_assert(
 );
 toy_member_auth_policy_assert(
     in_array('password_change_reauth', toy_member_reauth_failure_event_types(), true)
+        && in_array('password_change_session_failed', toy_member_reauth_failure_event_types(), true)
         && in_array('withdraw_reauth', toy_member_reauth_failure_event_types(), true)
         && in_array('reauth_blocked', toy_member_reauth_failure_event_types(), true),
     'Sensitive reauth failures should count as reauth throttle events.'
@@ -161,7 +162,8 @@ if ($sessionHelper !== '') {
     toy_member_auth_policy_assert(
         strpos($sessionHelper, 'function toy_member_rotate_current_session') !== false
             && strpos($sessionHelper, 'session_regenerate_id(true)') !== false
-            && strpos($sessionHelper, 'toy_member_create_session($pdo, $accountId)') !== false,
+            && strpos($sessionHelper, 'toy_member_create_session($pdo, $accountId)') !== false
+            && strpos($sessionHelper, 'if (!toy_member_sessions_table_exists($pdo))') !== false,
         'Current member session rotation helper should regenerate PHP and member session tokens.'
     );
     toy_member_auth_policy_assert(
@@ -194,6 +196,11 @@ if ($accountAction !== '') {
     toy_member_auth_policy_assert(
         strpos($accountAction, 'toy_member_rotate_current_session($pdo, (int) $account[\'id\'])') !== false,
         'Password change should rotate the current member session.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($accountAction, 'password_change_session_failed') !== false
+            && strpos($accountAction, 'toy_member_logout($pdo)') !== false,
+        'Password change should not remain logged in when current session rotation fails.'
     );
     toy_member_auth_policy_assert(
         strpos($accountAction, 'if ($revokedSessions < 0)') !== false

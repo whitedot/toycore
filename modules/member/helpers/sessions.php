@@ -193,6 +193,10 @@ function toy_member_rotate_current_session(PDO $pdo, int $accountId): bool
     $sessionTokenHash = toy_member_create_session($pdo, $accountId);
     if ($sessionTokenHash === '') {
         unset($_SESSION['toy_session_token_hash']);
+        if (!toy_member_sessions_table_exists($pdo)) {
+            return true;
+        }
+
         return false;
     }
 

@@ -132,6 +132,25 @@ if (toy_request_method() === 'POST') {
             }
 
             $rotatedSession = toy_member_rotate_current_session($pdo, (int) $account['id']);
+            if (!$rotatedSession) {
+                toy_member_log_auth($pdo, (int) $account['id'], 'password_change_session_failed', 'failure');
+                toy_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'member',
+                    'event_type' => 'member.password.change.session_failed',
+                    'target_type' => 'member_account',
+                    'target_id' => (string) $account['id'],
+                    'result' => 'failure',
+                    'message' => 'Member password was changed but current session could not be rotated.',
+                    'metadata' => [
+                        'revoked_sessions' => $revokedSessions,
+                    ],
+                ]);
+
+                toy_member_logout($pdo);
+                toy_redirect('/login');
+            }
+
             toy_member_log_auth($pdo, (int) $account['id'], 'password_change', 'success');
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],

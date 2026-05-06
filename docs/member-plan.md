@@ -737,6 +737,7 @@ status
 - 비밀번호 검증은 `password_verify()` 사용
 - 로그인 성공 후 `session_regenerate_id(true)` 실행
 - 비밀번호 변경 후 현재 PHP session ID, CSRF token, 회원 session token 회전
+- 비밀번호 변경 후 현재 세션 회전에 실패하면 성공 로그인 상태로 유지하지 않음
 - 비밀번호 변경/탈퇴의 현재 비밀번호 재확인 실패는 계정과 IP 기준으로 제한
 - 비밀번호 변경, 재설정, 탈퇴는 세션 폐기 실패를 0건 폐기와 구분하고 성공 처리하지 않음
 - 토큰 원문은 DB와 로그에 저장하지 않음
