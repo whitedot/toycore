@@ -634,7 +634,7 @@ POST /logout
 -> 현재 session token hash 폐기
 -> remember token hash 폐기
 -> PHP session 정리
--> 인증 로그 기록
+-> 현재 DB session 폐기 실패 여부를 인증/감사 로그에 반영
 -> 홈 또는 로그인 화면으로 redirect
 ```
 

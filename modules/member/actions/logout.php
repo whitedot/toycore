@@ -12,18 +12,21 @@ if (toy_request_method() !== 'POST') {
 toy_require_csrf();
 
 $account = toy_member_current_account($pdo);
+$loggedOut = toy_member_logout($pdo);
 if ($account !== null) {
-    toy_member_log_auth($pdo, (int) $account['id'], 'logout', 'success');
+    toy_member_log_auth($pdo, (int) $account['id'], 'logout', $loggedOut ? 'success' : 'failure');
     toy_audit_log($pdo, [
         'actor_account_id' => (int) $account['id'],
         'actor_type' => 'member',
         'event_type' => 'member.logout',
         'target_type' => 'member_account',
         'target_id' => (string) $account['id'],
-        'result' => 'success',
-        'message' => 'Member logged out.',
+        'result' => $loggedOut ? 'success' : 'failure',
+        'message' => $loggedOut ? 'Member logged out.' : 'Member logout could not revoke current session.',
+        'metadata' => [
+            'current_session_revoked' => $loggedOut,
+        ],
     ]);
 }
 
-toy_member_logout($pdo);
 toy_redirect('/login');

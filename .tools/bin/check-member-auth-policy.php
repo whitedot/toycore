@@ -185,9 +185,25 @@ if ($sessionHelper !== '') {
         'Member session revocation helpers should distinguish DB failure from zero revoked sessions.'
     );
     toy_member_auth_policy_assert(
+        strpos($sessionHelper, 'function toy_member_revoke_current_session(PDO $pdo): int') !== false
+            && strpos($sessionHelper, 'function toy_member_logout(?PDO $pdo = null): bool') !== false
+            && strpos($sessionHelper, '$sessionRevoked = toy_member_revoke_current_session($pdo) >= 0;') !== false,
+        'Current session revocation and logout helpers should report DB revocation failure.'
+    );
+    toy_member_auth_policy_assert(
         strpos($sessionHelper, 'function toy_member_logout_current_session_if_account') !== false
             && strpos($sessionHelper, 'toy_member_current_session_account_id()') !== false,
         'Session helper should support immediate logout of the current session for a target account.'
+    );
+}
+
+$logoutAction = toy_member_auth_policy_read('modules/member/actions/logout.php');
+if ($logoutAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($logoutAction, '$loggedOut = toy_member_logout($pdo)') !== false
+            && strpos($logoutAction, "'current_session_revoked' => \$loggedOut") !== false
+            && strpos($logoutAction, "\$loggedOut ? 'success' : 'failure'") !== false,
+        'Logout action should audit current session revocation failure instead of logging unconditional success.'
     );
 }
 

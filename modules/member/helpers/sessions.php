@@ -107,11 +107,15 @@ function toy_member_sessions_table_exists(PDO $pdo): bool
     }
 }
 
-function toy_member_revoke_current_session(PDO $pdo): void
+function toy_member_revoke_current_session(PDO $pdo): int
 {
     $sessionTokenHash = $_SESSION['toy_session_token_hash'] ?? '';
     if (!is_string($sessionTokenHash) || preg_match('/\A[a-f0-9]{64}\z/', $sessionTokenHash) !== 1) {
-        return;
+        return 0;
+    }
+
+    if (!toy_member_sessions_table_exists($pdo)) {
+        return 0;
     }
 
     try {
@@ -121,8 +125,10 @@ function toy_member_revoke_current_session(PDO $pdo): void
             'session_token_hash' => $sessionTokenHash,
         ]);
     } catch (PDOException $exception) {
-        return;
+        return -1;
     }
+
+    return $stmt->rowCount();
 }
 
 function toy_member_revoke_account_sessions(PDO $pdo, int $accountId): int
@@ -186,7 +192,10 @@ function toy_member_rotate_current_session(PDO $pdo, int $accountId): bool
         return false;
     }
 
-    toy_member_revoke_current_session($pdo);
+    if (toy_member_revoke_current_session($pdo) < 0) {
+        return false;
+    }
+
     session_regenerate_id(true);
     $_SESSION['toy_csrf_token'] = bin2hex(random_bytes(32));
 
@@ -221,14 +230,14 @@ function toy_member_logout_current_session_if_account(PDO $pdo, int $accountId):
         return false;
     }
 
-    toy_member_logout($pdo);
-    return true;
+    return toy_member_logout($pdo);
 }
 
-function toy_member_logout(?PDO $pdo = null): void
+function toy_member_logout(?PDO $pdo = null): bool
 {
+    $sessionRevoked = true;
     if ($pdo instanceof PDO) {
-        toy_member_revoke_current_session($pdo);
+        $sessionRevoked = toy_member_revoke_current_session($pdo) >= 0;
     }
 
     $_SESSION = [];
@@ -246,4 +255,5 @@ function toy_member_logout(?PDO $pdo = null): void
     }
 
     session_destroy();
+    return $sessionRevoked;
 }
