@@ -27,6 +27,11 @@ if ($privacyRequest === null) {
     exit;
 }
 
+foreach (toy_admin_privacy_request_export_reauth_errors($pdo, $account, $requestId) as $reauthError) {
+    toy_render_error(403, $reauthError);
+    exit;
+}
+
 $export = toy_admin_privacy_request_export_data($pdo, $privacyRequest);
 toy_admin_log_privacy_request_export($pdo, $account, $requestId);
 

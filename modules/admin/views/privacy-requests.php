@@ -62,6 +62,9 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <form method="post" action="<?php echo toy_e(toy_url('/admin/privacy-requests/export')); ?>">
                         <?php echo toy_csrf_field(); ?>
                         <input type="hidden" name="id" value="<?php echo toy_e((string) $request['id']); ?>">
+                        <label>관리자 비밀번호<br>
+                            <input type="password" name="admin_password" autocomplete="current-password" required>
+                        </label>
                         <button type="submit">JSON</button>
                     </form>
                     <form method="post" action="<?php echo toy_e(toy_url('/admin/privacy-requests')); ?>">

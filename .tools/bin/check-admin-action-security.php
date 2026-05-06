@@ -232,11 +232,13 @@ if (!is_string($adminPrivacyRequestsHelper)) {
     strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_list_preview') === false
     || strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_requester_display') === false
     || strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_terminal_statuses') === false
+    || strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_export_reauth_errors') === false
+    || strpos($adminPrivacyRequestsHelper, 'privacy_request_export_reauth') === false
     || strpos($adminPrivacyRequestsHelper, '종결된 개인정보 요청 상태는 다시 변경할 수 없습니다.') === false
     || strpos($adminPrivacyRequestsHelper, "return \$prefix . '***@' . \$domain;") === false
     || strpos($adminPrivacyRequestsHelper, "return mb_substr(\$preview, 0, \$maxLength) . '...';") === false
 ) {
-    $errors[] = 'Admin privacy request helpers must reduce list exposure and protect terminal status changes.';
+    $errors[] = 'Admin privacy request helpers must reduce list exposure, protect terminal status changes, and reauthenticate exports.';
 }
 
 $adminPrivacyRequestsView = file_get_contents($root . '/modules/admin/views/privacy-requests.php');
@@ -245,6 +247,7 @@ if (!is_string($adminPrivacyRequestsView)) {
 } elseif (
     strpos($adminPrivacyRequestsView, 'toy_admin_privacy_request_requester_display($request)') === false
     || strpos($adminPrivacyRequestsView, "toy_admin_privacy_request_list_preview(\$request['request_message'] ?? null)") === false
+    || strpos($adminPrivacyRequestsView, 'name="admin_password"') === false
     || strpos($adminPrivacyRequestsView, 'placeholder="새 관리자 메모"') === false
     || strpos($adminPrivacyRequestsView, "\$request['admin_note'] ?? ''") !== false
 ) {

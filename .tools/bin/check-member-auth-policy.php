@@ -94,6 +94,7 @@ toy_member_auth_policy_assert(
     in_array('password_change_reauth', toy_member_reauth_failure_event_types(), true)
         && in_array('password_change_session_failed', toy_member_reauth_failure_event_types(), true)
         && in_array('withdraw_reauth', toy_member_reauth_failure_event_types(), true)
+        && in_array('privacy_request_export_reauth', toy_member_reauth_failure_event_types(), true)
         && in_array('reauth_blocked', toy_member_reauth_failure_event_types(), true),
     'Sensitive reauth failures should count as reauth throttle events.'
 );
@@ -387,6 +388,14 @@ if ($adminPrivacyRequestsHelper !== '') {
             && strpos($adminPrivacyRequestsHelper, "'admin_note' => \$nextAdminNote") !== false,
         'Admin privacy request helper should preserve stored admin notes when list forms submit no replacement note.'
     );
+    toy_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_export_reauth_errors') !== false
+            && strpos($adminPrivacyRequestsHelper, "toy_post_string('admin_password', 255)") !== false
+            && strpos($adminPrivacyRequestsHelper, 'toy_member_reauth_throttle_status($pdo, $accountId)') !== false
+            && strpos($adminPrivacyRequestsHelper, 'privacy_request_export_reauth') !== false
+            && strpos($adminPrivacyRequestsHelper, 'privacy.request.export_reauth_failed') !== false,
+        'Admin privacy request export should require throttled current-admin reauthentication.'
+    );
 }
 
 $adminPrivacyRequestsView = toy_member_auth_policy_read('modules/admin/views/privacy-requests.php');
@@ -395,6 +404,20 @@ if ($adminPrivacyRequestsView !== '') {
         strpos($adminPrivacyRequestsView, 'placeholder="새 관리자 메모"') !== false
             && strpos($adminPrivacyRequestsView, "\$request['admin_note'] ?? ''") === false,
         'Admin privacy request view should not prefill stored admin notes in list forms.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsView, 'name="admin_password"') !== false
+            && strpos($adminPrivacyRequestsView, 'autocomplete="current-password" required') !== false,
+        'Admin privacy request export form should ask for current admin password.'
+    );
+}
+
+$adminPrivacyRequestExportAction = toy_member_auth_policy_read('modules/admin/actions/privacy-request-export.php');
+if ($adminPrivacyRequestExportAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($adminPrivacyRequestExportAction, 'toy_admin_privacy_request_export_reauth_errors($pdo, $account, $requestId)') !== false
+            && strpos($adminPrivacyRequestExportAction, 'toy_render_error(403, $reauthError)') !== false,
+        'Admin privacy request export action should enforce reauthentication before generating JSON.'
     );
 }
 

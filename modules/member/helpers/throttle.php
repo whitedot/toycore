@@ -172,7 +172,7 @@ function toy_member_login_failure_event_types(): array
 
 function toy_member_reauth_failure_event_types(): array
 {
-    return ['password_change_reauth', 'password_change_session_failed', 'withdraw_reauth', 'module_source_reauth', 'site_setting_reauth', 'reauth_blocked'];
+    return ['password_change_reauth', 'password_change_session_failed', 'withdraw_reauth', 'module_source_reauth', 'site_setting_reauth', 'privacy_request_export_reauth', 'reauth_blocked'];
 }
 
 function toy_member_rate_limits_table_exists(PDO $pdo): bool
