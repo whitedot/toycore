@@ -7,6 +7,35 @@ function toy_admin_privacy_request_statuses(): array
     return ['requested', 'reviewing', 'completed', 'rejected', 'cancelled'];
 }
 
+function toy_admin_privacy_request_list_preview(?string $value, int $maxLength = 120): string
+{
+    $maxLength = max(1, $maxLength);
+    $preview = toy_log_line_value((string) $value, $maxLength + 1);
+    $length = function_exists('mb_strlen') ? mb_strlen($preview) : strlen($preview);
+    if ($length <= $maxLength) {
+        return $preview;
+    }
+
+    if (function_exists('mb_substr')) {
+        return mb_substr($preview, 0, $maxLength) . '...';
+    }
+
+    return substr($preview, 0, $maxLength) . '...';
+}
+
+function toy_admin_privacy_request_requester_display(array $request): string
+{
+    $snapshot = (string) ($request['requester_snapshot'] ?? '');
+    if (filter_var($snapshot, FILTER_VALIDATE_EMAIL)) {
+        [$localPart, $domain] = explode('@', $snapshot, 2);
+        $prefix = function_exists('mb_substr') ? mb_substr($localPart, 0, 2) : substr($localPart, 0, 2);
+
+        return $prefix . '***@' . $domain;
+    }
+
+    return toy_admin_privacy_request_list_preview($snapshot, 80);
+}
+
 function toy_admin_handle_privacy_request_post(PDO $pdo, array $account, array $allowedStatuses): array
 {
     $errors = [];

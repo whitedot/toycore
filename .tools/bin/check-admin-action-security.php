@@ -196,6 +196,28 @@ if (!is_string($adminAuditLogsView)) {
     $errors[] = 'Admin audit logs view must render metadata through the redaction helper.';
 }
 
+$adminPrivacyRequestsHelper = file_get_contents($root . '/modules/admin/helpers/privacy-requests.php');
+if (!is_string($adminPrivacyRequestsHelper)) {
+    $errors[] = 'Admin privacy requests helper cannot be read.';
+} elseif (
+    strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_list_preview') === false
+    || strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_requester_display') === false
+    || strpos($adminPrivacyRequestsHelper, "return \$prefix . '***@' . \$domain;") === false
+    || strpos($adminPrivacyRequestsHelper, "return mb_substr(\$preview, 0, \$maxLength) . '...';") === false
+) {
+    $errors[] = 'Admin privacy request lists must reduce requester and message exposure before display.';
+}
+
+$adminPrivacyRequestsView = file_get_contents($root . '/modules/admin/views/privacy-requests.php');
+if (!is_string($adminPrivacyRequestsView)) {
+    $errors[] = 'Admin privacy requests view cannot be read.';
+} elseif (
+    strpos($adminPrivacyRequestsView, 'toy_admin_privacy_request_requester_display($request)') === false
+    || strpos($adminPrivacyRequestsView, "toy_admin_privacy_request_list_preview(\$request['request_message'] ?? null)") === false
+) {
+    $errors[] = 'Admin privacy requests view must render requester and message through privacy display helpers.';
+}
+
 $coreSettingsHelper = file_get_contents($root . '/core/helpers/settings.php');
 if (!is_string($coreSettingsHelper)) {
     $errors[] = 'Core settings helper cannot be read.';

@@ -55,8 +55,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) ($request['account_id'] ?? '')); ?></td>
                 <td><?php echo toy_e((string) $request['request_type']); ?></td>
                 <td><?php echo toy_e((string) $request['status']); ?></td>
-                <td><?php echo toy_e((string) $request['requester_snapshot']); ?></td>
-                <td><?php echo toy_e((string) ($request['request_message'] ?? '')); ?></td>
+                <td><?php echo toy_e(toy_admin_privacy_request_requester_display($request)); ?></td>
+                <td><?php echo toy_e(toy_admin_privacy_request_list_preview($request['request_message'] ?? null)); ?></td>
                 <td><?php echo toy_e((string) ($request['handled_at'] ?? '')); ?></td>
                 <td>
                     <form method="post" action="<?php echo toy_e(toy_url('/admin/privacy-requests/export')); ?>">
