@@ -313,6 +313,15 @@ if (is_string($adminModuleSourcesHelper) && (
     $errors[] = 'Admin module source zip symlink checks must fail closed when entry attributes cannot be read.';
 }
 if (is_string($adminModuleSourcesHelper) && (
+    strpos($adminModuleSourcesHelper, 'function toy_admin_validate_extracted_module_tree') === false
+    || strpos($adminModuleSourcesHelper, 'toy_admin_validate_extracted_module_tree($extractDir)') === false
+    || strpos($adminModuleSourcesHelper, '압축 해제된 모듈에 심볼릭 링크가 있습니다.') === false
+    || strpos($adminModuleSourcesHelper, '압축 해제된 모듈 경로가 작업 디렉터리 밖을 가리킵니다.') === false
+    || strpos($adminModuleSourcesHelper, 'toy_admin_path_is_inside($item->getPathname(), $extractDir)') === false
+)) {
+    $errors[] = 'Admin module source extraction must verify the extracted file tree stays inside the work directory.';
+}
+if (is_string($adminModuleSourcesHelper) && (
     strpos($adminModuleSourcesHelper, 'function toy_admin_is_https_public_url') === false
     || strpos($adminModuleSourcesHelper, "strtolower((string) parse_url(\$url, PHP_URL_SCHEME)) === 'https'") === false
     || strpos($adminModuleSourcesHelper, "toy_admin_is_https_public_url((string) (\$entry['zip_url'] ?? ''))") === false

@@ -512,6 +512,27 @@ function toy_admin_path_is_inside(string $path, string $root): bool
     return $realPath === $realRoot || strpos($realPath, $realRoot . DIRECTORY_SEPARATOR) === 0;
 }
 
+function toy_admin_validate_extracted_module_tree(string $extractDir): void
+{
+    if (!is_dir($extractDir)) {
+        throw new RuntimeException('압축 해제된 모듈 디렉터리를 찾을 수 없습니다.');
+    }
+
+    $items = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($extractDir, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+    foreach ($items as $item) {
+        if ($item->isLink()) {
+            throw new RuntimeException('압축 해제된 모듈에 심볼릭 링크가 있습니다.');
+        }
+
+        if (!toy_admin_path_is_inside($item->getPathname(), $extractDir)) {
+            throw new RuntimeException('압축 해제된 모듈 경로가 작업 디렉터리 밖을 가리킵니다.');
+        }
+    }
+}
+
 function toy_admin_infer_module_key_from_filename(string $filename): string
 {
     $name = strtolower(pathinfo($filename, PATHINFO_FILENAME));
@@ -771,6 +792,8 @@ function toy_admin_extract_module_upload(array $file, string $requestedModuleKey
     }
 
     try {
+        toy_admin_validate_extracted_module_tree($extractDir);
+
         $source = toy_admin_find_module_source($extractDir, $requestedModuleKey, $filename);
         if ($requestedModuleKey !== '' && (string) $source['module_key'] !== $requestedModuleKey) {
             throw new RuntimeException('zip 내부 모듈 키가 요청한 모듈 키와 일치하지 않습니다.');

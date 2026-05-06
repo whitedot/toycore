@@ -38,7 +38,7 @@
 - 모듈 소스 반영과 파일 버전 동기화는 owner 비밀번호 재인증 필요
 - 모듈 registry/repository zip 다운로드는 URL 검증 후 HTTP redirect를 따르지 않음
 - 모듈 registry/repository zip 다운로드는 HTTP 2xx 응답만 저장 대상으로 처리
-- 모듈 zip은 checksum, 항목 수, symlink, 경로 제어 문자/콜론/모호한 segment, 압축 해제 크기, module key, version, downgrade, 교체 확인을 검증
+- 모듈 zip은 checksum, 항목 수, symlink, 경로 제어 문자/콜론/모호한 segment, 압축 해제 후 실제 파일 트리 경계, 압축 해제 크기, module key, version, downgrade, 교체 확인을 검증
 - 모듈 소스 업로드/다운로드 성공과 실패를 감사 로그에 기록
 - 공식 모듈 registry는 `docs/module-index.json`에 두고 HTTPS release zip URL과 checksum이 등록된 항목만 다운로드 가능
 - `.tools/bin/check-module-index.php`로 공식 모듈 registry 구조와 release zip/checksum 쌍 검증 가능
