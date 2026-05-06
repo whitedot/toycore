@@ -102,7 +102,7 @@ function toy_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRol
     }
 
     if ($errors === []) {
-        $stmt = $pdo->prepare('SELECT id, email FROM toy_member_accounts WHERE id = :id LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id, email, status FROM toy_member_accounts WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $targetAccountId]);
         $targetAccount = $stmt->fetch();
 
@@ -115,6 +115,14 @@ function toy_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRol
         $targetRoles = toy_admin_current_roles($pdo, $targetAccountId);
         if (in_array('owner', $targetRoles, true) && toy_admin_owner_count($pdo) <= 1) {
             $errors[] = '마지막 owner 권한은 회수할 수 없습니다.';
+        }
+
+        if (
+            in_array('owner', $targetRoles, true)
+            && (string) $targetAccount['status'] === 'active'
+            && toy_admin_active_owner_count($pdo) <= 1
+        ) {
+            $errors[] = '마지막 active owner 권한은 회수할 수 없습니다.';
         }
     }
 

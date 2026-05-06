@@ -95,6 +95,11 @@ foreach (toy_admin_action_security_module_dirs($root) as $moduleDir) {
 $adminRolesHelper = file_get_contents($root . '/modules/admin/helpers/roles.php');
 if (!is_string($adminRolesHelper) || strpos($adminRolesHelper, 'function toy_admin_active_owner_count') === false) {
     $errors[] = 'Admin role helper must expose an active owner count guard.';
+} elseif (
+    strpos($adminRolesHelper, 'toy_admin_active_owner_count($pdo) <= 1') === false
+    || strpos($adminRolesHelper, '마지막 active owner 권한은 회수할 수 없습니다.') === false
+) {
+    $errors[] = 'Admin role helper must prevent revoking the last active owner role.';
 }
 
 $adminMembersHelper = file_get_contents($root . '/modules/admin/helpers/members.php');
