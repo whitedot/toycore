@@ -37,6 +37,26 @@ function toy_admin_site_setting_requires_bool(string $settingKey): bool
     return toy_admin_site_setting_requires_reauth($settingKey);
 }
 
+function toy_admin_site_setting_value_is_secret(string $settingKey): bool
+{
+    return preg_match(
+        '/(?:^|[._-])(?:password|token|secret|credential|bearer|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)(?:$|[._-])/',
+        strtolower($settingKey)
+    ) === 1;
+}
+
+function toy_admin_site_setting_display_value(array $setting): string
+{
+    $settingKey = (string) ($setting['setting_key'] ?? '');
+    $settingValue = (string) ($setting['setting_value'] ?? '');
+
+    if (toy_admin_site_setting_value_is_secret($settingKey)) {
+        return $settingValue === '' ? '' : '[masked]';
+    }
+
+    return $settingValue;
+}
+
 function toy_admin_site_setting_values(?array $site): array
 {
     return [
