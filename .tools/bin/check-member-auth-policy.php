@@ -104,6 +104,11 @@ toy_member_auth_policy_assert(
 $loginAction = toy_member_auth_policy_read('modules/member/actions/login.php');
 if ($loginAction !== '') {
     toy_member_auth_policy_assert(
+        strpos($loginAction, "toy_post_string_without_truncation('identifier', 255)") !== false
+            && strpos($loginAction, '$identifier === null') !== false,
+        'Login action should reject overlong raw identifiers instead of truncating them for account lookup.'
+    );
+    toy_member_auth_policy_assert(
         strpos($loginAction, 'toy_member_email_verification_blocks_login') !== false,
         'Login action should enforce email verification policy.'
     );

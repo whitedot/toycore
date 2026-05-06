@@ -27,7 +27,11 @@ if ($notice === '' && toy_get_string('password_reset', 10) === '1') {
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
 
-    $identifier = toy_post_string('identifier', 255);
+    $identifier = toy_post_string_without_truncation('identifier', 255);
+    if ($identifier === null) {
+        $identifier = '';
+    }
+
     $password = toy_post_string('password', 255);
     $next = toy_member_safe_next_path(toy_post_string('next', 255));
     $account = toy_member_find_by_identifier($pdo, $config, $identifier);
