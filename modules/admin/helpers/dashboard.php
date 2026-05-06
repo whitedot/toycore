@@ -347,7 +347,7 @@ function toy_admin_dashboard_recovery_marker(string $filename, string $label): ?
         'scope' => (string) ($decoded['scope'] ?? ''),
         'module_key' => (string) ($decoded['module_key'] ?? ''),
         'version' => (string) ($decoded['version'] ?? ''),
-        'message' => (string) ($decoded['message'] ?? ''),
+        'message' => toy_log_sensitive_text_sanitize(toy_log_line_value((string) ($decoded['message'] ?? ''), 500)),
     ];
 }
 

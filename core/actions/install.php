@@ -106,7 +106,7 @@ if (is_file($previousInstallFailurePath) && is_readable($previousInstallFailureP
         $previousInstallFailure = [
             'recorded_at' => (string) ($decodedPreviousInstallFailure['recorded_at'] ?? ''),
             'stage' => (string) ($decodedPreviousInstallFailure['stage'] ?? ''),
-            'message' => (string) ($decodedPreviousInstallFailure['message'] ?? ''),
+            'message' => toy_log_sensitive_text_sanitize(toy_log_line_value((string) ($decodedPreviousInstallFailure['message'] ?? ''), 500)),
             'config_written' => !empty($decodedPreviousInstallFailure['config_written']),
             'installed_lock_written' => !empty($decodedPreviousInstallFailure['installed_lock_written']),
         ];
@@ -456,7 +456,7 @@ if (toy_request_method() === 'POST') {
             toy_log_exception($exception, 'install_failed_' . $installStage);
             toy_write_operational_marker('install-failed.json', [
                 'stage' => $installStage,
-                'message' => toy_log_line_value($exception->getMessage(), 500),
+                'message' => toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500)),
                 'config_written' => is_file(TOY_ROOT . '/config/config.php'),
                 'installed_lock_written' => is_file(TOY_ROOT . '/storage/installed.lock'),
             ]);

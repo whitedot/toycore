@@ -343,11 +343,19 @@ $adminUpdatesHelper = file_get_contents($root . '/modules/admin/helpers/updates.
 if (!is_string($adminUpdatesHelper)) {
     $errors[] = 'Admin updates helper cannot be read.';
 } elseif (
-    substr_count($adminUpdatesHelper, 'toy_log_line_value($exception->getMessage(), 500)') < 2
+    substr_count($adminUpdatesHelper, 'toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500))') < 2
     || strpos($adminUpdatesHelper, "'schema.update.failed'") === false
-    || strpos($adminUpdatesHelper, '\'message\' => toy_log_line_value($exception->getMessage(), 500)') === false
+    || strpos($adminUpdatesHelper, '\'message\' => toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500))') === false
+    || strpos($adminUpdatesHelper, "toy_log_sensitive_text_sanitize(toy_log_line_value((string) (\$decoded['message'] ?? ''), 500))") === false
 ) {
     $errors[] = 'Admin schema update failures must write sanitized audit and marker messages.';
+}
+
+$adminDashboardHelper = file_get_contents($root . '/modules/admin/helpers/dashboard.php');
+if (!is_string($adminDashboardHelper)) {
+    $errors[] = 'Admin dashboard helper cannot be read.';
+} elseif (strpos($adminDashboardHelper, "toy_log_sensitive_text_sanitize(toy_log_line_value((string) (\$decoded['message'] ?? ''), 500))") === false) {
+    $errors[] = 'Admin dashboard recovery markers must mask secret-like messages before display.';
 }
 
 if ($errors !== []) {

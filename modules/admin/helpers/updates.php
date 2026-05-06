@@ -216,7 +216,7 @@ function toy_admin_previous_update_failure(): ?array
         'module_key' => (string) ($decoded['module_key'] ?? ''),
         'version' => (string) ($decoded['version'] ?? ''),
         'checksum' => (string) ($decoded['checksum'] ?? ''),
-        'message' => (string) ($decoded['message'] ?? ''),
+        'message' => toy_log_sensitive_text_sanitize(toy_log_line_value((string) ($decoded['message'] ?? ''), 500)),
     ];
 }
 
@@ -274,7 +274,7 @@ function toy_admin_handle_updates_post(PDO $pdo, array $account): array
                             'schema.update.failed',
                             'failure',
                             'Schema update failed.',
-                            ['error' => toy_log_line_value($exception->getMessage(), 500)]
+                            ['error' => toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500))]
                         );
                         $errors[] = (string) $update['label'] . ' ' . (string) $update['version'] . ' 업데이트 중 오류가 발생했습니다.';
                         toy_write_operational_marker('update-failed.json', [
@@ -283,7 +283,7 @@ function toy_admin_handle_updates_post(PDO $pdo, array $account): array
                             'module_key' => (string) $update['module_key'],
                             'version' => (string) $update['version'],
                             'checksum' => (string) ($update['checksum'] ?? ''),
-                            'message' => toy_log_line_value($exception->getMessage(), 500),
+                            'message' => toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500)),
                         ]);
                         break;
                     }
