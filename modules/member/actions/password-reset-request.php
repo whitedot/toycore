@@ -13,7 +13,12 @@ $email = '';
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
 
-    $email = toy_post_string('email', 255);
+    $email = toy_post_string_without_truncation('email', 255);
+    if ($email === null) {
+        $errors[] = '이메일은 255자 이하로 입력하세요.';
+        $email = '';
+    }
+
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = '이메일 형식이 올바르지 않습니다.';
     }

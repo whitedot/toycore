@@ -730,6 +730,11 @@ if ($passwordResetAction !== '') {
 $passwordResetRequestAction = toy_member_auth_policy_read('modules/member/actions/password-reset-request.php');
 if ($passwordResetRequestAction !== '') {
     toy_member_auth_policy_assert(
+        strpos($passwordResetRequestAction, "toy_post_string_without_truncation('email', 255)") !== false
+            && strpos($passwordResetRequestAction, '$email === null') !== false,
+        'Password reset request action should reject overlong raw email inputs instead of truncating them.'
+    );
+    toy_member_auth_policy_assert(
         strpos($passwordResetRequestAction, '$mailSent = toy_send_mail') !== false
             && strpos($passwordResetRequestAction, "'mail_sent' => \$mailSent") !== false,
         'Password reset request action should audit reset mail delivery result.'
