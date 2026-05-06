@@ -167,7 +167,7 @@ function toy_member_reauth_throttle_status(PDO $pdo, int $accountId): array
 
 function toy_member_login_failure_event_types(): array
 {
-    return ['login', 'login_blocked', 'login_email_unverified'];
+    return ['login', 'login_blocked', 'login_email_unverified', 'login_session_failed'];
 }
 
 function toy_member_reauth_failure_event_types(): array

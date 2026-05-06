@@ -87,6 +87,10 @@ toy_member_auth_policy_assert(
     'Unverified email login blocks should count as login failure throttle events.'
 );
 toy_member_auth_policy_assert(
+    in_array('login_session_failed', toy_member_login_failure_event_types(), true),
+    'Login session creation failures should count as login failure throttle events.'
+);
+toy_member_auth_policy_assert(
     in_array('password_change_reauth', toy_member_reauth_failure_event_types(), true)
         && in_array('withdraw_reauth', toy_member_reauth_failure_event_types(), true)
         && in_array('reauth_blocked', toy_member_reauth_failure_event_types(), true),
