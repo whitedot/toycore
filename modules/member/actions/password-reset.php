@@ -70,6 +70,7 @@ if ($method === 'POST') {
 
             toy_member_update_password($pdo, (int) $reset['account_id'], $password);
             $revokedSessions = toy_member_revoke_account_sessions($pdo, (int) $reset['account_id']);
+            $shouldLogoutCurrentSession = toy_member_current_session_account_id() === (int) $reset['account_id'];
             $pdo->commit();
 
             toy_member_log_auth($pdo, (int) $reset['account_id'], 'password_reset', 'success');
@@ -83,10 +84,14 @@ if ($method === 'POST') {
                 'message' => 'Member password reset completed.',
                 'metadata' => [
                     'revoked_sessions' => $revokedSessions,
+                    'logged_out_current_session' => $shouldLogoutCurrentSession,
                 ],
             ]);
 
             toy_member_clear_password_reset_session_hash();
+            if ($shouldLogoutCurrentSession) {
+                toy_member_logout_current_session_if_account($pdo, (int) $reset['account_id']);
+            }
             $notice = '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.';
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {

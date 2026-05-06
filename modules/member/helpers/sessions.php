@@ -184,6 +184,27 @@ function toy_member_rotate_current_session(PDO $pdo, int $accountId): bool
     return true;
 }
 
+function toy_member_current_session_account_id(): ?int
+{
+    $accountId = $_SESSION['toy_account_id'] ?? null;
+    if (!is_int($accountId) && !ctype_digit((string) $accountId)) {
+        return null;
+    }
+
+    $accountId = (int) $accountId;
+    return $accountId > 0 ? $accountId : null;
+}
+
+function toy_member_logout_current_session_if_account(PDO $pdo, int $accountId): bool
+{
+    if ($accountId < 1 || toy_member_current_session_account_id() !== $accountId) {
+        return false;
+    }
+
+    toy_member_logout($pdo);
+    return true;
+}
+
 function toy_member_logout(?PDO $pdo = null): void
 {
     if ($pdo instanceof PDO) {

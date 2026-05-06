@@ -140,6 +140,11 @@ if ($sessionHelper !== '') {
             && strpos($sessionHelper, 'toy_member_create_session($pdo, $accountId)') !== false,
         'Current member session rotation helper should regenerate PHP and member session tokens.'
     );
+    toy_member_auth_policy_assert(
+        strpos($sessionHelper, 'function toy_member_logout_current_session_if_account') !== false
+            && strpos($sessionHelper, 'toy_member_current_session_account_id()') !== false,
+        'Session helper should support immediate logout of the current session for a target account.'
+    );
 }
 
 $accountAction = toy_member_auth_policy_read('modules/member/actions/account.php');
@@ -214,6 +219,10 @@ if ($passwordResetAction !== '') {
     toy_member_auth_policy_assert(
         strpos($passwordResetAction, "toy_redirect('/password/reset/confirm')") !== false,
         'Password reset confirm action should redirect token query URLs to a tokenless form URL.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($passwordResetAction, 'toy_member_logout_current_session_if_account($pdo, (int) $reset[\'account_id\'])') !== false,
+        'Password reset completion should immediately clear the current PHP session for the reset account.'
     );
 }
 
