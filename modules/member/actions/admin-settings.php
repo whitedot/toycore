@@ -18,6 +18,12 @@ if (toy_request_method() === 'POST') {
 
     $settings['allow_registration'] = ($_POST['allow_registration'] ?? '') === '1';
     $settings['email_verification_enabled'] = ($_POST['email_verification_enabled'] ?? '') === '1';
+    $loginIdentifier = toy_post_string('login_identifier', 20);
+    if (!in_array($loginIdentifier, ['email', 'login_id'], true)) {
+        $errors[] = '로그인 식별자 설정이 올바르지 않습니다.';
+    } else {
+        $settings['login_identifier'] = $loginIdentifier;
+    }
 
     foreach ($integerSettingKeys as $key => $limits) {
         $rawValue = toy_post_string($key, 10);
@@ -51,6 +57,7 @@ if (toy_request_method() === 'POST') {
         $rows = [
             ['allow_registration', $settings['allow_registration'] ? '1' : '0', 'bool'],
             ['email_verification_enabled', $settings['email_verification_enabled'] ? '1' : '0', 'bool'],
+            ['login_identifier', (string) $settings['login_identifier'], 'string'],
         ];
 
         foreach ($integerSettingKeys as $key => $limits) {
@@ -80,6 +87,7 @@ if (toy_request_method() === 'POST') {
             'metadata' => [
                 'allow_registration' => (bool) $settings['allow_registration'],
                 'email_verification_enabled' => (bool) $settings['email_verification_enabled'],
+                'login_identifier' => (string) $settings['login_identifier'],
             ],
         ]);
 

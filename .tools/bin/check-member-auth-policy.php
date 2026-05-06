@@ -146,6 +146,11 @@ if ($accountHelper !== '') {
             && strpos($accountHelper, 'password_needs_rehash($currentHash, PASSWORD_DEFAULT)') !== false,
         'Login password rehash helper should upgrade stale password hashes.'
     );
+    toy_member_auth_policy_assert(
+        strpos($accountHelper, 'email_hash = :email_hash') !== false
+            && strpos($accountHelper, 'email_hash_guard') !== false,
+        'Login identifier lookup should allow email fallback when login_id mode is used.'
+    );
 }
 
 $throttleHelper = toy_member_auth_policy_read('modules/member/helpers/throttle.php');
@@ -287,6 +292,41 @@ if ($registerAction !== '') {
             && $registerMail !== false
             && $registerCommit < $registerMail,
         'Register action should send email only after the account transaction commits.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($registerAction, "\$loginIdentifierMode = (string) \$memberSettings['login_identifier'];") !== false
+            && strpos($registerAction, "'login_id' => toy_member_normalize_login_id") !== false
+            && strpos($registerAction, "toy_member_is_valid_login_id(\$values['login_id'])") !== false
+            && strpos($registerAction, "'login_id' => \$loginIdentifierMode === 'login_id' ? \$values['login_id'] : ''") !== false,
+        'Register action should collect and validate login_id when login_id identifier mode is enabled.'
+    );
+}
+
+$registerView = toy_member_auth_policy_read('modules/member/views/register.php');
+if ($registerView !== '') {
+    toy_member_auth_policy_assert(
+        strpos($registerView, '$loginIdentifierMode === \'login_id\'') !== false
+            && strpos($registerView, 'name="login_id"') !== false,
+        'Register view should render login_id input only when login_id identifier mode is enabled.'
+    );
+}
+
+$adminSettingsAction = toy_member_auth_policy_read('modules/member/actions/admin-settings.php');
+if ($adminSettingsAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($adminSettingsAction, "toy_post_string('login_identifier', 20)") !== false
+            && strpos($adminSettingsAction, "['email', 'login_id']") !== false
+            && strpos($adminSettingsAction, "['login_identifier', (string) \$settings['login_identifier'], 'string']") !== false,
+        'Member settings action should validate and save login_identifier.'
+    );
+}
+
+$adminSettingsView = toy_member_auth_policy_read('modules/member/views/admin-settings.php');
+if ($adminSettingsView !== '') {
+    toy_member_auth_policy_assert(
+        strpos($adminSettingsView, 'name="login_identifier"') !== false
+            && strpos($adminSettingsView, 'value="login_id"') !== false,
+        'Member settings view should expose login_identifier selection.'
     );
 }
 

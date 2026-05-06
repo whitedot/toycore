@@ -114,14 +114,22 @@ function toy_member_find_by_identifier(PDO $pdo, array $config, string $identifi
 {
     $normalizedIdentifier = toy_normalize_identifier($identifier);
     $identifierHash = toy_hmac_hash($normalizedIdentifier, $config);
+    $emailHash = filter_var($normalizedIdentifier, FILTER_VALIDATE_EMAIL)
+        ? toy_hmac_hash($normalizedIdentifier, $config)
+        : '';
 
     $stmt = $pdo->prepare(
         'SELECT ' . toy_member_account_select_columns() . '
          FROM toy_member_accounts
-         WHERE account_identifier_hash = :hash
+         WHERE account_identifier_hash = :identifier_hash
+            OR (:email_hash_guard <> \'\' AND email_hash = :email_hash)
          LIMIT 1'
     );
-    $stmt->execute(['hash' => $identifierHash]);
+    $stmt->execute([
+        'identifier_hash' => $identifierHash,
+        'email_hash_guard' => $emailHash,
+        'email_hash' => $emailHash,
+    ]);
     $account = $stmt->fetch();
 
     return is_array($account) ? $account : null;

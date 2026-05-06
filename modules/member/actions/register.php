@@ -12,9 +12,11 @@ if ($account !== null) {
 $memberSettings = toy_member_settings($pdo);
 $registrationAllowed = (bool) $memberSettings['allow_registration'];
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
+$loginIdentifierMode = (string) $memberSettings['login_identifier'];
 $errors = [];
 $values = [
     'email' => '',
+    'login_id' => '',
     'display_name' => '',
 ];
 
@@ -27,6 +29,7 @@ if (toy_request_method() === 'POST') {
 
     $values = [
         'email' => toy_post_string('email', 255),
+        'login_id' => toy_member_normalize_login_id(toy_post_string('login_id', 80)),
         'display_name' => toy_post_string('display_name', 120),
     ];
     $password = toy_post_string('password', 255);
@@ -36,6 +39,10 @@ if (toy_request_method() === 'POST') {
 
     if (!filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
         $errors[] = '이메일 형식이 올바르지 않습니다.';
+    }
+
+    if ($loginIdentifierMode === 'login_id' && !toy_member_is_valid_login_id($values['login_id'])) {
+        $errors[] = '로그인 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄을 포함한 4~40자여야 합니다.';
     }
 
     if ($values['display_name'] === '') {
@@ -81,6 +88,7 @@ if (toy_request_method() === 'POST') {
 
             $accountId = toy_member_create_account($pdo, $config, [
                 'email' => $values['email'],
+                'login_id' => $loginIdentifierMode === 'login_id' ? $values['login_id'] : '',
                 'password' => $password,
                 'display_name' => $values['display_name'],
                 'locale' => (string) ($site['default_locale'] ?? 'ko'),
@@ -135,7 +143,7 @@ if (toy_request_method() === 'POST') {
                 ],
             ]);
 
-            $newAccount = toy_member_find_by_identifier($pdo, $config, $values['email']);
+            $newAccount = toy_member_find_by_identifier($pdo, $config, $loginIdentifierMode === 'login_id' ? $values['login_id'] : $values['email']);
             if ($emailVerificationEnabled) {
                 $_SESSION['toy_member_login_notice'] = '가입을 접수했습니다. 이메일 인증을 완료한 뒤 로그인하세요.';
                 toy_redirect('/login');

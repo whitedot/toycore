@@ -33,6 +33,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 이메일 인증 사용
             </label>
         </p>
+        <p>
+            <label>로그인 식별자<br>
+                <select name="login_identifier">
+                    <option value="email"<?php echo (string) $settings['login_identifier'] === 'email' ? ' selected' : ''; ?>>이메일</option>
+                    <option value="login_id"<?php echo (string) $settings['login_identifier'] === 'login_id' ? ' selected' : ''; ?>>로그인 아이디</option>
+                </select>
+            </label>
+        </p>
     </section>
 
     <section>

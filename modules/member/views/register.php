@@ -36,6 +36,13 @@ $seo = [
                         <input type="email" name="email" value="<?php echo toy_e($values['email']); ?>" required>
                     </label>
                 </p>
+                <?php if ($loginIdentifierMode === 'login_id') { ?>
+                    <p>
+                        <label>로그인 아이디<br>
+                            <input type="text" name="login_id" value="<?php echo toy_e($values['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username" required>
+                        </label>
+                    </p>
+                <?php } ?>
                 <p>
                     <label>표시 이름<br>
                         <input type="text" name="display_name" value="<?php echo toy_e($values['display_name']); ?>" maxlength="120" required>
