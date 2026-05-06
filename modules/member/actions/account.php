@@ -75,6 +75,9 @@ if (toy_request_method() === 'POST') {
         if ($profileFields['birth_date']) {
             $profile['birth_date'] = toy_post_string('birth_date', 10);
         }
+        if ($profileFields['avatar_path']) {
+            $profile['avatar_path'] = toy_post_string('avatar_path', 255);
+        }
         if ($profileFields['profile_text']) {
             $profile['profile_text'] = toy_post_string('profile_text', 1000);
         }
@@ -87,6 +90,14 @@ if (toy_request_method() === 'POST') {
             if (!checkdate((int) $birthParts[1], (int) $birthParts[2], (int) $birthParts[0])) {
                 $errors[] = '생년월일이 올바르지 않습니다.';
             }
+        }
+        if (
+            $profileFields['avatar_path']
+            && $profile['avatar_path'] !== ''
+            && !toy_is_safe_relative_url($profile['avatar_path'])
+            && !toy_is_http_url($profile['avatar_path'])
+        ) {
+            $errors[] = '아바타 경로는 /로 시작하는 상대 URL 또는 http(s) URL이어야 합니다.';
         }
 
         if ($errors === []) {

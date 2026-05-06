@@ -127,6 +127,13 @@ $seo = [
                             </label>
                         </p>
                     <?php } ?>
+                    <?php if ($profileFields['avatar_path']) { ?>
+                        <p>
+                            <label>아바타 경로<br>
+                                <input type="text" name="avatar_path" value="<?php echo toy_e($profile['avatar_path']); ?>" maxlength="255">
+                            </label>
+                        </p>
+                    <?php } ?>
                     <?php if ($profileFields['profile_text']) { ?>
                         <p>
                             <label>소개<br>

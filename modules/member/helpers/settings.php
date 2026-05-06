@@ -30,6 +30,7 @@ function toy_member_default_settings(): array
         'profile_nickname_enabled' => (bool) ($settings['profile_nickname_enabled'] ?? true),
         'profile_phone_enabled' => (bool) ($settings['profile_phone_enabled'] ?? true),
         'profile_birth_date_enabled' => (bool) ($settings['profile_birth_date_enabled'] ?? true),
+        'profile_avatar_enabled' => (bool) ($settings['profile_avatar_enabled'] ?? true),
         'profile_text_enabled' => (bool) ($settings['profile_text_enabled'] ?? true),
     ];
 }
@@ -80,6 +81,7 @@ function toy_member_profile_field_setting_keys(): array
         'profile_nickname_enabled' => '닉네임',
         'profile_phone_enabled' => '전화번호',
         'profile_birth_date_enabled' => '생년월일',
+        'profile_avatar_enabled' => '아바타 경로',
         'profile_text_enabled' => '소개',
     ];
 }
@@ -90,6 +92,7 @@ function toy_member_profile_field_settings(array $settings): array
         'nickname' => !empty($settings['profile_nickname_enabled']),
         'phone' => !empty($settings['profile_phone_enabled']),
         'birth_date' => !empty($settings['profile_birth_date_enabled']),
+        'avatar_path' => !empty($settings['profile_avatar_enabled']),
         'profile_text' => !empty($settings['profile_text_enabled']),
     ];
 }

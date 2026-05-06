@@ -30,6 +30,7 @@ return [
         'profile_nickname_enabled' => true,
         'profile_phone_enabled' => true,
         'profile_birth_date_enabled' => true,
+        'profile_avatar_enabled' => true,
         'profile_text_enabled' => true,
     ],
 ];

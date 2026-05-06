@@ -174,6 +174,7 @@ if ($settingsHelper !== '') {
             && strpos($settingsHelper, 'profile_nickname_enabled') !== false
             && strpos($settingsHelper, 'profile_phone_enabled') !== false
             && strpos($settingsHelper, 'profile_birth_date_enabled') !== false
+            && strpos($settingsHelper, 'profile_avatar_enabled') !== false
             && strpos($settingsHelper, 'profile_text_enabled') !== false,
         'Member settings helper should define configurable optional profile fields.'
     );
@@ -260,8 +261,14 @@ if ($accountAction !== '') {
             && strpos($accountAction, 'if ($profileFields[\'nickname\'])') !== false
             && strpos($accountAction, 'if ($profileFields[\'phone\'])') !== false
             && strpos($accountAction, 'if ($profileFields[\'birth_date\'])') !== false
+            && strpos($accountAction, 'if ($profileFields[\'avatar_path\'])') !== false
             && strpos($accountAction, 'if ($profileFields[\'profile_text\'])') !== false,
         'Account action should only update enabled optional profile fields.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($accountAction, '!toy_is_safe_relative_url($profile[\'avatar_path\'])') !== false
+            && strpos($accountAction, '!toy_is_http_url($profile[\'avatar_path\'])') !== false,
+        'Account action should validate avatar_path before saving it.'
     );
 }
 
@@ -372,6 +379,7 @@ if ($accountView !== '') {
             && strpos($accountView, "if (\$profileFields['nickname'])") !== false
             && strpos($accountView, "if (\$profileFields['phone'])") !== false
             && strpos($accountView, "if (\$profileFields['birth_date'])") !== false
+            && strpos($accountView, "if (\$profileFields['avatar_path'])") !== false
             && strpos($accountView, "if (\$profileFields['profile_text'])") !== false,
         'Account view should render only enabled optional profile fields.'
     );
