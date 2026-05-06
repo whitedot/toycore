@@ -176,6 +176,26 @@ if (!is_string($adminModulesView)) {
     $errors[] = 'Admin modules view must render module setting values through the masking helper.';
 }
 
+$adminAuditLogsHelper = file_get_contents($root . '/modules/admin/helpers/audit-logs.php');
+if (!is_string($adminAuditLogsHelper)) {
+    $errors[] = 'Admin audit logs helper cannot be read.';
+} elseif (
+    strpos($adminAuditLogsHelper, 'function toy_admin_audit_metadata_redact') === false
+    || strpos($adminAuditLogsHelper, 'function toy_admin_audit_log_display_metadata') === false
+    || strpos($adminAuditLogsHelper, 'toy_admin_setting_value_is_secret($key)') === false
+    || strpos($adminAuditLogsHelper, 'json_decode($metadataJson, true)') === false
+    || strpos($adminAuditLogsHelper, "'[invalid metadata]'") === false
+) {
+    $errors[] = 'Admin audit logs helper must redact secret-like metadata before display.';
+}
+
+$adminAuditLogsView = file_get_contents($root . '/modules/admin/views/audit-logs.php');
+if (!is_string($adminAuditLogsView)) {
+    $errors[] = 'Admin audit logs view cannot be read.';
+} elseif (strpos($adminAuditLogsView, 'toy_admin_audit_log_display_metadata($log)') === false) {
+    $errors[] = 'Admin audit logs view must render metadata through the redaction helper.';
+}
+
 $coreSettingsHelper = file_get_contents($root . '/core/helpers/settings.php');
 if (!is_string($coreSettingsHelper)) {
     $errors[] = 'Core settings helper cannot be read.';

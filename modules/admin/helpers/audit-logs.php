@@ -14,6 +14,41 @@ function toy_admin_audit_log_filters(): array
     ];
 }
 
+function toy_admin_audit_metadata_redact(mixed $value, string $key = ''): mixed
+{
+    if ($key !== '' && toy_admin_setting_value_is_secret($key)) {
+        return $value === '' ? '' : '[masked]';
+    }
+
+    if (!is_array($value)) {
+        return $value;
+    }
+
+    $redacted = [];
+    foreach ($value as $childKey => $childValue) {
+        $redacted[$childKey] = toy_admin_audit_metadata_redact($childValue, is_string($childKey) ? $childKey : '');
+    }
+
+    return $redacted;
+}
+
+function toy_admin_audit_log_display_metadata(array $log): string
+{
+    $metadataJson = (string) ($log['metadata_json'] ?? '');
+    if ($metadataJson === '') {
+        return '';
+    }
+
+    $metadata = json_decode($metadataJson, true);
+    if (!is_array($metadata)) {
+        return '[invalid metadata]';
+    }
+
+    $encoded = json_encode(toy_admin_audit_metadata_redact($metadata), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+    return is_string($encoded) ? $encoded : '[invalid metadata]';
+}
+
 function toy_admin_audit_log_query_parts(array &$filters): array
 {
     $where = [];

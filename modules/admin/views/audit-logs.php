@@ -74,7 +74,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) $log['result']); ?></td>
                 <td><?php echo toy_e((string) $log['ip_address']); ?></td>
                 <td><?php echo toy_e((string) $log['message']); ?></td>
-                <td><?php echo toy_e((string) ($log['metadata_json'] ?? '')); ?></td>
+                <td><?php echo toy_e(toy_admin_audit_log_display_metadata($log)); ?></td>
             </tr>
         <?php } ?>
     </tbody>
