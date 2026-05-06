@@ -127,6 +127,10 @@ if ($loginAction !== '') {
         'Login action should only store debug email verification URLs when the configured site base URL is localhost.'
     );
     toy_member_auth_policy_assert(
+        strpos($loginAction, "unset(\$_SESSION['toy_debug_email_verification_url']);") !== false,
+        'Login action should clear stale debug email verification URLs outside localhost debug mode.'
+    );
+    toy_member_auth_policy_assert(
         strpos($loginAction, "toy_get_string('password_reset', 10) === '1'") !== false
             && strpos($loginAction, '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.') !== false,
         'Login action should show a fixed completion notice after password reset redirect.'
@@ -385,6 +389,10 @@ if ($registerAction !== '') {
             && strpos($registerAction, 'if ($showVerificationUrl)') !== false,
         'Register action should only store debug email verification URLs when the configured site base URL is localhost.'
     );
+    toy_member_auth_policy_assert(
+        strpos($registerAction, "unset(\$_SESSION['toy_debug_email_verification_url']);") !== false,
+        'Register action should clear stale debug email verification URLs outside localhost debug mode.'
+    );
     $registerTransaction = strpos($registerAction, '$pdo->beginTransaction();');
     $registerConsent = strpos($registerAction, "toy_member_record_consent(\$pdo, \$accountId, 'privacy'");
     $registerCommit = strpos($registerAction, '$pdo->commit();');
@@ -487,6 +495,10 @@ if ($emailVerificationRequestAction !== '') {
         strpos($emailVerificationRequestAction, '$showVerificationUrl = !empty($config[\'debug\']) && toy_is_local_host((string) ($site[\'base_url\'] ?? \'\'));') !== false
             && strpos($emailVerificationRequestAction, 'if ($showVerificationUrl)') !== false,
         'Email verification request action should only store debug verification URLs when the configured site base URL is localhost.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($emailVerificationRequestAction, "unset(\$_SESSION['toy_debug_email_verification_url']);") !== false,
+        'Email verification request action should clear stale debug verification URLs outside localhost debug mode.'
     );
 }
 

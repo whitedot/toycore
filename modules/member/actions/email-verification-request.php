@@ -40,6 +40,8 @@ if (!empty($memberSettings['email_verification_enabled']) && $account['email_ver
         $showVerificationUrl = !empty($config['debug']) && toy_is_local_host((string) ($site['base_url'] ?? ''));
         if ($showVerificationUrl) {
             $_SESSION['toy_debug_email_verification_url'] = $verificationUrl;
+        } else {
+            unset($_SESSION['toy_debug_email_verification_url']);
         }
         if (!$mailSent) {
             toy_member_log_auth($pdo, (int) $account['id'], 'email_verification_mail_failed', 'failure');
