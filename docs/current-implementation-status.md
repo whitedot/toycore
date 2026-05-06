@@ -131,6 +131,7 @@
 - DB 로그인 세션 생성 실패 시 기존 session token hash 정리
 - PHP 세션 strict/cookie-only 모드 적용
 - 로그인 상태를 다중 인스턴스에서 공유 가능한 DB 세션으로 저장
+- 현재 세션의 계정 ID가 비정상이거나 계정이 없으면 PHP 세션 정리
 - 비활성 계정의 기존 로그인 세션 차단
 - 독립 rate limit 카운터 기반 시도 제한
 - rate limit 테이블이 없는 기존 설치의 인증 로그 기반 제한 fallback

@@ -149,12 +149,23 @@ function toy_member_find_by_email(PDO $pdo, array $config, string $email): ?arra
 
 function toy_member_current_account(PDO $pdo): ?array
 {
-    $accountId = $_SESSION['toy_account_id'] ?? null;
-    if (!is_int($accountId) && !ctype_digit((string) $accountId)) {
+    if (!array_key_exists('toy_account_id', $_SESSION)) {
         return null;
     }
 
-    if (!toy_member_session_is_current($pdo, (int) $accountId)) {
+    $accountId = $_SESSION['toy_account_id'];
+    if (!is_int($accountId) && !ctype_digit((string) $accountId)) {
+        toy_member_logout($pdo);
+        return null;
+    }
+
+    $accountId = (int) $accountId;
+    if ($accountId < 1) {
+        toy_member_logout($pdo);
+        return null;
+    }
+
+    if (!toy_member_session_is_current($pdo, $accountId)) {
         toy_member_logout();
         return null;
     }
@@ -165,10 +176,11 @@ function toy_member_current_account(PDO $pdo): ?array
          WHERE id = :id
          LIMIT 1'
     );
-    $stmt->execute(['id' => (int) $accountId]);
+    $stmt->execute(['id' => $accountId]);
     $account = $stmt->fetch();
 
     if (!is_array($account)) {
+        toy_member_logout($pdo);
         return null;
     }
 

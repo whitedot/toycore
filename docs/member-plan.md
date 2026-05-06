@@ -690,6 +690,8 @@ POST /account/withdraw
 
 `member` 모듈은 다른 모듈이 인증 상태를 확인할 수 있도록 작은 helper만 제공합니다.
 
+현재 로그인 계정 조회는 세션의 계정 ID가 비정상이거나 계정 레코드가 사라진 경우 PHP 세션을 즉시 정리합니다.
+
 예상 helper:
 
 ```text
