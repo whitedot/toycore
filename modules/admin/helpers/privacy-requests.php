@@ -64,17 +64,22 @@ function toy_admin_handle_privacy_request_post(PDO $pdo, array $account, array $
         $errors[] = '완료 처리 전 요청자 확인, 내보내기/처리 확인, 처리 내용 확인이 필요합니다.';
     }
 
-    if (in_array($status, toy_admin_privacy_request_terminal_statuses(), true) && $adminNote === '') {
-        $errors[] = '종결 상태로 변경할 때는 관리자 메모를 남기세요.';
-    }
-
     if ($errors === []) {
-        $stmt = $pdo->prepare('SELECT id, status FROM toy_privacy_requests WHERE id = :id LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id, status, admin_note FROM toy_privacy_requests WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $requestId]);
         $privacyRequest = $stmt->fetch();
 
         if (!is_array($privacyRequest)) {
             $errors[] = '개인정보 요청을 찾을 수 없습니다.';
+        }
+    }
+
+    if ($errors === []) {
+        $storedAdminNote = (string) ($privacyRequest['admin_note'] ?? '');
+        $nextAdminNote = $adminNote !== '' ? $adminNote : $storedAdminNote;
+
+        if (in_array($status, toy_admin_privacy_request_terminal_statuses(), true) && $nextAdminNote === '') {
+            $errors[] = '종결 상태로 변경할 때는 관리자 메모를 남기세요.';
         }
     }
 
@@ -99,7 +104,7 @@ function toy_admin_handle_privacy_request_post(PDO $pdo, array $account, array $
         );
         $stmt->execute([
             'status' => $status,
-            'admin_note' => $adminNote,
+            'admin_note' => $nextAdminNote,
             'handled_by_account_id' => (int) $account['id'],
             'handled_at' => $handledAt,
             'updated_at' => toy_now(),

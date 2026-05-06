@@ -74,7 +74,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 </option>
                             <?php } ?>
                         </select>
-                        <textarea name="admin_note" rows="3" cols="30"><?php echo toy_e((string) ($request['admin_note'] ?? '')); ?></textarea>
+                        <textarea name="admin_note" rows="3" cols="30" placeholder="새 관리자 메모"></textarea>
                         <label>
                             <input type="checkbox" name="identity_confirmed" value="1">
                             요청자 확인

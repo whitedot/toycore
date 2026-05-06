@@ -245,8 +245,10 @@ if (!is_string($adminPrivacyRequestsView)) {
 } elseif (
     strpos($adminPrivacyRequestsView, 'toy_admin_privacy_request_requester_display($request)') === false
     || strpos($adminPrivacyRequestsView, "toy_admin_privacy_request_list_preview(\$request['request_message'] ?? null)") === false
+    || strpos($adminPrivacyRequestsView, 'placeholder="새 관리자 메모"') === false
+    || strpos($adminPrivacyRequestsView, "\$request['admin_note'] ?? ''") !== false
 ) {
-    $errors[] = 'Admin privacy requests view must render requester and message through privacy display helpers.';
+    $errors[] = 'Admin privacy requests view must reduce requester/message exposure and avoid prefilled admin notes.';
 }
 
 $coreSettingsHelper = file_get_contents($root . '/core/helpers/settings.php');

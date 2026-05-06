@@ -381,6 +381,21 @@ if ($adminPrivacyRequestsHelper !== '') {
             && strpos($adminPrivacyRequestsHelper, '종결된 개인정보 요청 상태는 다시 변경할 수 없습니다.') !== false,
         'Admin privacy request helper should prevent reopening terminal privacy request statuses.'
     );
+    toy_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsHelper, 'SELECT id, status, admin_note FROM toy_privacy_requests WHERE id = :id LIMIT 1') !== false
+            && strpos($adminPrivacyRequestsHelper, "\$nextAdminNote = \$adminNote !== '' ? \$adminNote : \$storedAdminNote;") !== false
+            && strpos($adminPrivacyRequestsHelper, "'admin_note' => \$nextAdminNote") !== false,
+        'Admin privacy request helper should preserve stored admin notes when list forms submit no replacement note.'
+    );
+}
+
+$adminPrivacyRequestsView = toy_member_auth_policy_read('modules/admin/views/privacy-requests.php');
+if ($adminPrivacyRequestsView !== '') {
+    toy_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsView, 'placeholder="새 관리자 메모"') !== false
+            && strpos($adminPrivacyRequestsView, "\$request['admin_note'] ?? ''") === false,
+        'Admin privacy request view should not prefill stored admin notes in list forms.'
+    );
 }
 
 $registerAction = toy_member_auth_policy_read('modules/member/actions/register.php');
