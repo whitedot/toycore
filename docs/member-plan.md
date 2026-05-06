@@ -614,6 +614,7 @@ POST /login
 -> 필요 시 password_hash를 현재 PHP 기본 알고리즘/비용으로 재해시
 -> session_regenerate_id(true)
 -> session token 생성과 hash 저장
+-> session token 생성 실패 시 기존 session token hash 정리
 -> last_login_at 갱신
 -> 인증 로그 기록
 -> 목적지로 redirect

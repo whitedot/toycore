@@ -146,6 +146,11 @@ if ($sessionHelper !== '') {
         'Current member session rotation helper should regenerate PHP and member session tokens.'
     );
     toy_member_auth_policy_assert(
+        strpos($sessionHelper, 'function toy_member_login') !== false
+            && strpos($sessionHelper, "if (\$sessionTokenHash !== '') {\n        \$_SESSION['toy_session_token_hash'] = \$sessionTokenHash;\n    } else {\n        unset(\$_SESSION['toy_session_token_hash']);\n    }") !== false,
+        'Member login should clear stale session token hash when DB session creation fails.'
+    );
+    toy_member_auth_policy_assert(
         strpos($sessionHelper, 'function toy_member_logout_current_session_if_account') !== false
             && strpos($sessionHelper, 'toy_member_current_session_account_id()') !== false,
         'Session helper should support immediate logout of the current session for a target account.'

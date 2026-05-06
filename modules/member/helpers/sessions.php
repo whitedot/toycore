@@ -10,6 +10,8 @@ function toy_member_login(PDO $pdo, array $account): void
     $sessionTokenHash = toy_member_create_session($pdo, (int) $account['id']);
     if ($sessionTokenHash !== '') {
         $_SESSION['toy_session_token_hash'] = $sessionTokenHash;
+    } else {
+        unset($_SESSION['toy_session_token_hash']);
     }
 
     $stmt = $pdo->prepare('UPDATE toy_member_accounts SET last_login_at = :last_login_at, updated_at = :updated_at WHERE id = :id');
