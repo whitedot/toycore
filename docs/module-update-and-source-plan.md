@@ -215,6 +215,7 @@ Toycore 검증 버전
 - 배포 패키지는 포함 모듈과 버전을 `distribution-manifest.json`에 남긴다.
 - `.tools/bin/check-distributions.php`로 생성된 배포 패키지의 manifest, 포함 모듈 버전, 설치 화면 선택 모듈 구성을 검증할 수 있다.
 - 공식 모듈 registry는 `docs/module-index.json`에 둔다.
+- 운영 환경에서 repository archive를 반영하려면 registry의 `repository_refs`에 40자 commit SHA와 sha256 checksum을 함께 등록한다. Branch나 tag ref는 움직일 수 있으므로 개발/스테이징용 고급 경로로만 취급한다.
 - 관리자 모듈 화면은 설치 버전, 코드 버전, Toycore 호환 정보를 표시한다.
 - `/admin/modules`에서 owner가 모듈 zip을 업로드해 `modules/{module_key}` 파일을 반영할 수 있다.
 - `/admin/modules`에서 registry에 URL과 checksum이 등록된 공식 release zip을 다운로드해 같은 검증 흐름으로 반영할 수 있다.

@@ -199,16 +199,29 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td>
-                            <?php if ($canManageModuleSources && $moduleUploadAvailable && !empty($module['repository_ready'])) { ?>
+                            <?php if ($canManageModuleSources && $moduleUploadAvailable && !empty($module['repository_archive_ready'])) { ?>
                                 <details>
                                     <summary>고급</summary>
                                     <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
                                         <?php echo toy_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="download_repository_archive">
                                         <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
-                                        <label>Ref<br>
-                                            <input type="text" name="repository_ref" value="<?php echo toy_e((string) $module['default_ref']); ?>" maxlength="120" required>
-                                        </label>
+                                        <?php if (!empty($module['repository_archive_production'])) { ?>
+                                            <label>Commit SHA<br>
+                                                <select name="repository_ref" required>
+                                                    <?php foreach ((array) ($module['repository_archive_refs'] ?? []) as $ref => $checksum) { ?>
+                                                        <option value="<?php echo toy_e((string) $ref); ?>">
+                                                            <?php echo toy_e(substr((string) $ref, 0, 12)); ?> / <?php echo toy_e(substr((string) $checksum, 0, 16)); ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                                            </label>
+                                        <?php } else { ?>
+                                            <label>Ref<br>
+                                                <input type="text" name="repository_ref" value="<?php echo toy_e((string) $module['default_ref']); ?>" maxlength="120" required>
+                                            </label>
+                                            <p>개발/스테이징용 경로입니다. 운영 배포는 checksum이 등록된 release zip을 우선 사용하세요.</p>
+                                        <?php } ?>
                                         <?php if (!empty($module['installed'])) { ?>
                                             <label>
                                                 <input type="checkbox" name="confirm_file_replace" value="1">
@@ -222,6 +235,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                         <button type="submit">archive 반영</button>
                                     </form>
                                 </details>
+                            <?php } elseif (!empty($module['repository_ready']) && !empty($module['repository_archive_production'])) { ?>
+                                registry checksum 필요
                             <?php } else { ?>
                                 -
                             <?php } ?>

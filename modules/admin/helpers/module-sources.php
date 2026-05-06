@@ -98,6 +98,23 @@ function toy_admin_normalize_registry_entry(array $entry): ?array
         $checksum = '';
     }
 
+    $repositoryRefs = [];
+    $rawRepositoryRefs = $entry['repository_refs'] ?? [];
+    if (is_array($rawRepositoryRefs)) {
+        foreach ($rawRepositoryRefs as $ref => $refChecksum) {
+            $ref = is_string($ref) ? $ref : '';
+            $refChecksum = is_string($refChecksum) ? strtolower($refChecksum) : '';
+            if (
+                toy_admin_is_safe_repository_ref($ref)
+                && toy_admin_repository_ref_is_production_allowed($ref)
+                && preg_match('/\A[a-f0-9]{64}\z/', $refChecksum) === 1
+            ) {
+                $repositoryRefs[$ref] = $refChecksum;
+            }
+        }
+    }
+    ksort($repositoryRefs, SORT_STRING);
+
     return [
         'module_key' => $moduleKey,
         'name' => (string) ($entry['name'] ?? $moduleKey),
@@ -107,6 +124,7 @@ function toy_admin_normalize_registry_entry(array $entry): ?array
         'category' => (string) ($entry['category'] ?? ''),
         'zip_url' => (string) ($entry['zip_url'] ?? ''),
         'checksum' => $checksum,
+        'repository_refs' => $repositoryRefs,
     ];
 }
 
@@ -187,6 +205,82 @@ function toy_admin_is_safe_repository_ref(string $ref): bool
     }
 
     return preg_match('/\A[A-Za-z0-9._\/-]+\z/', $ref) === 1;
+}
+
+function toy_admin_repository_ref_is_production_allowed(string $ref): bool
+{
+    return preg_match('/\A[a-f0-9]{40}\z/', $ref) === 1;
+}
+
+function toy_admin_runtime_is_production(?array $config = null): bool
+{
+    $config = is_array($config) ? $config : toy_runtime_config();
+    return (string) ($config['env'] ?? 'production') === 'production';
+}
+
+function toy_admin_repository_archive_registered_refs(array $entry): array
+{
+    $repositoryRefs = $entry['repository_refs'] ?? [];
+    if (!is_array($repositoryRefs)) {
+        return [];
+    }
+
+    $refs = [];
+    foreach ($repositoryRefs as $ref => $checksum) {
+        $ref = is_string($ref) ? $ref : '';
+        $checksum = is_string($checksum) ? $checksum : '';
+        if (
+            toy_admin_is_safe_repository_ref($ref)
+            && toy_admin_repository_ref_is_production_allowed($ref)
+            && preg_match('/\A[a-f0-9]{64}\z/', $checksum) === 1
+        ) {
+            $refs[$ref] = $checksum;
+        }
+    }
+
+    ksort($refs, SORT_STRING);
+    return $refs;
+}
+
+function toy_admin_repository_archive_expected_checksum(array $entry, string $ref): string
+{
+    $registeredRefs = toy_admin_repository_archive_registered_refs($entry);
+    return (string) ($registeredRefs[$ref] ?? '');
+}
+
+function toy_admin_repository_archive_policy_errors(array $entry, string $ref, ?array $config = null): array
+{
+    $errors = [];
+    if (!toy_admin_is_safe_repository_ref($ref)) {
+        return ['repository ref 형식이 올바르지 않습니다.'];
+    }
+
+    if (!toy_admin_runtime_is_production($config)) {
+        return [];
+    }
+
+    if (!toy_admin_repository_ref_is_production_allowed($ref)) {
+        $errors[] = '운영 환경에서는 branch나 tag ref를 repository archive로 반영할 수 없습니다. 40자 commit SHA를 사용하세요.';
+    }
+
+    if (toy_admin_repository_archive_expected_checksum($entry, $ref) === '') {
+        $errors[] = '운영 환경에서는 registry의 repository_refs에 commit SHA와 sha256 checksum이 등록된 archive만 반영할 수 있습니다.';
+    }
+
+    return $errors;
+}
+
+function toy_admin_repository_archive_ready(array $entry, ?array $config = null): bool
+{
+    if (!toy_admin_registry_entry_repository_ready($entry)) {
+        return false;
+    }
+
+    if (!toy_admin_runtime_is_production($config)) {
+        return true;
+    }
+
+    return toy_admin_repository_archive_registered_refs($entry) !== [];
 }
 
 function toy_admin_registry_repository_archive_url(array $entry, string $ref): string
@@ -725,8 +819,9 @@ function toy_admin_download_registry_repository_archive(array $entry, string $re
         throw new RuntimeException('registry에 허용된 GitHub repository가 등록되어 있지 않습니다.');
     }
 
-    if (!toy_admin_is_safe_repository_ref($ref)) {
-        throw new RuntimeException('repository ref 형식이 올바르지 않습니다.');
+    $policyErrors = toy_admin_repository_archive_policy_errors($entry, $ref, toy_runtime_config());
+    if ($policyErrors !== []) {
+        throw new RuntimeException(implode(' ', $policyErrors));
     }
 
     $moduleKey = (string) $entry['module_key'];
@@ -795,6 +890,14 @@ function toy_admin_download_registry_repository_archive(array $entry, string $re
     fclose($targetHandle);
 
     $checksum = hash_final($hash);
+    $expectedChecksum = toy_admin_repository_archive_expected_checksum($entry, $ref);
+    if ($expectedChecksum !== '' && !hash_equals($expectedChecksum, $checksum)) {
+        if (is_file($target)) {
+            unlink($target);
+        }
+        throw new RuntimeException('repository archive checksum이 registry 값과 일치하지 않습니다.');
+    }
+
     return [
         'error' => UPLOAD_ERR_OK,
         'name' => $moduleKey . '-' . str_replace(['/', '\\'], '-', $ref) . '.zip',

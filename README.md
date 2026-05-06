@@ -57,6 +57,8 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 - Plain CSS
 - 일반적인 웹호스팅 환경
 
+실행 환경은 PHP 8.1 이상을 기준으로 합니다. 설치 화면도 PHP 8.1 미만에서는 오류 상태로 표시합니다.
+
 특정 빌드 도구, 복잡한 프론트엔드 프레임워크, 고사양 서버 환경을 전제로 하지 않습니다. 필요한 기능을 명확하게 나누고, 배포와 운영이 단순한 구조를 우선합니다.
 
 ## 현재 구현 범위
@@ -179,6 +181,8 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 
 공식 모듈 release zip은 [module-index.json](docs/module-index.json)에 URL과 sha256 checksum을 등록하면 `/admin/modules`에서 다운로드해 같은 검증 흐름으로 반영할 수 있습니다. URL과 checksum이 비어 있는 registry 항목은 안내용으로만 표시됩니다.
 
+Repository archive 반영은 고급 경로입니다. 운영 환경에서는 `repository_refs`에 40자 commit SHA와 sha256 checksum이 등록된 archive만 허용하며, `main`, `develop`, tag 같은 가변 ref는 차단합니다. 개발/스테이징에서는 안전한 ref 형식이면 사용할 수 있지만, 운영 배포는 checksum이 고정된 release zip을 기본 경로로 봅니다.
+
 릴리스 담당자는 모듈 zip을 모은 뒤 다음 명령으로 registry URL과 checksum을 갱신할 수 있습니다.
 
 ```sh
@@ -191,7 +195,15 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 ./.tools/bin/publish-module-release 2026.05.001
 ```
 
-owner는 registry에 등록된 공식 GitHub repository의 archive zip도 ref를 지정해 다운로드할 수 있습니다. 이 경로는 checksum이 고정된 release zip보다 낮은 수준의 고급 경로이며, 임의 repository URL 입력은 허용하지 않습니다.
+owner는 registry에 등록된 공식 GitHub repository의 archive zip도 ref를 지정해 다운로드할 수 있습니다. 이 경로는 checksum이 고정된 release zip보다 낮은 수준의 고급 경로이며, 임의 repository URL 입력은 허용하지 않습니다. 운영 환경에서 이 경로를 사용하려면 registry 항목에 다음처럼 commit SHA별 checksum을 등록해야 합니다.
+
+```json
+{
+  "repository_refs": {
+    "0123456789abcdef0123456789abcdef01234567": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  }
+}
+```
 
 ## Extension Points
 

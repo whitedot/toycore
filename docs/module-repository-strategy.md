@@ -71,6 +71,7 @@ git@github.com:whitedot/toycore-module-reward.git
 - 각 배포 패키지는 포함 모듈 버전을 `distribution-manifest.json`에 기록한다.
 - 운영자는 `/admin/modules`에서 모듈 zip을 업로드해 신규 모듈 파일을 추가하거나 기존 모듈 파일을 교체할 수 있다.
 - 공식 release zip은 `docs/module-index.json`에 URL과 checksum을 등록하면 `/admin/modules`에서 다운로드해 같은 검증 흐름으로 반영할 수 있다.
+- GitHub repository archive 반영은 고급 경로로 둔다. 운영 환경에서는 `repository_refs`에 40자 commit SHA와 sha256 checksum 쌍이 등록된 archive만 허용하고, `main`, `develop`, tag 같은 가변 ref는 개발/스테이징에서만 사용한다.
 - 공식 registry에 등록된 GitHub repository는 owner가 고급 UI에서 ref를 지정해 archive zip으로 다운로드할 수 있다.
 - 기존 모듈 파일 교체 시 이전 디렉터리는 `storage/module-backups`에 보관하고, DB 업데이트는 `/admin/updates`에서 별도로 적용한다.
 - 설치 소스와 업데이트 보완 계획은 [모듈 설치 소스와 업데이트 보완 계획](module-update-and-source-plan.md)을 따른다.

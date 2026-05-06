@@ -29,6 +29,17 @@ function toy_module_index_https_url(string $url): bool
         && strtolower((string) parse_url($url, PHP_URL_SCHEME)) === 'https';
 }
 
+function toy_module_index_safe_repository_ref(string $ref): bool
+{
+    return $ref !== ''
+        && strlen($ref) <= 120
+        && !str_contains($ref, '..')
+        && !str_starts_with($ref, '/')
+        && !str_ends_with($ref, '/')
+        && !str_contains($ref, '//')
+        && preg_match('/\A[A-Za-z0-9._\/-]+\z/', $ref) === 1;
+}
+
 function toy_module_index_validate_entry(array $entry, array &$seenModuleKeys): void
 {
     $moduleKey = toy_module_index_string($entry, 'module_key', '');
@@ -92,6 +103,23 @@ function toy_module_index_validate_entry(array $entry, array &$seenModuleKeys): 
 
     if ($checksum !== '' && preg_match('/\A[a-f0-9]{64}\z/', $checksum) !== 1) {
         toy_module_index_error('module-index checksum must be lowercase sha256 hex: ' . $moduleKey);
+    }
+
+    if (array_key_exists('repository_refs', $entry)) {
+        if (!is_array($entry['repository_refs'])) {
+            toy_module_index_error('module-index repository_refs must be an object: ' . $moduleKey);
+        } else {
+            foreach ($entry['repository_refs'] as $ref => $refChecksum) {
+                $ref = is_string($ref) ? $ref : '';
+                if (!toy_module_index_safe_repository_ref($ref) || preg_match('/\A[a-f0-9]{40}\z/', $ref) !== 1) {
+                    toy_module_index_error('module-index repository_refs ref must be a 40-char lowercase commit SHA: ' . $moduleKey);
+                }
+
+                if (!is_string($refChecksum) || preg_match('/\A[a-f0-9]{64}\z/', $refChecksum) !== 1) {
+                    toy_module_index_error('module-index repository_refs checksum must be lowercase sha256 hex: ' . $moduleKey);
+                }
+            }
+        }
     }
 }
 

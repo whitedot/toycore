@@ -510,12 +510,19 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
     }
 
     $registryModules = [];
+    $runtimeConfig = toy_runtime_config();
     foreach (toy_admin_module_registry_entries() as $entry) {
         $moduleKey = (string) $entry['module_key'];
         $entry['installed'] = isset($installedModuleKeys[$moduleKey]);
         $entry['download_ready'] = toy_admin_registry_entry_download_ready($entry);
         $entry['repository_ready'] = toy_admin_registry_entry_repository_ready($entry);
-        $entry['default_ref'] = (string) ($entry['latest_version'] !== '' ? 'v' . $entry['latest_version'] : 'main');
+        $entry['repository_archive_ready'] = toy_admin_repository_archive_ready($entry, $runtimeConfig);
+        $entry['repository_archive_production'] = toy_admin_runtime_is_production($runtimeConfig);
+        $entry['repository_archive_refs'] = toy_admin_repository_archive_registered_refs($entry);
+        $registeredRefs = array_keys((array) $entry['repository_archive_refs']);
+        $entry['default_ref'] = $registeredRefs !== []
+            ? (string) $registeredRefs[0]
+            : (string) ($entry['latest_version'] !== '' ? 'v' . $entry['latest_version'] : 'main');
         $registryModules[] = $entry;
     }
 

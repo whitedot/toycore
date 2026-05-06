@@ -120,12 +120,15 @@ $configWritable = is_file($configPath)
 $storageWritable = is_dir(TOY_ROOT . '/storage')
     ? is_writable(TOY_ROOT . '/storage')
     : is_writable(TOY_ROOT);
+$minimumPhpVersion = '8.1.0';
+$minimumPhpVersionId = 80100;
+$phpVersionSupported = PHP_VERSION_ID >= $minimumPhpVersionId;
 $installChecks = [
     [
         'label' => 'PHP',
-        'status' => 'ok',
-        'message' => PHP_VERSION,
-        'guide' => '현재 PHP 버전으로 설치를 진행할 수 있습니다.',
+        'status' => $phpVersionSupported ? 'ok' : 'error',
+        'message' => PHP_VERSION . ' / 필요: ' . $minimumPhpVersion . ' 이상',
+        'guide' => $phpVersionSupported ? '현재 PHP 버전으로 설치를 진행할 수 있습니다.' : '호스팅 관리자에서 PHP 8.1 이상으로 변경한 뒤 설치하세요.',
     ],
     [
         'label' => 'PDO MySQL',
@@ -203,6 +206,10 @@ if (toy_request_method() === 'POST') {
 
     if (!extension_loaded('pdo_mysql')) {
         $errors[] = 'pdo_mysql PHP 확장을 사용할 수 없습니다.';
+    }
+
+    if (!$phpVersionSupported) {
+        $errors[] = 'PHP 8.1 이상에서만 설치할 수 있습니다.';
     }
 
     if (!$configWritable) {
