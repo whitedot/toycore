@@ -498,6 +498,11 @@ if ($adminPrivacyRequestExportAction !== '') {
 $registerAction = toy_member_auth_policy_read('modules/member/actions/register.php');
 if ($registerAction !== '') {
     toy_member_auth_policy_assert(
+        strpos($registerAction, "toy_post_string_without_truncation('email', 255)") !== false
+            && strpos($registerAction, '$email === null') !== false,
+        'Register action should reject overlong raw email inputs instead of truncating them.'
+    );
+    toy_member_auth_policy_assert(
         strpos($registerAction, "toy_post_string_without_truncation('password', 255)") !== false
             && strpos($registerAction, "toy_post_string_without_truncation('password_confirm', 255)") !== false
             && strpos($registerAction, '$password === null || $passwordConfirm === null') !== false,
