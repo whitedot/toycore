@@ -12,6 +12,7 @@
 - 이전 설치 실패 단계와 오류 요약 표시
 - 운영 설치 시 현재 접속 host 기준 내부 파일 직접 접근 노출 점검
 - 운영 설치 시 HTTPS URL 확인
+- 외부 HTTP 호출 대상은 private/reserved/CGNAT/documentation/multicast IP 범위를 public으로 취급하지 않음
 - `config/config.php` 생성, 설정 임시 파일은 PHP 확장자로 작성
 - `storage/installed.lock` 생성
 - core/member/admin 설치 SQL 실행

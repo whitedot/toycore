@@ -260,7 +260,7 @@ function toy_is_public_network_host(string $host): bool
     }
 
     if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
-        return filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+        return toy_ip_is_public_network_address($host);
     }
 
     if (preg_match('/\A[a-z0-9.-]+\z/', $host) !== 1) {
@@ -317,12 +317,52 @@ function toy_public_network_addresses_are_allowed(array $addresses): bool
             return false;
         }
 
-        if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+        if (!toy_ip_is_public_network_address($address)) {
             return false;
         }
     }
 
     return true;
+}
+
+function toy_ip_is_public_network_address(string $address): bool
+{
+    if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+        return false;
+    }
+
+    foreach (toy_non_public_network_ranges() as $range) {
+        if (toy_ip_matches_trusted_proxy($address, $range)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function toy_non_public_network_ranges(): array
+{
+    return [
+        '0.0.0.0/8',
+        '100.64.0.0/10',
+        '192.0.0.0/24',
+        '192.0.2.0/24',
+        '192.88.99.0/24',
+        '198.18.0.0/15',
+        '198.51.100.0/24',
+        '203.0.113.0/24',
+        '224.0.0.0/4',
+        '240.0.0.0/4',
+        '::/128',
+        '::1/128',
+        '::ffff:0:0/96',
+        '64:ff9b::/96',
+        '100::/64',
+        '2001:db8::/32',
+        'fc00::/7',
+        'fe80::/10',
+        'ff00::/8',
+    ];
 }
 
 function toy_request_from_trusted_proxy(?array $config = null): bool

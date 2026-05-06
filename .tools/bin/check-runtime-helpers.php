@@ -174,6 +174,22 @@ toy_runtime_helper_assert(
     !toy_public_network_addresses_are_allowed(['93.184.216.34', '::1']),
     'A loopback IPv6 DNS address should reject the public network host.'
 );
+toy_runtime_helper_assert(
+    !toy_is_public_network_host('100.64.0.1'),
+    'Carrier-grade NAT IPv4 addresses should not be treated as public network hosts.'
+);
+toy_runtime_helper_assert(
+    !toy_is_public_network_host('192.0.2.1'),
+    'Documentation IPv4 addresses should not be treated as public network hosts.'
+);
+toy_runtime_helper_assert(
+    !toy_is_public_network_host('224.0.0.1'),
+    'Multicast IPv4 addresses should not be treated as public network hosts.'
+);
+toy_runtime_helper_assert(
+    !toy_is_public_network_host('2001:db8::1'),
+    'Documentation IPv6 addresses should not be treated as public network hosts.'
+);
 toy_set_runtime_config(['app_key' => 'runtime-helper-test-key']);
 toy_runtime_helper_assert(
     toy_rate_limit_key('member.login.ip', '203.0.113.10') === hash_hmac('sha256', 'member.login.ip|203.0.113.10', 'runtime-helper-test-key'),

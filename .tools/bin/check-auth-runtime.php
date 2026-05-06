@@ -81,6 +81,9 @@ toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_mail_http_ap
 toy_auth_runtime_require('core/helpers/runtime.php', '/toy_mail_http_api_endpoint_is_allowed\(\$endpoint\)/', 'HTTP API mail transport does not validate endpoint scope');
 toy_auth_runtime_require('core/helpers/runtime.php', "/'follow_location'\\s*=>\\s*0/", 'HTTP API mail transport should not follow redirects after endpoint validation');
 toy_auth_runtime_require('core/helpers/runtime.php', "/'max_redirects'\\s*=>\\s*0/", 'HTTP API mail transport should disable redirects after endpoint validation');
+toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_ip_is_public_network_address\(/', 'Explicit public network IP helper is missing');
+toy_auth_runtime_require('core/helpers/runtime.php', "/'100\\.64\\.0\\.0\\/10'/", 'CGNAT range should be rejected for outbound public URL checks');
+toy_auth_runtime_require('core/helpers/runtime.php', "/'224\\.0\\.0\\.0\\/4'/", 'Multicast range should be rejected for outbound public URL checks');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_rate_limit_count\(/', 'Rate limit count helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_rate_limit_increment\(/', 'Rate limit increment helper is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_app_key\(array \$config\): string/', 'App key resolver is missing');
