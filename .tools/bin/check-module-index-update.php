@@ -12,6 +12,7 @@ $indexPath = $workRoot . '/module-index.json';
 $zipDirectory = $workRoot . '/modules';
 $version = '2099.01.001';
 $releaseBaseUrl = 'https://example.com/releases';
+$updateModuleIndexTool = $root . '/.tools/bin/update-module-index';
 
 function toy_check_module_index_update_remove_directory(string $directory): void
 {
@@ -79,6 +80,15 @@ function toy_check_module_index_update_run(string $command, array $env = []): vo
 try {
     if (!is_file($sourceIndexPath)) {
         throw new RuntimeException('module index does not exist.');
+    }
+
+    $updateToolContent = file_get_contents($updateModuleIndexTool);
+    if (
+        !is_string($updateToolContent)
+        || strpos($updateToolContent, "'follow_location' => 0") === false
+        || strpos($updateToolContent, "'max_redirects' => 0") === false
+    ) {
+        throw new RuntimeException('module index update tool must not follow repository archive redirects.');
     }
 
     if (!mkdir($zipDirectory, 0755, true)) {

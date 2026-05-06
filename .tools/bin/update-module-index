@@ -100,6 +100,8 @@ function toy_update_module_index_remote_archive_checksum(string $url): string
             'method' => 'GET',
             'timeout' => 30,
             'ignore_errors' => true,
+            'follow_location' => 0,
+            'max_redirects' => 0,
             'header' => "User-Agent: Toycore-Module-Index\r\n",
         ],
     ]);
