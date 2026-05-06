@@ -69,7 +69,7 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 
 ```text
 필수: core + member + admin
-선택: seo + popup_layer + point + deposit + reward
+선택: seo + popup_layer + point + deposit + reward + site_menu + banner + notification
 ```
 
 배포 산출물은 다음처럼 나눌 수 있습니다.
