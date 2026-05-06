@@ -98,7 +98,7 @@ if ($method === 'POST') {
                 ],
             ]);
 
-            $notice = '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.';
+            toy_redirect('/login?password_reset=1');
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();

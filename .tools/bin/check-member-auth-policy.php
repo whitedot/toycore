@@ -121,6 +121,11 @@ if ($loginAction !== '') {
         strpos($loginAction, 'email_verification_mail_failed') !== false,
         'Login action should write an auth log event when verification mail delivery fails.'
     );
+    toy_member_auth_policy_assert(
+        strpos($loginAction, "toy_get_string('password_reset', 10) === '1'") !== false
+            && strpos($loginAction, '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.') !== false,
+        'Login action should show a fixed completion notice after password reset redirect.'
+    );
 }
 
 $accountHelper = toy_member_auth_policy_read('modules/member/helpers/accounts.php');
@@ -336,6 +341,10 @@ if ($passwordResetAction !== '') {
         strpos($passwordResetAction, 'if ($revokedSessions < 0)') !== false
             && strpos($passwordResetAction, 'Member sessions could not be revoked after password reset.') !== false,
         'Password reset should not complete when account sessions cannot be revoked.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($passwordResetAction, "toy_redirect('/login?password_reset=1')") !== false,
+        'Password reset completion should redirect to login instead of rendering another reset form after session cleanup.'
     );
 }
 

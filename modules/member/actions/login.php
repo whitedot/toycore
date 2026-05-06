@@ -20,6 +20,10 @@ if (!empty($_SESSION['toy_member_login_notice']) && is_string($_SESSION['toy_mem
     unset($_SESSION['toy_member_login_notice']);
 }
 
+if ($notice === '' && toy_get_string('password_reset', 10) === '1') {
+    $notice = '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.';
+}
+
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
 
