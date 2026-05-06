@@ -326,6 +326,12 @@ if ($privacyHelper !== '') {
             && strpos($privacyHelper, 'false') !== false,
         'Privacy helper should record false consent history rows for withdrawn latest consents.'
     );
+    toy_member_auth_policy_assert(
+        strpos($privacyHelper, 'function toy_member_privacy_request_list_preview') !== false
+            && strpos($privacyHelper, 'toy_log_line_value((string) $value, $maxLength + 1)') !== false
+            && strpos($privacyHelper, "return mb_substr(\$preview, 0, \$maxLength) . '...';") !== false,
+        'Privacy helper should provide a bounded privacy request list preview.'
+    );
 }
 
 $privacyRequestsAction = toy_member_auth_policy_read('modules/member/actions/privacy-requests.php');
@@ -349,6 +355,10 @@ if ($privacyRequestsView !== '') {
         strpos($privacyRequestsView, "\$values['request_type'] === \$requestType ? ' selected' : ''") !== false
             && strpos($privacyRequestsView, "toy_e(\$values['request_message'])") !== false,
         'Privacy request view should render preserved form values safely.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($privacyRequestsView, "toy_member_privacy_request_list_preview(\$request['admin_note'] ?? null)") !== false,
+        'Privacy request view should render admin notes through the bounded preview helper.'
     );
 }
 

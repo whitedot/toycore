@@ -73,7 +73,7 @@ $seo = [
                         <td><?php echo toy_e((string) $request['status']); ?></td>
                         <td><?php echo toy_e((string) $request['created_at']); ?></td>
                         <td><?php echo toy_e((string) ($request['handled_at'] ?? '')); ?></td>
-                        <td><?php echo toy_e((string) ($request['admin_note'] ?? '')); ?></td>
+                        <td><?php echo toy_e(toy_member_privacy_request_list_preview($request['admin_note'] ?? null)); ?></td>
                     </tr>
                 <?php } ?>
             </tbody>

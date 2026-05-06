@@ -58,6 +58,22 @@ function toy_member_record_consent_withdrawals(PDO $pdo, int $accountId): int
     return $count;
 }
 
+function toy_member_privacy_request_list_preview(?string $value, int $maxLength = 120): string
+{
+    $maxLength = max(1, $maxLength);
+    $preview = toy_log_line_value((string) $value, $maxLength + 1);
+    $length = function_exists('mb_strlen') ? mb_strlen($preview) : strlen($preview);
+    if ($length <= $maxLength) {
+        return $preview;
+    }
+
+    if (function_exists('mb_substr')) {
+        return mb_substr($preview, 0, $maxLength) . '...';
+    }
+
+    return substr($preview, 0, $maxLength) . '...';
+}
+
 function toy_member_privacy_export_data(PDO $pdo, int $accountId): array
 {
     $stmt = $pdo->prepare(
