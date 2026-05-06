@@ -383,7 +383,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <td><?php echo toy_e((string) $setting['module_key']); ?></td>
                     <td><?php echo toy_e((string) $setting['setting_key']); ?></td>
-                    <td><?php echo toy_e((string) ($setting['setting_value'] ?? '')); ?></td>
+                    <td><?php echo toy_e(toy_admin_module_setting_display_value($setting)); ?></td>
                     <td><?php echo toy_e((string) $setting['value_type']); ?></td>
                     <td><?php echo toy_e((string) $setting['updated_at']); ?></td>
                     <td>

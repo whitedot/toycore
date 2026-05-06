@@ -151,12 +151,15 @@ if (is_string($adminSettingsHelper) && (
     $errors[] = 'Admin settings helper must require reauthentication for sensitive site setting changes.';
 }
 if (is_string($adminSettingsHelper) && (
-    strpos($adminSettingsHelper, 'function toy_admin_site_setting_value_is_secret') === false
+    strpos($adminSettingsHelper, 'function toy_admin_setting_value_is_secret') === false
+    || strpos($adminSettingsHelper, 'function toy_admin_setting_display_value') === false
+    || strpos($adminSettingsHelper, 'function toy_admin_site_setting_value_is_secret') === false
     || strpos($adminSettingsHelper, 'function toy_admin_site_setting_display_value') === false
+    || strpos($adminSettingsHelper, 'function toy_admin_module_setting_display_value') === false
     || strpos($adminSettingsHelper, 'password|token|secret|credential|bearer') === false
     || strpos($adminSettingsHelper, "'[masked]'") === false
 )) {
-    $errors[] = 'Admin settings helper must mask secret-like site setting values before display.';
+    $errors[] = 'Admin settings helper must mask secret-like setting values before display.';
 }
 
 $adminSettingsView = file_get_contents($root . '/modules/admin/views/settings.php');
@@ -164,6 +167,13 @@ if (!is_string($adminSettingsView)) {
     $errors[] = 'Admin settings view cannot be read.';
 } elseif (strpos($adminSettingsView, 'toy_admin_site_setting_display_value($setting)') === false) {
     $errors[] = 'Admin settings view must render site setting values through the masking helper.';
+}
+
+$adminModulesView = file_get_contents($root . '/modules/admin/views/modules.php');
+if (!is_string($adminModulesView)) {
+    $errors[] = 'Admin modules view cannot be read.';
+} elseif (strpos($adminModulesView, 'toy_admin_module_setting_display_value($setting)') === false) {
+    $errors[] = 'Admin modules view must render module setting values through the masking helper.';
 }
 
 $coreSettingsHelper = file_get_contents($root . '/core/helpers/settings.php');
