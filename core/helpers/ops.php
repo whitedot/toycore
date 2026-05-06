@@ -176,9 +176,11 @@ function toy_log_line_value(string $value, int $maxLength = 1000): string
 
 function toy_log_sensitive_text_sanitize(string $value): string
 {
-    $pattern = '/((?:^|[?&\s;,"\'\[\]{}])(?:password|token|secret|credential|bearer|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)\s*[=:]\s*)([^&\s;,"\'\]\}]+)/i';
+    $sanitized = preg_replace('/\b(Authorization)\s*([:=])\s*(?:Bearer|Basic)\s+[^&\s;,"\']+/i', '$1$2 [masked]', $value) ?? $value;
+    $sanitized = preg_replace('/\bBearer\s+[A-Za-z0-9._~+\/=-]+/i', 'Bearer [masked]', $sanitized) ?? $sanitized;
+    $pattern = '/((?:^|[?&\s;,"\'\[\]{}])(?:password|token|secret|credential|bearer|authorization|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)\s*[=:]\s*)([^&\s;,"\'\[\]\}]+)/i';
 
-    return preg_replace($pattern, '$1[masked]', $value) ?? $value;
+    return preg_replace($pattern, '$1[masked]', $sanitized) ?? $sanitized;
 }
 
 function toy_write_operational_marker(string $filename, array $data): void
@@ -246,7 +248,7 @@ function toy_audit_log(PDO $pdo, array $data): void
             'result' => (string) ($data['result'] ?? 'success'),
             'ip_address' => toy_client_ip(),
             'user_agent' => toy_client_user_agent(),
-            'message' => (string) ($data['message'] ?? ''),
+            'message' => toy_log_sensitive_text_sanitize(toy_log_line_value((string) ($data['message'] ?? ''), 1000)),
             'metadata_json' => $metadataJson,
             'created_at' => toy_now(),
         ]);
@@ -258,6 +260,10 @@ function toy_audit_metadata_sanitize(mixed $value, string $key = ''): mixed
 {
     if ($key !== '' && toy_audit_metadata_key_is_secret($key)) {
         return $value === '' ? '' : '[masked]';
+    }
+
+    if (is_string($value)) {
+        return toy_log_sensitive_text_sanitize($value);
     }
 
     if (!is_array($value)) {
@@ -275,7 +281,7 @@ function toy_audit_metadata_sanitize(mixed $value, string $key = ''): mixed
 function toy_audit_metadata_key_is_secret(string $key): bool
 {
     return preg_match(
-        '/(?:^|[._-])(?:password|token|secret|credential|bearer|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)(?:$|[._-])/',
+        '/(?:^|[._-])(?:password|token|secret|credential|bearer|authorization|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)(?:$|[._-])/',
         strtolower($key)
     ) === 1;
 }
