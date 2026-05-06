@@ -462,7 +462,7 @@ if (toy_request_method() === 'POST') {
             ]);
             $errors[] = '설치 중 오류가 발생했습니다. DB 정보와 권한을 확인하세요.';
             if (!empty($config['debug'])) {
-                $errors[] = $exception->getMessage();
+                $errors[] = toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500));
             }
         }
     }

@@ -11,6 +11,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 설치 실패 시 복구 marker 기록
 - 설치 실패 복구 marker 메시지 정규화
 - 설치 실패 단계와 오류 요약 표시
+- debug 오류/설치 실패 상세 메시지의 민감한 key/value 및 Bearer 값 표시 전 마스킹
 - `config/config.php` 설정 파일 생성
 - `storage/installed.lock` 설치 완료 파일 생성
 - core, member, admin 설치 SQL 실행
