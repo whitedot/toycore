@@ -21,14 +21,12 @@ function toy_admin_retention_default_values(): array
 
 function toy_admin_retention_post_values(): array
 {
-    return [
-        'auth_logs_days' => (int) toy_post_string('auth_logs_days', 5),
-        'audit_logs_days' => (int) toy_post_string('audit_logs_days', 5),
-        'used_tokens_days' => (int) toy_post_string('used_tokens_days', 5),
-        'sessions_days' => (int) toy_post_string('sessions_days', 5),
-        'notifications_days' => (int) toy_post_string('notifications_days', 5),
-        'module_backups_days' => (int) toy_post_string('module_backups_days', 5),
-    ];
+    $values = [];
+    foreach (array_keys(toy_admin_retention_default_values()) as $key) {
+        $values[$key] = toy_admin_post_int_in_range($key, 1, 3650, 5) ?? 0;
+    }
+
+    return $values;
 }
 
 function toy_admin_validate_retention_cleanup(array $values): array

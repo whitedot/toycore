@@ -89,6 +89,16 @@ if ($params !== ['revoked_cutoff' => '2026-01-01 00:00:00', 'expired_cutoff' => 
     toy_retention_check_error($errors, 'Retention query params mapping failed.');
 }
 
+$retentionHelper = file_get_contents($root . '/modules/admin/helpers/retention.php');
+if (!is_string($retentionHelper)) {
+    toy_retention_check_error($errors, 'Retention helper cannot be read.');
+} elseif (
+    strpos($retentionHelper, 'toy_admin_post_int_in_range($key, 1, 3650, 5) ?? 0') === false
+    || strpos($retentionHelper, "(int) toy_post_string('auth_logs_days', 5)") !== false
+) {
+    toy_retention_check_error($errors, 'Retention post values must reject malformed or out-of-range raw day inputs.');
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "retention target checks failed:\n");
     foreach ($errors as $error) {
