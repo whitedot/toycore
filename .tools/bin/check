@@ -76,10 +76,19 @@ fi
 "${PHP_BIN}" .tools/bin/check-member-auth-policy.php
 "${PHP_BIN}" .tools/bin/check-admin-action-security.php
 
-find . \
-    -path './.git' -prune -o \
-    -path './dist' -prune -o \
-    -name '*.php' -print0 \
-    | xargs -0 -n1 "${PHP_BIN}" -l
+{
+    find . \
+        -path './.git' -prune -o \
+        -path './dist' -prune -o \
+        -name '*.php' -print0
+
+    find .tools/bin -maxdepth 1 -type f ! -name '*.php' -exec sh -c '
+        for file do
+            if head -n 2 "$file" | grep -Eq "<\\?php|^#!.*[[:space:]/]php([[:space:]]|$)"; then
+                printf "%s\\0" "$file"
+            fi
+        done
+    ' sh {} +
+} | xargs -0 -n1 "${PHP_BIN}" -l
 
 echo "toycore checks completed."
