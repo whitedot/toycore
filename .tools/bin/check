@@ -10,27 +10,39 @@ else
     PHP_BIN="./.tools/bin/php"
 fi
 
+module_dirs() {
+    if [ -d modules ]; then
+        find modules -mindepth 1 -maxdepth 1 -type d
+    fi
+
+    if [ -d examples/sample_module ]; then
+        if [ -f examples/sample_module/module.php ]; then
+            printf '%s\n' examples/sample_module
+        else
+            find examples/sample_module -mindepth 1 -maxdepth 1 -type d
+        fi
+    fi
+}
+
 git diff --check
 
 find database modules examples -name '*.sql' -print0 \
     | xargs -0 -n1 sh -c 'test -s "$1"' sh
 
-find modules examples/sample_module -mindepth 1 -maxdepth 1 -type d -print0 \
-    | xargs -0 -n1 sh -c '
-        module_dir="$1"
-        test -f "${module_dir}/module.php" || exit 0
+module_dirs \
+    | while IFS= read -r module_dir; do
+        test -f "${module_dir}/module.php" || continue
         test -f "${module_dir}/install.sql"
         if test -f "${module_dir}/admin-menu.php"; then
             test -f "${module_dir}/paths.php"
         fi
-    ' sh
+    done
 
-find modules examples/sample_module -mindepth 1 -maxdepth 1 -type d -print0 \
-    | xargs -0 -n1 sh -c '
-        module_dir="$1"
+module_dirs \
+    | while IFS= read -r module_dir; do
         admin_menu="${module_dir}/admin-menu.php"
         paths="${module_dir}/paths.php"
-        test -f "${admin_menu}" || exit 0
+        test -f "${admin_menu}" || continue
 
         sed -n "s/.*'\''path'\''[[:space:]]*=>[[:space:]]*'\''\\(\\/admin\\/[^'\'']*\\)'\''.*/\\1/p" "${admin_menu}" \
             | while IFS= read -r path; do
@@ -39,7 +51,7 @@ find modules examples/sample_module -mindepth 1 -maxdepth 1 -type d -print0 \
                     exit 1
                 }
             done
-    ' sh
+    done
 
 echo "toycore non-Docker checks completed."
 
