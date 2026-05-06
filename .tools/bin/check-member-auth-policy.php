@@ -339,6 +339,14 @@ if ($privacyHelper !== '') {
             && strpos($privacyHelper, 'privacy.export.reauth_failed') !== false,
         'Privacy helper should require throttled current-password reauthentication for member privacy exports.'
     );
+    toy_member_auth_policy_assert(
+        strpos($privacyHelper, 'function toy_member_privacy_export_sanitize_module_data') !== false
+            && strpos($privacyHelper, 'function toy_member_privacy_export_internal_key') !== false
+            && strpos($privacyHelper, 'toy_member_privacy_export_sanitize_module_data($moduleExport($pdo, $accountId))') !== false
+            && strpos($privacyHelper, "str_ends_with(\$normalizedKey, '_token_hash')") !== false
+            && strpos($privacyHelper, "str_ends_with(\$normalizedKey, '_hash')") !== false,
+        'Privacy helper should remove internal hash/token fields from module privacy exports.'
+    );
 }
 
 $accountView = toy_member_auth_policy_read('modules/member/views/account.php');

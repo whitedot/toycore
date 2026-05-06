@@ -200,11 +200,38 @@ function toy_member_module_privacy_exports(PDO $pdo, int $accountId): array
 
         $moduleExport = include $exportFile;
         if (is_callable($moduleExport)) {
-            $exports[$moduleKey] = $moduleExport($pdo, $accountId);
+            $exports[$moduleKey] = toy_member_privacy_export_sanitize_module_data($moduleExport($pdo, $accountId));
         } elseif (is_array($moduleExport)) {
-            $exports[$moduleKey] = $moduleExport;
+            $exports[$moduleKey] = toy_member_privacy_export_sanitize_module_data($moduleExport);
         }
     }
 
     return $exports;
+}
+
+function toy_member_privacy_export_sanitize_module_data(mixed $value): mixed
+{
+    if (!is_array($value)) {
+        return $value;
+    }
+
+    $sanitized = [];
+    foreach ($value as $key => $childValue) {
+        if (is_string($key) && toy_member_privacy_export_internal_key($key)) {
+            continue;
+        }
+
+        $sanitized[$key] = toy_member_privacy_export_sanitize_module_data($childValue);
+    }
+
+    return $sanitized;
+}
+
+function toy_member_privacy_export_internal_key(string $key): bool
+{
+    $normalizedKey = strtolower($key);
+    return $normalizedKey === 'password_hash'
+        || $normalizedKey === 'account_identifier_hash'
+        || str_ends_with($normalizedKey, '_token_hash')
+        || str_ends_with($normalizedKey, '_hash');
 }

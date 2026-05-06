@@ -195,6 +195,7 @@
 - 개인정보 JSON 내보내기 프로필 포함
 - 개인정보 JSON 내보내기 세션 이력 포함
 - 모듈별 개인정보 JSON 내보내기 확장
+- 모듈별 개인정보 JSON 내보내기 내부 hash/token 필드 제거
 - 인증 로그 기록
 - member helper 진입점과 계정/세션/token/privacy/throttle 단위 helper 파일 분리
 
