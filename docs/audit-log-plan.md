@@ -33,6 +33,8 @@ metadata_json
 created_at
 ```
 
+`metadata_json`은 기록 helper가 저장하기 전에 `password`, `token`, `secret`, `api_key`처럼 민감한 이름의 키 값을 원문 대신 마스킹합니다. 관리자 조회 화면에서도 같은 기준으로 한 번 더 표시 마스킹을 적용합니다.
+
 ## 기록 대상
 
 `actor_account_id`는 `member` 모듈의 계정을 가리킬 수 있지만, 코어의 `toy_audit_logs` 테이블은 `toy_member_accounts`에 DB FK를 강제하지 않습니다. 설치 순서와 모듈 경계를 유지하기 위해 계정 참조는 nullable 논리 참조로 처리합니다.

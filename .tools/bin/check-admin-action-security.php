@@ -225,6 +225,19 @@ if (!is_string($adminAuditLogsView)) {
     $errors[] = 'Admin audit logs view must render metadata through the redaction helper.';
 }
 
+$coreOpsHelper = file_get_contents($root . '/core/helpers/ops.php');
+if (!is_string($coreOpsHelper)) {
+    $errors[] = 'Core ops helper cannot be read.';
+} elseif (
+    strpos($coreOpsHelper, 'function toy_audit_metadata_sanitize') === false
+    || strpos($coreOpsHelper, 'function toy_audit_metadata_key_is_secret') === false
+    || strpos($coreOpsHelper, 'toy_audit_metadata_sanitize($metadata)') === false
+    || strpos($coreOpsHelper, 'password|token|secret|credential|bearer') === false
+    || strpos($coreOpsHelper, "'[masked]'") === false
+) {
+    $errors[] = 'Core audit log helper must sanitize secret-like metadata before storing it.';
+}
+
 $adminPrivacyRequestsHelper = file_get_contents($root . '/modules/admin/helpers/privacy-requests.php');
 if (!is_string($adminPrivacyRequestsHelper)) {
     $errors[] = 'Admin privacy requests helper cannot be read.';

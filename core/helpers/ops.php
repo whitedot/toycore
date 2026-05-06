@@ -220,7 +220,7 @@ function toy_audit_log(PDO $pdo, array $data): void
         $metadata = $data['metadata'] ?? null;
         $metadataJson = null;
         if (is_array($metadata) && $metadata !== []) {
-            $encoded = json_encode($metadata, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $encoded = json_encode(toy_audit_metadata_sanitize($metadata), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             $metadataJson = is_string($encoded) ? $encoded : null;
         }
 
@@ -245,4 +245,30 @@ function toy_audit_log(PDO $pdo, array $data): void
         ]);
     } catch (Throwable $ignored) {
     }
+}
+
+function toy_audit_metadata_sanitize(mixed $value, string $key = ''): mixed
+{
+    if ($key !== '' && toy_audit_metadata_key_is_secret($key)) {
+        return $value === '' ? '' : '[masked]';
+    }
+
+    if (!is_array($value)) {
+        return $value;
+    }
+
+    $sanitized = [];
+    foreach ($value as $childKey => $childValue) {
+        $sanitized[$childKey] = toy_audit_metadata_sanitize($childValue, is_string($childKey) ? $childKey : '');
+    }
+
+    return $sanitized;
+}
+
+function toy_audit_metadata_key_is_secret(string $key): bool
+{
+    return preg_match(
+        '/(?:^|[._-])(?:password|token|secret|credential|bearer|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)(?:$|[._-])/',
+        strtolower($key)
+    ) === 1;
 }
