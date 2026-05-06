@@ -4,6 +4,12 @@ set -eu
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
 cd "${ROOT}"
 
+if command -v php >/dev/null 2>&1; then
+    PHP_BIN="php"
+else
+    PHP_BIN="./.tools/bin/php"
+fi
+
 git diff --check
 
 find database modules examples -name '*.sql' -print0 \
@@ -37,21 +43,28 @@ find modules examples/sample_module -mindepth 1 -maxdepth 1 -type d -print0 \
 
 echo "toycore non-Docker checks completed."
 
-if ! command -v docker >/dev/null 2>&1; then
-    echo "Docker is required for PHP lint. Install Docker or OrbStack, then rerun ./.tools/bin/check." >&2
-    exit 1
+if [ "${PHP_BIN}" = "./.tools/bin/php" ]; then
+    if ! command -v docker >/dev/null 2>&1; then
+        echo "PHP or Docker is required for policy checks and PHP lint. Install PHP, Docker, or OrbStack, then rerun ./.tools/bin/check." >&2
+        exit 1
+    fi
+
+    if ! docker info >/dev/null 2>&1; then
+        echo "Docker is not running. Start Docker or OrbStack, or install PHP, then rerun ./.tools/bin/check." >&2
+        exit 1
+    fi
 fi
 
-if ! docker info >/dev/null 2>&1; then
-    echo "Docker is not running. Start Docker or OrbStack, then rerun ./.tools/bin/check." >&2
-    exit 1
-fi
+"${PHP_BIN}" .tools/bin/check-module-index.php
+"${PHP_BIN}" .tools/bin/check-retention-targets.php
+"${PHP_BIN}" .tools/bin/check-auth-runtime.php
+"${PHP_BIN}" .tools/bin/check-runtime-helpers.php
+"${PHP_BIN}" .tools/bin/check-member-auth-policy.php
 
 find . \
     -path './.git' -prune -o \
-    -path './.tools' -prune -o \
     -path './dist' -prune -o \
     -name '*.php' -print0 \
-    | xargs -0 -n1 ./.tools/bin/php -l
+    | xargs -0 -n1 "${PHP_BIN}" -l
 
 echo "toycore checks completed."
