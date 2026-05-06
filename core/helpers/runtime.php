@@ -1112,7 +1112,8 @@ function toy_mail_http_api_endpoint_is_allowed(string $endpoint): bool
 
 function toy_mail_header_encode(string $value): string
 {
-    $value = str_replace(["\r", "\n"], '', $value);
+    $value = preg_replace('/[\x00-\x1F\x7F]/', '', $value);
+    $value = is_string($value) ? $value : '';
     if (preg_match('/^[\x20-\x7E]*$/', $value) === 1) {
         return $value;
     }

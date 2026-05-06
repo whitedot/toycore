@@ -205,6 +205,10 @@ toy_runtime_helper_assert(
     strpos(toy_mail_header_encode("인증\r\nBcc: bad@example.com"), "\n") === false,
     'Mail header encoder should remove CRLF from encoded values.'
 );
+toy_runtime_helper_assert(
+    toy_mail_header_encode("Hello\t\0Bcc: bad@example.com") === 'HelloBcc: bad@example.com',
+    'Mail header encoder should remove non-newline control characters from ASCII values.'
+);
 toy_runtime_helper_server([
     'SERVER_NAME' => "example.com\r\nQUIT",
 ]);

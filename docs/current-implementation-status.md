@@ -79,7 +79,7 @@
 - 다운로드 응답 헤더 helper
 - 기본 mail helper
 - SMTP/HTTP API mail transport 설정 지원
-- 메일 subject와 SMTP EHLO 값 개행 문자 방어
+- 메일 subject/from name과 SMTP EHLO 값 제어 문자 방어
 - HTTP API mail transport 발신자 payload 포함
 - HTTP API 인증 메일 공개 HTTPS endpoint 검증
 - 공개 HTTP URL DNS A/AAAA 사설망 주소 차단
