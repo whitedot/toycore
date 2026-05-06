@@ -19,6 +19,11 @@ foreach (toy_member_privacy_export_reauth_errors($pdo, $account) as $reauthError
 }
 
 $export = toy_member_privacy_export_data($pdo, (int) $account['id']);
+$encodedExport = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+if (!is_string($encodedExport)) {
+    toy_render_error(500, '개인정보 내보내기 파일을 생성할 수 없습니다.');
+    exit;
+}
 
 toy_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
@@ -31,5 +36,5 @@ toy_audit_log($pdo, [
 ]);
 
 toy_send_download_headers('application/json; charset=UTF-8', 'toycore-privacy-export-' . (int) $account['id'] . '.json');
-echo json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+echo $encodedExport;
 exit;

@@ -33,8 +33,13 @@ foreach (toy_admin_privacy_request_export_reauth_errors($pdo, $account, $request
 }
 
 $export = toy_admin_privacy_request_export_data($pdo, $privacyRequest);
+$encodedExport = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+if (!is_string($encodedExport)) {
+    toy_render_error(500, '개인정보 요청 내보내기 파일을 생성할 수 없습니다.');
+    exit;
+}
 toy_admin_log_privacy_request_export($pdo, $account, $requestId);
 
 toy_send_download_headers('application/json; charset=UTF-8', 'toycore-privacy-request-' . $requestId . '.json');
-echo json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+echo $encodedExport;
 exit;

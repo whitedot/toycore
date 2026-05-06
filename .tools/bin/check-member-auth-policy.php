@@ -327,6 +327,13 @@ if ($privacyExportAction !== '') {
             && strpos($privacyExportAction, 'toy_render_error(403, $reauthError)') !== false,
         'Privacy export action should enforce current-password reauthentication before generating JSON.'
     );
+    toy_member_auth_policy_assert(
+        strpos($privacyExportAction, 'JSON_INVALID_UTF8_SUBSTITUTE') !== false
+            && strpos($privacyExportAction, '$encodedExport = json_encode($export') !== false
+            && strpos($privacyExportAction, 'if (!is_string($encodedExport))') !== false
+            && strpos($privacyExportAction, 'echo $encodedExport;') !== false,
+        'Privacy export action should encode JSON safely before sending download headers.'
+    );
 }
 
 $privacyHelper = toy_member_auth_policy_read('modules/member/helpers/privacy.php');
@@ -458,6 +465,13 @@ if ($adminPrivacyRequestExportAction !== '') {
         strpos($adminPrivacyRequestExportAction, 'toy_admin_privacy_request_export_reauth_errors($pdo, $account, $requestId)') !== false
             && strpos($adminPrivacyRequestExportAction, 'toy_render_error(403, $reauthError)') !== false,
         'Admin privacy request export action should enforce reauthentication before generating JSON.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($adminPrivacyRequestExportAction, 'JSON_INVALID_UTF8_SUBSTITUTE') !== false
+            && strpos($adminPrivacyRequestExportAction, '$encodedExport = json_encode($export') !== false
+            && strpos($adminPrivacyRequestExportAction, 'if (!is_string($encodedExport))') !== false
+            && strpos($adminPrivacyRequestExportAction, 'echo $encodedExport;') !== false,
+        'Admin privacy request export action should encode JSON safely before sending download headers.'
     );
 }
 
