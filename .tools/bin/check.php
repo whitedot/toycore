@@ -134,6 +134,20 @@ function toy_check_admin_menu_paths(): void
 function toy_check_php_lint(): void
 {
     $phpFiles = toy_check_files('.', 'php', ['.git', 'dist']);
+    foreach (toy_check_files('.tools/bin', '', []) as $file) {
+        $header = file_get_contents($file, false, null, 0, 200);
+        if (!is_string($header)) {
+            continue;
+        }
+
+        if (str_contains($header, '<?php') || preg_match('/\A#!.*\bphp\b/', $header) === 1) {
+            $phpFiles[] = $file;
+        }
+    }
+
+    $phpFiles = array_values(array_unique($phpFiles));
+    sort($phpFiles, SORT_STRING);
+
     foreach ($phpFiles as $file) {
         $command = escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($file);
         $output = [];
