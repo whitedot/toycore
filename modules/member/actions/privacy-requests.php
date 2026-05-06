@@ -16,9 +16,19 @@ $values = [
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
 
+    $requestType = toy_post_string_without_truncation('request_type', 40);
+    if ($requestType === null) {
+        $requestType = '';
+    }
+    $requestMessage = toy_post_string_without_truncation('request_message', 2000);
+    if ($requestMessage === null) {
+        $errors[] = '요청 내용은 2000자 이하로 입력하세요.';
+        $requestMessage = '';
+    }
+
     $values = [
-        'request_type' => toy_post_string('request_type', 40),
-        'request_message' => toy_post_string('request_message', 2000),
+        'request_type' => $requestType,
+        'request_message' => $requestMessage,
     ];
 
     if (!in_array($values['request_type'], $allowedTypes, true)) {

@@ -404,9 +404,15 @@ $privacyRequestsAction = toy_member_auth_policy_read('modules/member/actions/pri
 if ($privacyRequestsAction !== '') {
     toy_member_auth_policy_assert(
         strpos($privacyRequestsAction, "\$values = [\n    'request_type' => 'access',\n    'request_message' => '',\n];") !== false
-            && strpos($privacyRequestsAction, "'request_type' => toy_post_string('request_type', 40)") !== false
-            && strpos($privacyRequestsAction, "'request_message' => toy_post_string('request_message', 2000)") !== false,
+            && strpos($privacyRequestsAction, "'request_type' => \$requestType") !== false
+            && strpos($privacyRequestsAction, "'request_message' => \$requestMessage") !== false,
         'Privacy request action should preserve submitted form values.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($privacyRequestsAction, "toy_post_string_without_truncation('request_type', 40)") !== false
+            && strpos($privacyRequestsAction, "toy_post_string_without_truncation('request_message', 2000)") !== false
+            && strpos($privacyRequestsAction, '$requestMessage === null') !== false,
+        'Privacy request action should reject overlong raw request inputs instead of truncating them.'
     );
     toy_member_auth_policy_assert(
         strpos($privacyRequestsAction, "AND status IN (\\'requested\\', \\'reviewing\\')") !== false
