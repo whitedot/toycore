@@ -373,6 +373,16 @@ if ($adminPrivacyRequestsAction !== '') {
     );
 }
 
+$adminPrivacyRequestsHelper = toy_member_auth_policy_read('modules/admin/helpers/privacy-requests.php');
+if ($adminPrivacyRequestsHelper !== '') {
+    toy_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_terminal_statuses') !== false
+            && strpos($adminPrivacyRequestsHelper, "in_array((string) \$privacyRequest['status'], toy_admin_privacy_request_terminal_statuses(), true)") !== false
+            && strpos($adminPrivacyRequestsHelper, '종결된 개인정보 요청 상태는 다시 변경할 수 없습니다.') !== false,
+        'Admin privacy request helper should prevent reopening terminal privacy request statuses.'
+    );
+}
+
 $registerAction = toy_member_auth_policy_read('modules/member/actions/register.php');
 if ($registerAction !== '') {
     toy_member_auth_policy_assert(

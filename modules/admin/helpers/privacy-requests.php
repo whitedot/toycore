@@ -7,6 +7,11 @@ function toy_admin_privacy_request_statuses(): array
     return ['requested', 'reviewing', 'completed', 'rejected', 'cancelled'];
 }
 
+function toy_admin_privacy_request_terminal_statuses(): array
+{
+    return ['completed', 'rejected', 'cancelled'];
+}
+
 function toy_admin_privacy_request_list_preview(?string $value, int $maxLength = 120): string
 {
     $maxLength = max(1, $maxLength);
@@ -59,7 +64,7 @@ function toy_admin_handle_privacy_request_post(PDO $pdo, array $account, array $
         $errors[] = '완료 처리 전 요청자 확인, 내보내기/처리 확인, 처리 내용 확인이 필요합니다.';
     }
 
-    if (in_array($status, ['completed', 'rejected', 'cancelled'], true) && $adminNote === '') {
+    if (in_array($status, toy_admin_privacy_request_terminal_statuses(), true) && $adminNote === '') {
         $errors[] = '종결 상태로 변경할 때는 관리자 메모를 남기세요.';
     }
 
@@ -73,8 +78,16 @@ function toy_admin_handle_privacy_request_post(PDO $pdo, array $account, array $
         }
     }
 
+    if (
+        $errors === []
+        && in_array((string) $privacyRequest['status'], toy_admin_privacy_request_terminal_statuses(), true)
+        && $status !== (string) $privacyRequest['status']
+    ) {
+        $errors[] = '종결된 개인정보 요청 상태는 다시 변경할 수 없습니다.';
+    }
+
     if ($errors === []) {
-        $handledAt = in_array($status, ['completed', 'rejected', 'cancelled'], true) ? toy_now() : null;
+        $handledAt = in_array($status, toy_admin_privacy_request_terminal_statuses(), true) ? toy_now() : null;
         $stmt = $pdo->prepare(
             'UPDATE toy_privacy_requests
              SET status = :status,

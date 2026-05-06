@@ -231,10 +231,12 @@ if (!is_string($adminPrivacyRequestsHelper)) {
 } elseif (
     strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_list_preview') === false
     || strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_requester_display') === false
+    || strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_terminal_statuses') === false
+    || strpos($adminPrivacyRequestsHelper, '종결된 개인정보 요청 상태는 다시 변경할 수 없습니다.') === false
     || strpos($adminPrivacyRequestsHelper, "return \$prefix . '***@' . \$domain;") === false
     || strpos($adminPrivacyRequestsHelper, "return mb_substr(\$preview, 0, \$maxLength) . '...';") === false
 ) {
-    $errors[] = 'Admin privacy request lists must reduce requester and message exposure before display.';
+    $errors[] = 'Admin privacy request helpers must reduce list exposure and protect terminal status changes.';
 }
 
 $adminPrivacyRequestsView = file_get_contents($root . '/modules/admin/views/privacy-requests.php');
