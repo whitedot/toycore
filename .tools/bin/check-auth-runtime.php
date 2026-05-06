@@ -69,6 +69,9 @@ toy_auth_runtime_require('core/helpers/ops.php', '/function toy_fetch_http_respo
 toy_auth_runtime_require('core/helpers/ops.php', "/'follow_location'\\s*=>\\s*0/", 'Install exposure HTTP fetch should not follow redirects');
 toy_auth_runtime_require('core/helpers/ops.php', "/'max_redirects'\\s*=>\\s*0/", 'Install exposure HTTP fetch should disable redirects');
 toy_auth_runtime_require('core/helpers/ops.php', '/function toy_public_internal_access_findings\(string \$baseUrl\): array\s*\{\s*if \(!toy_is_public_http_url\(\$baseUrl\)\)/', 'Install exposure checks should reject non-public base URLs');
+toy_auth_runtime_require('core/helpers/ops.php', '/function toy_log_line_value\(string \$value, int \$maxLength = 1000\): string/', 'Log line value sanitizer is missing');
+toy_auth_runtime_require('core/helpers/ops.php', '/preg_replace\(\'\/\[\\\\x00-\\\\x1F\\\\x7F\]\+\/\', \' \', \$value\)/', 'Log line sanitizer should remove control characters');
+toy_auth_runtime_require('core/helpers/ops.php', '/toy_log_line_value\(\$exception->getMessage\(\), 1000\)/', 'Exception messages should be normalized before file logging');
 
 toy_auth_runtime_require('core/helpers/runtime.php', '/class ToyDatabaseSessionHandler implements SessionHandlerInterface/', 'Database session handler is missing');
 toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_is_https_request\(\?array \$config = null\): bool/', 'Proxy-aware HTTPS helper signature is missing');

@@ -151,14 +151,27 @@ function toy_log_exception(Throwable $exception, string $context): void
     $line = sprintf(
         "[%s] %s %s: %s in %s:%d\n",
         toy_now(),
-        $context,
-        get_class($exception),
-        $exception->getMessage(),
-        $exception->getFile(),
+        toy_log_line_value($context, 120),
+        toy_log_line_value(get_class($exception), 120),
+        toy_log_line_value($exception->getMessage(), 1000),
+        toy_log_line_value($exception->getFile(), 500),
         $exception->getLine()
     );
 
     file_put_contents($logDir . '/error.log', $line, FILE_APPEND | LOCK_EX);
+}
+
+function toy_log_line_value(string $value, int $maxLength = 1000): string
+{
+    $normalized = preg_replace('/[\x00-\x1F\x7F]+/', ' ', $value);
+    $normalized = is_string($normalized) ? trim($normalized) : '';
+    $maxLength = max(1, $maxLength);
+
+    if (function_exists('mb_substr')) {
+        return mb_substr($normalized, 0, $maxLength);
+    }
+
+    return substr($normalized, 0, $maxLength);
 }
 
 function toy_write_operational_marker(string $filename, array $data): void

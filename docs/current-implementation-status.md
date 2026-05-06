@@ -303,7 +303,7 @@
 - 인증 로그 계정/이벤트/시간 조회 인덱스
 - 인증 로그 IP/이벤트/시간 조회 인덱스
 - 배포 보호 기준 문서화
-- `storage/logs/error.log` 오류 기록
+- `storage/logs/error.log` 오류 기록, 로그 필드는 제어 문자를 제거해 단일 라인으로 정규화
 - 모듈 업데이트 SQL 적용
 - 모듈 업데이트 SQL statement 분리 실행
 - 업데이트 파일 경로와 checksum 적용 전 검증
