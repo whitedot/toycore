@@ -70,7 +70,27 @@ function toy_admin_retention_notification_tables_exist(PDO $pdo): bool
     }
 }
 
-function toy_admin_retention_target_definitions(bool $hasNotificationTables, bool $hasSessionsTable): array
+function toy_admin_retention_runtime_sessions_table_exists(PDO $pdo): bool
+{
+    try {
+        $pdo->query('SELECT 1 FROM toy_sessions LIMIT 1');
+        return true;
+    } catch (PDOException $exception) {
+        return false;
+    }
+}
+
+function toy_admin_retention_rate_limits_table_exists(PDO $pdo): bool
+{
+    try {
+        $pdo->query('SELECT 1 FROM toy_rate_limits LIMIT 1');
+        return true;
+    } catch (PDOException $exception) {
+        return false;
+    }
+}
+
+function toy_admin_retention_target_definitions(bool $hasNotificationTables, bool $hasSessionsTable, bool $hasRuntimeSessionsTable = false, bool $hasRateLimitsTable = false): array
 {
     return [
         'auth_logs' => [
@@ -140,6 +160,36 @@ function toy_admin_retention_target_definitions(bool $hasNotificationTables, boo
                 'expired_cutoff' => 'sessions',
             ],
         ],
+        'runtime_sessions' => [
+            'enabled' => $hasRuntimeSessionsTable,
+            'cutoff_key' => 'sessions',
+            'count_sql' => 'SELECT COUNT(*) AS count_value
+             FROM toy_sessions
+             WHERE expires_at < :expired_cutoff',
+            'count_params' => [
+                'expired_cutoff' => 'sessions',
+            ],
+            'delete_sql' => 'DELETE FROM toy_sessions
+             WHERE expires_at < :expired_cutoff',
+            'delete_params' => [
+                'expired_cutoff' => 'sessions',
+            ],
+        ],
+        'rate_limits' => [
+            'enabled' => $hasRateLimitsTable,
+            'cutoff_key' => 'sessions',
+            'count_sql' => 'SELECT COUNT(*) AS count_value
+             FROM toy_rate_limits
+             WHERE expires_at < :expired_cutoff',
+            'count_params' => [
+                'expired_cutoff' => 'sessions',
+            ],
+            'delete_sql' => 'DELETE FROM toy_rate_limits
+             WHERE expires_at < :expired_cutoff',
+            'delete_params' => [
+                'expired_cutoff' => 'sessions',
+            ],
+        ],
         'notifications' => [
             'enabled' => $hasNotificationTables,
             'cutoff_key' => 'notifications',
@@ -205,6 +255,8 @@ function toy_admin_retention_cleanup_target_keys(): array
         'password_resets',
         'email_verifications',
         'sessions',
+        'runtime_sessions',
+        'rate_limits',
         'notification_deliveries',
         'notification_reads',
         'notifications',
@@ -303,7 +355,12 @@ function toy_admin_retention_preview_cutoffs(array $values): array
 function toy_admin_retention_preview_counts(PDO $pdo, array $previewCutoffs, bool $hasNotificationTables): array
 {
     $previewCounts = [];
-    $targets = toy_admin_retention_target_definitions($hasNotificationTables, toy_member_sessions_table_exists($pdo));
+    $targets = toy_admin_retention_target_definitions(
+        $hasNotificationTables,
+        toy_member_sessions_table_exists($pdo),
+        toy_admin_retention_runtime_sessions_table_exists($pdo),
+        toy_admin_retention_rate_limits_table_exists($pdo)
+    );
 
     foreach ($targets as $key => $target) {
         if (!$target['enabled']) {
@@ -330,7 +387,12 @@ function toy_admin_retention_preview_counts(PDO $pdo, array $previewCutoffs, boo
 function toy_admin_retention_execute_cleanup(PDO $pdo, array $values, bool $hasNotificationTables): array
 {
     $cutoffs = toy_admin_retention_preview_cutoffs($values);
-    $targets = toy_admin_retention_target_definitions($hasNotificationTables, toy_member_sessions_table_exists($pdo));
+    $targets = toy_admin_retention_target_definitions(
+        $hasNotificationTables,
+        toy_member_sessions_table_exists($pdo),
+        toy_admin_retention_runtime_sessions_table_exists($pdo),
+        toy_admin_retention_rate_limits_table_exists($pdo)
+    );
     $deletedCounts = [];
     foreach (toy_admin_retention_cleanup_target_keys() as $key) {
         $target = $targets[$key];

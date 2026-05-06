@@ -106,6 +106,18 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <td><?php echo toy_e((string) $previewCounts['sessions']); ?></td>
             <td><?php echo toy_e((string) ($deletedCounts['sessions'] ?? '')); ?></td>
         </tr>
+        <tr>
+            <td>PHP 런타임 세션</td>
+            <td><?php echo toy_e($previewCutoffs['sessions']); ?></td>
+            <td><?php echo toy_e((string) $previewCounts['runtime_sessions']); ?></td>
+            <td><?php echo toy_e((string) ($deletedCounts['runtime_sessions'] ?? '')); ?></td>
+        </tr>
+        <tr>
+            <td>인증 제한 카운터</td>
+            <td><?php echo toy_e($previewCutoffs['sessions']); ?></td>
+            <td><?php echo toy_e((string) $previewCounts['rate_limits']); ?></td>
+            <td><?php echo toy_e((string) ($deletedCounts['rate_limits'] ?? '')); ?></td>
+        </tr>
         <?php if ($hasNotificationTables) { ?>
             <tr>
                 <td>알림</td>

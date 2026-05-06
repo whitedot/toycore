@@ -21,13 +21,15 @@ $expectedKeys = [
     'password_resets',
     'email_verifications',
     'sessions',
+    'runtime_sessions',
+    'rate_limits',
     'notifications',
     'notification_deliveries',
     'notification_reads',
     'module_backups',
 ];
 
-$targets = toy_admin_retention_target_definitions(true, true);
+$targets = toy_admin_retention_target_definitions(true, true, true, true);
 if (array_keys($targets) !== $expectedKeys) {
     toy_retention_check_error($errors, 'Retention target keys changed unexpectedly.');
 }
@@ -50,8 +52,8 @@ foreach ($targets as $key => $target) {
     }
 }
 
-$disabledTargets = toy_admin_retention_target_definitions(false, false);
-foreach (['sessions', 'notifications', 'notification_deliveries', 'notification_reads'] as $key) {
+$disabledTargets = toy_admin_retention_target_definitions(false, false, false, false);
+foreach (['sessions', 'runtime_sessions', 'rate_limits', 'notifications', 'notification_deliveries', 'notification_reads'] as $key) {
     if ($disabledTargets[$key]['enabled'] !== false) {
         toy_retention_check_error($errors, 'Retention optional target should be disabled: ' . $key);
     }
