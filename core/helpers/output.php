@@ -344,6 +344,17 @@ function toy_get_string(string $key, int $maxLength): string
     return substr($value, 0, $maxLength);
 }
 
+function toy_get_string_without_truncation(string $key, int $maxLength): ?string
+{
+    $value = $_GET[$key] ?? '';
+    if (is_array($value)) {
+        return null;
+    }
+
+    $value = trim((string) $value);
+    return strlen($value) <= $maxLength ? $value : null;
+}
+
 function toy_send_download_headers(string $contentType, string $filename): void
 {
     header('Content-Type: ' . toy_download_content_type($contentType));

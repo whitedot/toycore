@@ -8,12 +8,21 @@ $errors = [];
 $notice = '';
 $method = toy_request_method();
 $resetTokenSessionSeconds = 900;
-$token = $method === 'GET' ? toy_get_string('token', 80) : '';
+$token = '';
+$tokenInputInvalid = false;
+if ($method === 'GET') {
+    $tokenInput = toy_get_string_without_truncation('token', 64);
+    if ($tokenInput === null) {
+        $tokenInputInvalid = true;
+    } else {
+        $token = $tokenInput;
+    }
+}
 $tokenHash = $method === 'GET' && $token !== ''
     ? toy_member_password_reset_token_hash($config, $token)
-    : toy_member_password_reset_session_hash($resetTokenSessionSeconds);
+    : ($tokenInputInvalid ? '' : toy_member_password_reset_session_hash($resetTokenSessionSeconds));
 
-if ($method === 'GET' && $token !== '') {
+if ($method === 'GET' && ($tokenInputInvalid || $token !== '')) {
     $reset = $tokenHash !== '' ? toy_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
     if ($reset === null) {
         toy_member_clear_password_reset_session_hash();

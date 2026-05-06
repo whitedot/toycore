@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 require_once TOY_ROOT . '/modules/member/helpers.php';
 
-$token = toy_get_string('token', 80);
+$token = toy_get_string_without_truncation('token', 64);
+if ($token === null) {
+    $token = '';
+}
 $verification = toy_member_find_email_verification($pdo, $config, $token);
 
 if ($verification === null || $verification['status'] !== 'active') {

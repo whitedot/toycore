@@ -158,6 +158,7 @@
 - 새 비밀번호 재설정 token 발급 시 기존 미사용 token 무효화
 - 비밀번호 재설정 confirm URL과 HTML에서 token 원문 제거
 - 비밀번호 재설정 confirm 세션에는 token hash와 짧은 보관 시각만 저장
+- 비밀번호 재설정/이메일 인증 token 원문 길이 초과 입력 차단
 - 비밀번호 재설정 메일 발송 요청
 - 비밀번호 재설정 debug 링크는 localhost 요청에서만 표시
 - 비밀번호 재설정 요청 빈도 제한

@@ -671,6 +671,11 @@ if ($paths !== '') {
 $emailVerifyAction = toy_member_auth_policy_read('modules/member/actions/email-verify.php');
 if ($emailVerifyAction !== '') {
     toy_member_auth_policy_assert(
+        strpos($emailVerifyAction, "toy_get_string_without_truncation('token', 64)") !== false
+            && strpos($emailVerifyAction, '$token === null') !== false,
+        'Email verification action should reject overlong raw token inputs instead of truncating them.'
+    );
+    toy_member_auth_policy_assert(
         strpos($emailVerifyAction, "toy_redirect('/email/verified')") !== false,
         'Email verification action should redirect to a tokenless success page.'
     );
@@ -678,6 +683,11 @@ if ($emailVerifyAction !== '') {
 
 $passwordResetAction = toy_member_auth_policy_read('modules/member/actions/password-reset.php');
 if ($passwordResetAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($passwordResetAction, "toy_get_string_without_truncation('token', 64)") !== false
+            && strpos($passwordResetAction, '$tokenInputInvalid') !== false,
+        'Password reset confirm action should reject overlong raw token inputs instead of truncating them.'
+    );
     toy_member_auth_policy_assert(
         strpos($passwordResetAction, "toy_post_string_without_truncation('password', 255)") !== false
             && strpos($passwordResetAction, "toy_post_string_without_truncation('password_confirm', 255)") !== false

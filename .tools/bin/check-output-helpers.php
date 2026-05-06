@@ -91,6 +91,23 @@ toy_output_helper_assert(
     toy_post_string_without_truncation('array_value', 255) === null,
     'Untruncated POST helper should reject array values.'
 );
+$_GET = [
+    'short_value' => 'abc',
+    'long_value' => str_repeat('a', 65),
+    'array_value' => ['abc'],
+];
+toy_output_helper_assert(
+    toy_get_string_without_truncation('short_value', 64) === 'abc',
+    'Untruncated GET helper should return values within the limit.'
+);
+toy_output_helper_assert(
+    toy_get_string_without_truncation('long_value', 64) === null,
+    'Untruncated GET helper should reject overlong values.'
+);
+toy_output_helper_assert(
+    toy_get_string_without_truncation('array_value', 64) === null,
+    'Untruncated GET helper should reject array values.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "output helper checks failed:\n");
