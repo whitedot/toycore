@@ -82,6 +82,7 @@ toy_auth_runtime_require('core/helpers/runtime.php', '/function toy_app_key\(arr
 toy_auth_runtime_require('core/helpers/runtime.php', '/session_id_hash/', 'Database session handler should use hashed session ids when available');
 toy_auth_runtime_require('core/helpers/runtime.php', '/hash\(\'sha256\', \$id\)/', 'Database session handler should hash runtime session ids');
 toy_auth_runtime_require('core/helpers/runtime.php', '/refreshSessionIdHashSupport/', 'Database session handler should refresh hash-column support after updates');
+toy_auth_runtime_require('core/helpers/runtime.php', '/if \(!\$this->lockAcquired\) \{\s*return false;\s*\}/', 'Database session handler should fail closed when session lock is not acquired');
 
 toy_auth_runtime_require('modules/member/helpers/throttle.php', '/toy_rate_limit_count\(/', 'Member throttle does not use rate limit counters');
 toy_auth_runtime_require('modules/member/helpers/throttle.php', '/toy_member_auth_log_count\(/', 'Member throttle fallback is missing');

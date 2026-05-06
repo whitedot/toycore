@@ -656,6 +656,10 @@ class ToyDatabaseSessionHandler implements SessionHandlerInterface
     public function read(string $id): string|false
     {
         $this->acquireLock($id);
+        if (!$this->lockAcquired) {
+            return false;
+        }
+
         $this->refreshSessionIdHashSupport();
 
         try {
@@ -684,6 +688,10 @@ class ToyDatabaseSessionHandler implements SessionHandlerInterface
 
     public function write(string $id, string $data): bool
     {
+        if (!$this->lockAcquired) {
+            return false;
+        }
+
         $this->refreshSessionIdHashSupport();
         $now = toy_now();
         $expiresAt = date('Y-m-d H:i:s', time() + $this->lifetimeSeconds);
@@ -734,6 +742,10 @@ class ToyDatabaseSessionHandler implements SessionHandlerInterface
 
     public function destroy(string $id): bool
     {
+        if (!$this->lockAcquired) {
+            return false;
+        }
+
         $this->refreshSessionIdHashSupport();
         try {
             $stmt = $this->pdo->prepare('DELETE FROM toy_sessions WHERE ' . $this->sessionIdColumn() . ' = :session_id');

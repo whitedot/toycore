@@ -90,6 +90,7 @@
 - trusted proxy IP/CIDR 설정 검증
 - DB 기반 PHP 세션 저장소
 - PHP 런타임 session ID 원문 대신 hash 저장
+- DB 세션 잠금 획득 실패 시 세션 읽기/쓰기 실패 처리
 - 독립 rate limit 카운터 저장소
 - rate limit subject HMAC hash 저장
 - 토큰 URL 보호를 위한 referrer 전송 차단
