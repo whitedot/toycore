@@ -219,6 +219,14 @@ function toy_member_verify_login_password(?array $account, string $password): bo
         && (string) ($account['status'] ?? '') === 'active';
 }
 
+function toy_member_email_verification_blocks_login(array $settings, ?array $account): bool
+{
+    return !empty($settings['email_verification_enabled'])
+        && is_array($account)
+        && (string) ($account['status'] ?? '') === 'active'
+        && (string) ($account['email_verified_at'] ?? '') === '';
+}
+
 function toy_member_dummy_password_hash(): string
 {
     return '$2y$10$rXJfqk3XCcK2njbFv2w3XuJ3Ny/E6.46vRsuNcSOHg65o0bfe4enK';

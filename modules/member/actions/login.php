@@ -22,6 +22,7 @@ if (toy_request_method() === 'POST') {
     $next = toy_member_safe_next_path(toy_post_string('next', 255));
     $account = toy_member_find_by_identifier($pdo, $config, $identifier);
     $throttle = toy_member_login_throttle_status($pdo, $account !== null ? (int) $account['id'] : null);
+    $passwordVerified = false;
 
     if (!empty($throttle['limited'])) {
         toy_member_log_auth($pdo, $account !== null ? (int) $account['id'] : null, 'login_blocked', 'failure');
@@ -35,7 +36,22 @@ if (toy_request_method() === 'POST') {
             'message' => 'Member login blocked by throttle.',
         ]);
         $errors[] = '로그인 시도가 많습니다. 잠시 후 다시 시도하세요.';
-    } elseif (toy_member_verify_login_password($account, $password)) {
+    } elseif (
+        ($passwordVerified = toy_member_verify_login_password($account, $password))
+        && toy_member_email_verification_blocks_login($memberSettings, $account)
+    ) {
+        toy_member_log_auth($pdo, (int) $account['id'], 'login_email_unverified', 'failure');
+        toy_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'member',
+            'event_type' => 'member.login.email_unverified',
+            'target_type' => 'member_account',
+            'target_id' => (string) $account['id'],
+            'result' => 'failure',
+            'message' => 'Member login blocked until email verification.',
+        ]);
+        $errors[] = '이메일 인증을 완료한 뒤 로그인할 수 있습니다.';
+    } elseif ($passwordVerified) {
         toy_member_login($pdo, $account);
         toy_member_log_auth($pdo, (int) $account['id'], 'login', 'success');
         toy_audit_log($pdo, [
