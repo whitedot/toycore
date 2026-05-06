@@ -232,10 +232,11 @@ if (!is_string($coreOpsHelper)) {
     strpos($coreOpsHelper, 'function toy_audit_metadata_sanitize') === false
     || strpos($coreOpsHelper, 'function toy_audit_metadata_key_is_secret') === false
     || strpos($coreOpsHelper, 'toy_audit_metadata_sanitize($metadata)') === false
+    || strpos($coreOpsHelper, 'toy_audit_metadata_sanitize($payload)') === false
     || strpos($coreOpsHelper, 'password|token|secret|credential|bearer') === false
     || strpos($coreOpsHelper, "'[masked]'") === false
 ) {
-    $errors[] = 'Core audit log helper must sanitize secret-like metadata before storing it.';
+    $errors[] = 'Core ops helper must sanitize secret-like metadata before storing audit logs and markers.';
 }
 
 $adminPrivacyRequestsHelper = file_get_contents($root . '/modules/admin/helpers/privacy-requests.php');

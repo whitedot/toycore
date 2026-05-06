@@ -189,7 +189,7 @@ function toy_write_operational_marker(string $filename, array $data): void
         $payload = array_merge([
             'recorded_at' => toy_now(),
         ], $data);
-        $encoded = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $encoded = json_encode(toy_audit_metadata_sanitize($payload), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         if (!is_string($encoded)) {
             return;
         }
