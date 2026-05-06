@@ -27,6 +27,10 @@ function toy_member_default_settings(): array
         'email_verification_throttle_ip_limit' => (int) ($settings['email_verification_throttle_ip_limit'] ?? 20),
         'register_throttle_window_seconds' => (int) ($settings['register_throttle_window_seconds'] ?? 900),
         'register_throttle_ip_limit' => (int) ($settings['register_throttle_ip_limit'] ?? 10),
+        'profile_nickname_enabled' => (bool) ($settings['profile_nickname_enabled'] ?? true),
+        'profile_phone_enabled' => (bool) ($settings['profile_phone_enabled'] ?? true),
+        'profile_birth_date_enabled' => (bool) ($settings['profile_birth_date_enabled'] ?? true),
+        'profile_text_enabled' => (bool) ($settings['profile_text_enabled'] ?? true),
     ];
 }
 
@@ -37,6 +41,9 @@ function toy_member_settings(PDO $pdo): array
     $settings['allow_registration'] = (bool) $settings['allow_registration'];
     $settings['email_verification_enabled'] = (bool) $settings['email_verification_enabled'];
     $settings['login_identifier'] = (string) $settings['login_identifier'] === 'login_id' ? 'login_id' : 'email';
+    foreach (toy_member_profile_field_setting_keys() as $key => $label) {
+        $settings[$key] = (bool) ($settings[$key] ?? false);
+    }
 
     foreach (toy_member_integer_setting_keys() as $key => $limits) {
         $settings[$key] = toy_member_clamp_int((int) ($settings[$key] ?? $limits['default']), $limits['min'], $limits['max']);
@@ -65,4 +72,24 @@ function toy_member_integer_setting_keys(): array
 function toy_member_clamp_int(int $value, int $min, int $max): int
 {
     return max($min, min($max, $value));
+}
+
+function toy_member_profile_field_setting_keys(): array
+{
+    return [
+        'profile_nickname_enabled' => '닉네임',
+        'profile_phone_enabled' => '전화번호',
+        'profile_birth_date_enabled' => '생년월일',
+        'profile_text_enabled' => '소개',
+    ];
+}
+
+function toy_member_profile_field_settings(array $settings): array
+{
+    return [
+        'nickname' => !empty($settings['profile_nickname_enabled']),
+        'phone' => !empty($settings['profile_phone_enabled']),
+        'birth_date' => !empty($settings['profile_birth_date_enabled']),
+        'profile_text' => !empty($settings['profile_text_enabled']),
+    ];
 }

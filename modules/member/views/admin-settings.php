@@ -44,6 +44,18 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section>
+        <h2>선택 프로필 항목</h2>
+        <?php foreach (toy_member_profile_field_setting_keys() as $key => $label) { ?>
+            <p>
+                <label>
+                    <input type="checkbox" name="<?php echo toy_e($key); ?>" value="1"<?php echo !empty($settings[$key]) ? ' checked' : ''; ?>>
+                    <?php echo toy_e($label); ?>
+                </label>
+            </p>
+        <?php } ?>
+    </section>
+
+    <section>
         <h2>로그인 시도 제한</h2>
         <p>
             <label>제한 시간(초)<br>

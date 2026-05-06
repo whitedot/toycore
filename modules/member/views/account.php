@@ -100,34 +100,44 @@ $seo = [
             </form>
         </section>
 
-        <section>
-            <h2>선택 프로필</h2>
-            <form method="post" action="<?php echo toy_e(toy_url('/account')); ?>">
-                <?php echo toy_csrf_field(); ?>
-                <input type="hidden" name="intent" value="profile">
-                <p>
-                    <label>닉네임<br>
-                        <input type="text" name="nickname" value="<?php echo toy_e($profile['nickname']); ?>" maxlength="80">
-                    </label>
-                </p>
-                <p>
-                    <label>전화번호<br>
-                        <input type="text" name="phone" value="<?php echo toy_e($profile['phone']); ?>" maxlength="40">
-                    </label>
-                </p>
-                <p>
-                    <label>생년월일<br>
-                        <input type="date" name="birth_date" value="<?php echo toy_e($profile['birth_date']); ?>">
-                    </label>
-                </p>
-                <p>
-                    <label>소개<br>
-                        <textarea name="profile_text" maxlength="1000"><?php echo toy_e($profile['profile_text']); ?></textarea>
-                    </label>
-                </p>
-                <button type="submit">프로필 저장</button>
-            </form>
-        </section>
+        <?php if ($profileFieldsEnabled) { ?>
+            <section>
+                <h2>선택 프로필</h2>
+                <form method="post" action="<?php echo toy_e(toy_url('/account')); ?>">
+                    <?php echo toy_csrf_field(); ?>
+                    <input type="hidden" name="intent" value="profile">
+                    <?php if ($profileFields['nickname']) { ?>
+                        <p>
+                            <label>닉네임<br>
+                                <input type="text" name="nickname" value="<?php echo toy_e($profile['nickname']); ?>" maxlength="80">
+                            </label>
+                        </p>
+                    <?php } ?>
+                    <?php if ($profileFields['phone']) { ?>
+                        <p>
+                            <label>전화번호<br>
+                                <input type="text" name="phone" value="<?php echo toy_e($profile['phone']); ?>" maxlength="40">
+                            </label>
+                        </p>
+                    <?php } ?>
+                    <?php if ($profileFields['birth_date']) { ?>
+                        <p>
+                            <label>생년월일<br>
+                                <input type="date" name="birth_date" value="<?php echo toy_e($profile['birth_date']); ?>">
+                            </label>
+                        </p>
+                    <?php } ?>
+                    <?php if ($profileFields['profile_text']) { ?>
+                        <p>
+                            <label>소개<br>
+                                <textarea name="profile_text" maxlength="1000"><?php echo toy_e($profile['profile_text']); ?></textarea>
+                            </label>
+                        </p>
+                    <?php } ?>
+                    <button type="submit">프로필 저장</button>
+                </form>
+            </section>
+        <?php } ?>
 
         <section>
             <h2>동의 기록</h2>

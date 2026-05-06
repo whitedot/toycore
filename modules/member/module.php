@@ -27,5 +27,9 @@ return [
         'email_verification_throttle_ip_limit' => 20,
         'register_throttle_window_seconds' => 900,
         'register_throttle_ip_limit' => 10,
+        'profile_nickname_enabled' => true,
+        'profile_phone_enabled' => true,
+        'profile_birth_date_enabled' => true,
+        'profile_text_enabled' => true,
     ],
 ];

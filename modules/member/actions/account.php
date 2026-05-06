@@ -12,6 +12,8 @@ $submittedProfile = null;
 $submittedBasics = null;
 $memberSettings = toy_member_settings($pdo);
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
+$profileFields = toy_member_profile_field_settings($memberSettings);
+$profileFieldsEnabled = in_array(true, $profileFields, true);
 
 if ($emailVerificationEnabled && !empty($config['debug']) && !empty($_SESSION['toy_debug_email_verification_url']) && is_string($_SESSION['toy_debug_email_verification_url'])) {
     $emailVerificationUrl = $_SESSION['toy_debug_email_verification_url'];
@@ -59,17 +61,28 @@ if (toy_request_method() === 'POST') {
             $notice = '계정 정보를 저장했습니다.';
         }
     } elseif ($intent === 'profile') {
-        $profile = [
-            'nickname' => toy_post_string('nickname', 80),
-            'phone' => toy_post_string('phone', 40),
-            'birth_date' => toy_post_string('birth_date', 10),
-            'profile_text' => toy_post_string('profile_text', 1000),
-        ];
+        if (!$profileFieldsEnabled) {
+            $errors[] = '수정할 수 있는 프로필 항목이 없습니다.';
+        }
+
+        $profile = toy_member_profile($pdo, (int) $account['id']);
+        if ($profileFields['nickname']) {
+            $profile['nickname'] = toy_post_string('nickname', 80);
+        }
+        if ($profileFields['phone']) {
+            $profile['phone'] = toy_post_string('phone', 40);
+        }
+        if ($profileFields['birth_date']) {
+            $profile['birth_date'] = toy_post_string('birth_date', 10);
+        }
+        if ($profileFields['profile_text']) {
+            $profile['profile_text'] = toy_post_string('profile_text', 1000);
+        }
         $submittedProfile = $profile;
 
-        if ($profile['birth_date'] !== '' && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $profile['birth_date']) !== 1) {
+        if ($profileFields['birth_date'] && $profile['birth_date'] !== '' && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $profile['birth_date']) !== 1) {
             $errors[] = '생년월일은 YYYY-MM-DD 형식으로 입력하세요.';
-        } elseif ($profile['birth_date'] !== '') {
+        } elseif ($profileFields['birth_date'] && $profile['birth_date'] !== '') {
             $birthParts = explode('-', $profile['birth_date']);
             if (!checkdate((int) $birthParts[1], (int) $birthParts[2], (int) $birthParts[0])) {
                 $errors[] = '생년월일이 올바르지 않습니다.';

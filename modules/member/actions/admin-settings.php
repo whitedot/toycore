@@ -24,6 +24,9 @@ if (toy_request_method() === 'POST') {
     } else {
         $settings['login_identifier'] = $loginIdentifier;
     }
+    foreach (toy_member_profile_field_setting_keys() as $key => $label) {
+        $settings[$key] = ($_POST[$key] ?? '') === '1';
+    }
 
     foreach ($integerSettingKeys as $key => $limits) {
         $rawValue = toy_post_string($key, 10);
@@ -59,6 +62,9 @@ if (toy_request_method() === 'POST') {
             ['email_verification_enabled', $settings['email_verification_enabled'] ? '1' : '0', 'bool'],
             ['login_identifier', (string) $settings['login_identifier'], 'string'],
         ];
+        foreach (toy_member_profile_field_setting_keys() as $key => $label) {
+            $rows[] = [$key, !empty($settings[$key]) ? '1' : '0', 'bool'];
+        }
 
         foreach ($integerSettingKeys as $key => $limits) {
             $rows[] = [$key, (string) $settings[$key], 'int'];
@@ -88,6 +94,7 @@ if (toy_request_method() === 'POST') {
                 'allow_registration' => (bool) $settings['allow_registration'],
                 'email_verification_enabled' => (bool) $settings['email_verification_enabled'],
                 'login_identifier' => (string) $settings['login_identifier'],
+                'profile_fields' => toy_member_profile_field_settings($settings),
             ],
         ]);
 

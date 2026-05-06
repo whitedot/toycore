@@ -167,6 +167,23 @@ if ($throttleHelper !== '') {
     );
 }
 
+$settingsHelper = toy_member_auth_policy_read('modules/member/helpers/settings.php');
+if ($settingsHelper !== '') {
+    toy_member_auth_policy_assert(
+        strpos($settingsHelper, 'function toy_member_profile_field_setting_keys') !== false
+            && strpos($settingsHelper, 'profile_nickname_enabled') !== false
+            && strpos($settingsHelper, 'profile_phone_enabled') !== false
+            && strpos($settingsHelper, 'profile_birth_date_enabled') !== false
+            && strpos($settingsHelper, 'profile_text_enabled') !== false,
+        'Member settings helper should define configurable optional profile fields.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($settingsHelper, 'function toy_member_profile_field_settings') !== false
+            && strpos($settingsHelper, "'nickname' => !empty(\$settings['profile_nickname_enabled'])") !== false,
+        'Member settings helper should expose normalized profile field flags.'
+    );
+}
+
 $sessionHelper = toy_member_auth_policy_read('modules/member/helpers/sessions.php');
 if ($sessionHelper !== '') {
     toy_member_auth_policy_assert(
@@ -237,6 +254,14 @@ if ($accountAction !== '') {
         strpos($accountAction, 'toy_member_reauth_throttle_status($pdo, (int) $account[\'id\'])') !== false
             && strpos($accountAction, 'password_change_reauth') !== false,
         'Password change should throttle current-password reauth failures.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($accountAction, '$profileFields = toy_member_profile_field_settings($memberSettings)') !== false
+            && strpos($accountAction, 'if ($profileFields[\'nickname\'])') !== false
+            && strpos($accountAction, 'if ($profileFields[\'phone\'])') !== false
+            && strpos($accountAction, 'if ($profileFields[\'birth_date\'])') !== false
+            && strpos($accountAction, 'if ($profileFields[\'profile_text\'])') !== false,
+        'Account action should only update enabled optional profile fields.'
     );
 }
 
@@ -319,6 +344,11 @@ if ($adminSettingsAction !== '') {
             && strpos($adminSettingsAction, "['login_identifier', (string) \$settings['login_identifier'], 'string']") !== false,
         'Member settings action should validate and save login_identifier.'
     );
+    toy_member_auth_policy_assert(
+        strpos($adminSettingsAction, 'toy_member_profile_field_setting_keys()') !== false
+            && strpos($adminSettingsAction, "'profile_fields' => toy_member_profile_field_settings(\$settings)") !== false,
+        'Member settings action should save optional profile field settings and audit them.'
+    );
 }
 
 $adminSettingsView = toy_member_auth_policy_read('modules/member/views/admin-settings.php');
@@ -327,6 +357,23 @@ if ($adminSettingsView !== '') {
         strpos($adminSettingsView, 'name="login_identifier"') !== false
             && strpos($adminSettingsView, 'value="login_id"') !== false,
         'Member settings view should expose login_identifier selection.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($adminSettingsView, '선택 프로필 항목') !== false
+            && strpos($adminSettingsView, 'toy_member_profile_field_setting_keys()') !== false,
+        'Member settings view should expose optional profile field settings.'
+    );
+}
+
+$accountView = toy_member_auth_policy_read('modules/member/views/account.php');
+if ($accountView !== '') {
+    toy_member_auth_policy_assert(
+        strpos($accountView, 'if ($profileFieldsEnabled)') !== false
+            && strpos($accountView, "if (\$profileFields['nickname'])") !== false
+            && strpos($accountView, "if (\$profileFields['phone'])") !== false
+            && strpos($accountView, "if (\$profileFields['birth_date'])") !== false
+            && strpos($accountView, "if (\$profileFields['profile_text'])") !== false,
+        'Account view should render only enabled optional profile fields.'
     );
 }
 
