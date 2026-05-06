@@ -32,7 +32,7 @@ function toy_enabled_module_keys(PDO $pdo): array
 
 function toy_is_safe_module_key(string $moduleKey): bool
 {
-    return preg_match('/\A[a-z0-9_]+\z/', $moduleKey) === 1;
+    return preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) === 1;
 }
 
 function toy_module_enabled(PDO $pdo, string $moduleKey): bool

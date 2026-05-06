@@ -139,6 +139,13 @@ if (!is_string($adminSettingsHelper)) {
     $errors[] = 'Admin settings helper must allowlist site setting intents.';
 }
 
+$coreSettingsHelper = file_get_contents($root . '/core/helpers/settings.php');
+if (!is_string($coreSettingsHelper)) {
+    $errors[] = 'Core settings helper cannot be read.';
+} elseif (strpos($coreSettingsHelper, "/\\A[a-z][a-z0-9_]{1,39}\\z/") === false) {
+    $errors[] = 'Core module key validation must require a letter prefix and bounded length.';
+}
+
 $adminModuleSourcesHelper = file_get_contents($root . '/modules/admin/helpers/module-sources.php');
 if (!is_string($adminModuleSourcesHelper)) {
     $errors[] = 'Admin module sources helper cannot be read.';

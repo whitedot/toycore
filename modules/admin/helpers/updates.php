@@ -158,7 +158,7 @@ function toy_admin_pending_updates(PDO $pdo): array
     $stmt = $pdo->query('SELECT module_key FROM toy_modules ORDER BY module_key ASC');
     foreach ($stmt->fetchAll() as $module) {
         $moduleKey = (string) $module['module_key'];
-        if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+        if (!toy_is_safe_module_key($moduleKey)) {
             continue;
         }
 

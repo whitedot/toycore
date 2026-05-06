@@ -27,7 +27,7 @@ function toy_admin_handle_modules_post(
         $moduleKey = trim(toy_post_string('upload_module_key', 60));
     }
 
-    if ($intent !== 'upload_module_zip' && preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+    if ($intent !== 'upload_module_zip' && !toy_is_safe_module_key($moduleKey)) {
         $errors[] = '모듈 키가 올바르지 않습니다.';
     }
 
