@@ -47,13 +47,18 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <?php if ((int) ($module['pending_update_count'] ?? 0) > 0) { ?>
                         <a href="<?php echo toy_e(toy_url('/admin/updates')); ?>"><?php echo toy_e((string) $module['pending_update_count']); ?>개 SQL 대기</a>
                     <?php } elseif (($module['version_state'] ?? '') === 'code_newer') { ?>
-                        <?php if ($canManageModuleSources) { ?>
+                        <?php if ($canManageModuleSources && $moduleSourcesEnabled) { ?>
                             <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
                                 <?php echo toy_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="sync_module_version">
                                 <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
+                                <label>Owner 비밀번호<br>
+                                    <input type="password" name="owner_password" autocomplete="current-password" required>
+                                </label>
                                 <button type="submit">파일 업데이트 반영</button>
                             </form>
+                        <?php } elseif ($canManageModuleSources) { ?>
+                            소스 반영 비활성화
                         <?php } else { ?>
                             owner 확인 필요
                         <?php } ?>
@@ -109,6 +114,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <h2>모듈 zip 업로드</h2>
     <?php if (!$canManageModuleSources) { ?>
         <p>모듈 파일 업로드는 owner 권한이 필요합니다.</p>
+    <?php } elseif (!$moduleSourcesEnabled) { ?>
+        <p>현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. <code>admin.module_sources_enabled</code>를 bool true로 저장하면 owner 재인증 후 사용할 수 있습니다.</p>
     <?php } elseif (!$moduleUploadAvailable) { ?>
         <p>PHP ZipArchive 확장이 없어 이 서버에서는 zip 업로드를 사용할 수 없습니다. FTP로 <code>modules/{module_key}</code>에 업로드한 뒤 설치하세요.</p>
     <?php } else { ?>
@@ -135,6 +142,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>
                     <input type="checkbox" name="allow_downgrade" value="1">
                     낮은 버전 덮어쓰기 허용
+                </label>
+            </p>
+            <p>
+                <label>Owner 비밀번호<br>
+                    <input type="password" name="owner_password" autocomplete="current-password" required>
                 </label>
             </p>
             <p>최대 <?php echo toy_e($moduleUploadLimitLabel); ?>까지 업로드할 수 있습니다. 압축 해제 후 모듈 파일은 최대 <?php echo toy_e(toy_admin_format_bytes(toy_admin_module_uncompressed_limit_bytes())); ?>까지 허용합니다. zip은 <code>{module_key}/module.php</code> 구조를 권장하고, <code>module/module.php</code> 구조라면 module key를 입력하세요.</p>
@@ -177,7 +189,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td>
-                            <?php if ($canManageModuleSources && $moduleUploadAvailable && !empty($module['download_ready'])) { ?>
+                            <?php if ($canManageModuleSources && $moduleSourcesEnabled && $moduleUploadAvailable && !empty($module['download_ready'])) { ?>
                                 <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
                                     <?php echo toy_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="download_registry_module">
@@ -192,6 +204,9 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                         <input type="checkbox" name="allow_downgrade" value="1">
                                         낮은 버전 허용
                                     </label>
+                                    <label>Owner 비밀번호<br>
+                                        <input type="password" name="owner_password" autocomplete="current-password" required>
+                                    </label>
                                     <button type="submit">다운로드 반영</button>
                                 </form>
                             <?php } else { ?>
@@ -199,7 +214,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td>
-                            <?php if ($canManageModuleSources && $moduleUploadAvailable && !empty($module['repository_archive_ready'])) { ?>
+                            <?php if ($canManageModuleSources && $moduleSourcesEnabled && $moduleUploadAvailable && !empty($module['repository_archive_ready'])) { ?>
                                 <details>
                                     <summary>고급</summary>
                                     <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
@@ -220,7 +235,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                             <label>Ref<br>
                                                 <input type="text" name="repository_ref" value="<?php echo toy_e((string) $module['default_ref']); ?>" maxlength="120" required>
                                             </label>
-                                            <p>개발/스테이징용 경로입니다. 운영 배포는 checksum이 등록된 release zip을 우선 사용하세요.</p>
+                                            <p>
+                                                개발/스테이징용 경로입니다.
+                                                <?php echo $repositoryArchiveUncheckedEnabled ? 'checksum 미등록 archive 허용 중입니다.' : 'checksum이 등록된 archive만 허용됩니다.'; ?>
+                                            </p>
                                         <?php } ?>
                                         <?php if (!empty($module['installed'])) { ?>
                                             <label>
@@ -232,9 +250,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                             <input type="checkbox" name="allow_downgrade" value="1">
                                             낮은 버전 허용
                                         </label>
+                                        <label>Owner 비밀번호<br>
+                                            <input type="password" name="owner_password" autocomplete="current-password" required>
+                                        </label>
                                         <button type="submit">archive 반영</button>
                                     </form>
                                 </details>
+                            <?php } elseif ($canManageModuleSources && !$moduleSourcesEnabled && (!empty($module['download_ready']) || !empty($module['repository_archive_ready']))) { ?>
+                                소스 반영 비활성화
                             <?php } elseif (!empty($module['repository_ready']) && !empty($module['repository_archive_production'])) { ?>
                                 registry checksum 필요
                             <?php } else { ?>

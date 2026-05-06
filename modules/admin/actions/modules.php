@@ -9,6 +9,8 @@ $account = toy_member_require_login($pdo);
 toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 $canManageAdvancedModuleSettings = toy_admin_has_role($pdo, (int) $account['id'], ['owner']);
 $canManageModuleSources = toy_admin_has_role($pdo, (int) $account['id'], ['owner']);
+$moduleSourcesEnabled = toy_admin_module_sources_enabled($pdo, $config);
+$repositoryArchiveUncheckedEnabled = toy_admin_repository_archive_unchecked_enabled($pdo, $config);
 
 $requiredModules = ['member', 'admin'];
 $allowedStatuses = ['enabled', 'disabled'];
@@ -32,7 +34,8 @@ if (toy_request_method() === 'POST') {
         $allowedStatuses,
         $allowedSettingTypes,
         $allowedInstallStatuses,
-        $moduleUploadAvailable
+        $moduleUploadAvailable,
+        $moduleSourcesEnabled
     );
     $errors = $postResult['errors'];
     $notice = (string) $postResult['notice'];

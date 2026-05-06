@@ -44,6 +44,25 @@ function toy_admin_module_upload_limit_bytes(): int
     return min($defaultLimit, ...$limits);
 }
 
+function toy_admin_module_sources_enabled(PDO $pdo, ?array $config = null): bool
+{
+    $setting = toy_site_setting($pdo, 'admin.module_sources_enabled', null);
+    if ($setting !== null) {
+        return !empty($setting);
+    }
+
+    return !toy_admin_runtime_is_production($config);
+}
+
+function toy_admin_repository_archive_unchecked_enabled(PDO $pdo, ?array $config = null): bool
+{
+    if (toy_admin_runtime_is_production($config)) {
+        return false;
+    }
+
+    return !empty(toy_site_setting($pdo, 'admin.repository_archive_unchecked_enabled', true));
+}
+
 function toy_admin_module_uncompressed_limit_bytes(): int
 {
     return 25 * 1024 * 1024;

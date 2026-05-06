@@ -11,7 +11,8 @@ function toy_admin_handle_modules_post(
     array $allowedStatuses,
     array $allowedSettingTypes,
     array $allowedInstallStatuses,
-    bool $moduleUploadAvailable
+    bool $moduleUploadAvailable,
+    bool $moduleSourcesEnabled
 ): array {
     $errors = [];
     $notice = '';
@@ -31,9 +32,15 @@ function toy_admin_handle_modules_post(
         $errors[] = '모듈 키가 올바르지 않습니다.';
     }
 
+    $sourceWriteIntents = ['upload_module_zip', 'download_registry_module', 'download_repository_archive', 'sync_module_version'];
+
     if (in_array($intent, ['upload_module_zip', 'download_registry_module', 'download_repository_archive'], true)) {
         if (!$canManageModuleSources) {
             $errors[] = '모듈 소스 반영은 owner 권한이 필요합니다.';
+        }
+
+        if (!$moduleSourcesEnabled) {
+            $errors[] = '현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. owner가 admin.module_sources_enabled 설정을 bool true로 저장해야 합니다.';
         }
 
         if (!$moduleUploadAvailable) {
@@ -42,6 +49,10 @@ function toy_admin_handle_modules_post(
     } elseif ($intent === 'sync_module_version') {
         if (!$canManageModuleSources) {
             $errors[] = '파일 전용 업데이트 반영은 owner 권한이 필요합니다.';
+        }
+
+        if (!$moduleSourcesEnabled) {
+            $errors[] = '현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. owner가 admin.module_sources_enabled 설정을 bool true로 저장해야 합니다.';
         }
     } elseif ($intent === 'status') {
         $status = toy_post_string('status', 30);
@@ -56,6 +67,12 @@ function toy_admin_handle_modules_post(
         $status = toy_post_string('status', 30);
         if (!in_array($status, $allowedInstallStatuses, true)) {
             $errors[] = '설치 후 상태 값이 올바르지 않습니다.';
+        }
+    }
+
+    if ($errors === [] && in_array($intent, $sourceWriteIntents, true)) {
+        foreach (toy_admin_module_source_reauth_errors($pdo, $account, $intent) as $reauthError) {
+            $errors[] = $reauthError;
         }
     }
 
@@ -140,6 +157,12 @@ function toy_admin_handle_modules_post(
 
                 if ($intent === 'download_repository_archive') {
                     $repositoryRef = toy_post_string('repository_ref', 120);
+                    if (
+                        !toy_admin_repository_archive_unchecked_enabled($pdo, toy_runtime_config())
+                        && toy_admin_repository_archive_expected_checksum($registryEntry, $repositoryRef) === ''
+                    ) {
+                        throw new RuntimeException('checksum이 registry에 등록되지 않은 repository archive는 현재 설정에서 반영할 수 없습니다.');
+                    }
                     $upload = toy_admin_download_registry_repository_archive($registryEntry, $repositoryRef);
                 } else {
                     $upload = toy_admin_download_registry_module_zip($registryEntry);
@@ -458,6 +481,47 @@ function toy_admin_handle_modules_post(
     }
 
     return toy_admin_action_result($errors, $notice);
+}
+
+function toy_admin_module_source_reauth_errors(PDO $pdo, array $account, string $intent): array
+{
+    $password = toy_post_string('owner_password', 255);
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId < 1) {
+        return ['owner 재인증 계정을 확인할 수 없습니다.'];
+    }
+
+    $throttle = toy_member_reauth_throttle_status($pdo, $accountId);
+    if (!empty($throttle['limited'])) {
+        toy_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
+        toy_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'admin',
+            'event_type' => 'module.source.reauth_blocked',
+            'target_type' => 'module_source',
+            'target_id' => $intent,
+            'result' => 'failure',
+            'message' => 'Module source write reauthentication blocked by throttle.',
+        ]);
+        return ['재인증 시도가 많습니다. 잠시 후 다시 시도하세요.'];
+    }
+
+    if ($password === '' || !password_verify($password, (string) ($account['password_hash'] ?? ''))) {
+        toy_member_log_auth($pdo, $accountId, 'module_source_reauth', 'failure');
+        toy_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'admin',
+            'event_type' => 'module.source.reauth_failed',
+            'target_type' => 'module_source',
+            'target_id' => $intent,
+            'result' => 'failure',
+            'message' => 'Module source write reauthentication failed.',
+        ]);
+        return ['모듈 소스 반영 전 owner 비밀번호를 다시 입력하세요.'];
+    }
+
+    toy_member_log_auth($pdo, $accountId, 'module_source_reauth', 'success');
+    return [];
 }
 
 function toy_admin_load_module_management_view_data(PDO $pdo): array

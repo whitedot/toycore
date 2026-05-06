@@ -10,6 +10,7 @@ toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']
 
 $modules = toy_admin_dashboard_modules($pdo);
 $operationSummary = toy_admin_dashboard_operation_summary($pdo);
+$installProtectionSummary = toy_admin_dashboard_install_protection_summary($config);
 $authRuntimeSummary = toy_admin_dashboard_auth_runtime_summary($pdo, $config);
 $recoveryMarkers = toy_admin_dashboard_recovery_markers();
 $moduleBackupSummary = toy_admin_dashboard_module_backup_summary();

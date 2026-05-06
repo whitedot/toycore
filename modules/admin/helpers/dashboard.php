@@ -109,6 +109,8 @@ function toy_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): arra
     $trustedProxies = toy_trusted_proxy_entries($config);
     $trustedProxyErrors = toy_trusted_proxy_config_errors($config);
     $hasForwardedHeaders = (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '') !== '' || (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') !== '';
+    $clientIp = toy_client_ip();
+    $forwardedClientIp = toy_forwarded_client_ip($config);
     $summary[] = [
         'label' => 'Trusted proxy',
         'value' => (string) count($trustedProxies),
@@ -118,6 +120,28 @@ function toy_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): arra
             : ($trustedProxies !== []
             ? '프록시 헤더 신뢰 범위가 설정됨'
             : ($hasForwardedHeaders ? '전달 헤더가 있지만 trusted_proxies가 비어 있음' : '프록시 없이 직접 요청으로 판단')),
+    ];
+
+    $summary[] = [
+        'label' => '클라이언트 IP 판정',
+        'value' => $clientIp !== '' ? $clientIp : '확인 불가',
+        'state' => $clientIp !== '' ? '정상' : '주의',
+        'detail' => $forwardedClientIp !== '' ? 'trusted proxy의 X-Forwarded-For 사용' : 'REMOTE_ADDR 기준',
+    ];
+
+    $memberSettings = toy_member_settings($pdo);
+    $summary[] = [
+        'label' => '로그인 제한',
+        'value' => (string) $memberSettings['login_throttle_account_limit'] . '/' . (string) $memberSettings['login_throttle_ip_limit'],
+        'state' => '정상',
+        'detail' => (string) $memberSettings['login_throttle_window_seconds'] . '초 창 / 계정 기준, IP 기준',
+    ];
+
+    $summary[] = [
+        'label' => '비밀번호 재설정 제한',
+        'value' => (string) $memberSettings['password_reset_throttle_account_limit'] . '/' . (string) $memberSettings['password_reset_throttle_ip_limit'],
+        'state' => '정상',
+        'detail' => (string) $memberSettings['password_reset_throttle_window_seconds'] . '초 창 / 계정 기준, IP 기준',
     ];
 
     $appKeyEnv = (string) ($secrets['app_key_env'] ?? '');
@@ -136,6 +160,82 @@ function toy_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): arra
         'value' => $transport,
         'state' => $mailReady ? '정상' : '주의',
         'detail' => $mailReady ? '인증 메일 발송 설정 확인됨' : '인증 메일 발송 설정 보완 필요',
+    ];
+
+    $moduleSourcesEnabled = toy_admin_module_sources_enabled($pdo, $config);
+    $summary[] = [
+        'label' => '모듈 소스 반영',
+        'value' => $moduleSourcesEnabled ? '허용' : '비활성화',
+        'state' => $moduleSourcesEnabled && toy_admin_runtime_is_production($config) ? '주의' : '정상',
+        'detail' => $moduleSourcesEnabled
+            ? 'owner 재인증 후 zip/upload/archive 반영 가능'
+            : 'admin.module_sources_enabled 설정이 없으면 운영 환경에서 기본 비활성화',
+    ];
+
+    $uncheckedArchiveEnabled = toy_admin_repository_archive_unchecked_enabled($pdo, $config);
+    $summary[] = [
+        'label' => 'Repository archive',
+        'value' => $uncheckedArchiveEnabled ? '미등록 checksum 허용' : 'checksum 필요',
+        'state' => $uncheckedArchiveEnabled ? '확인' : '정상',
+        'detail' => $uncheckedArchiveEnabled
+            ? '개발/스테이징에서만 admin.repository_archive_unchecked_enabled 설정으로 허용'
+            : '운영 환경은 commit SHA와 registry checksum이 필요',
+    ];
+
+    return $summary;
+}
+
+function toy_admin_dashboard_install_protection_summary(array $config): array
+{
+    $configPath = TOY_ROOT . '/config/config.php';
+    $lockPath = TOY_ROOT . '/storage/installed.lock';
+    $summary = [];
+
+    $summary[] = [
+        'label' => '설정 파일',
+        'value' => is_file($configPath) ? '존재' : '없음',
+        'state' => is_file($configPath) && is_readable($configPath) ? '정상' : '주의',
+        'detail' => is_file($configPath) ? 'config/config.php 확인됨' : '설치 완료 상태를 판단할 설정 파일이 없음',
+    ];
+
+    $lockDetail = 'storage/installed.lock 확인됨';
+    $lockState = is_file($lockPath) && is_readable($lockPath) ? '정상' : '주의';
+    $lockValue = is_file($lockPath) ? '존재' : '없음';
+    if (is_file($lockPath) && is_readable($lockPath)) {
+        $content = file_get_contents($lockPath);
+        $decoded = is_string($content) ? json_decode($content, true) : null;
+        if (is_array($decoded)) {
+            $installedAt = (string) ($decoded['installed_at'] ?? '');
+            $fingerprint = (string) ($decoded['app_fingerprint'] ?? '');
+            $expectedFingerprint = substr(hash('sha256', toy_app_key($config)), 0, 16);
+            if ($fingerprint !== '' && !hash_equals($expectedFingerprint, $fingerprint)) {
+                $lockState = '주의';
+                $lockDetail = 'app fingerprint가 현재 설정과 일치하지 않음';
+            } else {
+                $lockDetail = '설치 시각 ' . ($installedAt !== '' ? $installedAt : '미기록') . ($fingerprint !== '' ? ' / fingerprint 확인' : '');
+            }
+        } else {
+            $lockState = '확인';
+            $lockDetail = '이전 형식의 설치 lock 파일 사용 중';
+        }
+    } elseif (!is_file($lockPath)) {
+        $lockDetail = '설치 lock 파일이 없어 설치 흐름 재진입 위험이 있음';
+    } else {
+        $lockDetail = '설치 lock 파일을 읽을 수 없음';
+    }
+
+    $summary[] = [
+        'label' => '설치 lock',
+        'value' => $lockValue,
+        'state' => $lockState,
+        'detail' => $lockDetail,
+    ];
+
+    $summary[] = [
+        'label' => '설치 판정',
+        'value' => toy_is_installed() ? '완료' : '미완료',
+        'state' => toy_is_installed() ? '정상' : '주의',
+        'detail' => 'config/config.php와 storage/installed.lock가 모두 있어야 설치 완료로 판단',
     ];
 
     return $summary;

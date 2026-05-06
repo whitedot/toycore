@@ -440,7 +440,13 @@ if (toy_request_method() === 'POST') {
                 throw new RuntimeException('storage directory cannot be created.');
             }
 
-            if (file_put_contents($storageDir . '/installed.lock', $now . "\n", LOCK_EX) === false) {
+            $installedLock = [
+                'installed_at' => $now,
+                'app_fingerprint' => substr(hash('sha256', toy_app_key($config)), 0, 16),
+                'table_prefix' => toy_table_prefix($config),
+            ];
+            $installedLockJson = json_encode($installedLock, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            if (!is_string($installedLockJson) || file_put_contents($storageDir . '/installed.lock', $installedLockJson . "\n", LOCK_EX) === false) {
                 throw new RuntimeException('installed.lock cannot be written.');
             }
 
