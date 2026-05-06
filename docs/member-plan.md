@@ -610,6 +610,7 @@ POST /login
 -> 계정 상태 확인
 -> password_verify() 검증
 -> 이메일 인증 사용 시 email_verified_at 확인
+-> 필요 시 password_hash를 현재 PHP 기본 알고리즘/비용으로 재해시
 -> session_regenerate_id(true)
 -> session token 생성과 hash 저장
 -> last_login_at 갱신

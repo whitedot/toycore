@@ -58,6 +58,7 @@ if (toy_request_method() === 'POST') {
         ]);
         $errors[] = '이메일 인증을 완료한 뒤 로그인할 수 있습니다.';
     } elseif ($passwordVerified) {
+        toy_member_rehash_login_password_if_needed($pdo, (int) $account['id'], $password, (string) $account['password_hash']);
         toy_member_login($pdo, $account);
         toy_member_log_auth($pdo, (int) $account['id'], 'login', 'success');
         toy_audit_log($pdo, [

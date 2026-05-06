@@ -105,6 +105,11 @@ if ($accountHelper !== '') {
         strpos($accountHelper, 'toy_member_email_verification_blocks_login($settings, $account)') !== false,
         'Current member session should be rejected when email verification is still required.'
     );
+    toy_member_auth_policy_assert(
+        strpos($accountHelper, 'function toy_member_rehash_login_password_if_needed') !== false
+            && strpos($accountHelper, 'password_needs_rehash($currentHash, PASSWORD_DEFAULT)') !== false,
+        'Login password rehash helper should upgrade stale password hashes.'
+    );
 }
 
 $throttleHelper = toy_member_auth_policy_read('modules/member/helpers/throttle.php');
@@ -125,6 +130,14 @@ if ($registerAction !== '') {
         strpos($registerAction, "toy_redirect('/login')") !== false
             && strpos($registerAction, '이메일 인증을 완료한 뒤 로그인하세요') !== false,
         'Register action should not auto-login unverified accounts.'
+    );
+}
+
+$loginAction = toy_member_auth_policy_read('modules/member/actions/login.php');
+if ($loginAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($loginAction, 'toy_member_rehash_login_password_if_needed') !== false,
+        'Login action should rehash stale password hashes after successful verification.'
     );
 }
 

@@ -233,6 +233,23 @@ function toy_member_email_verification_blocks_login(array $settings, ?array $acc
         && (string) ($account['email_verified_at'] ?? '') === '';
 }
 
+function toy_member_rehash_login_password_if_needed(PDO $pdo, int $accountId, string $password, string $currentHash): void
+{
+    if ($accountId < 1 || $password === '' || $currentHash === '' || !password_needs_rehash($currentHash, PASSWORD_DEFAULT)) {
+        return;
+    }
+
+    try {
+        $stmt = $pdo->prepare('UPDATE toy_member_accounts SET password_hash = :password_hash, updated_at = :updated_at WHERE id = :id');
+        $stmt->execute([
+            'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+            'updated_at' => toy_now(),
+            'id' => $accountId,
+        ]);
+    } catch (Throwable $ignored) {
+    }
+}
+
 function toy_member_dummy_password_hash(): string
 {
     return '$2y$10$rXJfqk3XCcK2njbFv2w3XuJ3Ny/E6.46vRsuNcSOHg65o0bfe4enK';
