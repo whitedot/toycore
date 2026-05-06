@@ -143,6 +143,42 @@ function toy_update_module_index_remote_archive_checksum(string $url): string
     return hash_final($hash);
 }
 
+function toy_update_module_index_write_file(string $path, string $content): void
+{
+    $directory = dirname($path);
+    if (!is_dir($directory) || !is_writable($directory)) {
+        throw new RuntimeException('module index directory is not writable: ' . $directory);
+    }
+
+    $temporary = tempnam($directory, '.module-index.');
+    if (!is_string($temporary) || $temporary === '') {
+        throw new RuntimeException('temporary module index file cannot be created.');
+    }
+
+    try {
+        if (file_put_contents($temporary, $content, LOCK_EX) === false) {
+            throw new RuntimeException('temporary module index file cannot be written.');
+        }
+
+        if (is_file($path)) {
+            $permissions = fileperms($path);
+            if ($permissions !== false) {
+                chmod($temporary, $permissions & 0777);
+            }
+        }
+
+        if (!rename($temporary, $path)) {
+            throw new RuntimeException('module index file cannot be replaced.');
+        }
+    } catch (Throwable $exception) {
+        if (is_file($temporary)) {
+            unlink($temporary);
+        }
+
+        throw $exception;
+    }
+}
+
 $indexPath = (string) (getenv('TOYCORE_MODULE_INDEX_PATH') ?: ($root . '/docs/module-index.json'));
 if ($indexPath !== '' && !str_starts_with($indexPath, '/') && preg_match('/\A[A-Za-z]:[\/\\\\]/', $indexPath) !== 1) {
     $indexPath = $root . '/' . $indexPath;
@@ -229,7 +265,12 @@ if (!is_string($encoded)) {
     exit(1);
 }
 
-file_put_contents($indexPath, $encoded . "\n", LOCK_EX);
+try {
+    toy_update_module_index_write_file($indexPath, $encoded . "\n");
+} catch (Throwable $exception) {
+    fwrite(STDERR, $exception->getMessage() . "\n");
+    exit(1);
+}
 
 echo "Updated module index for version " . $version . "\n";
 foreach ($updated as $moduleKey) {
