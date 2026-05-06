@@ -37,7 +37,8 @@ if (!empty($memberSettings['email_verification_enabled']) && $account['email_ver
             '이메일 인증 안내',
             "아래 링크를 열어 이메일 인증을 완료하세요.\n\n" . $verificationUrl
         );
-        if (!$mailSent || !empty($config['debug'])) {
+        $showVerificationUrl = !empty($config['debug']) && toy_is_local_host((string) ($site['base_url'] ?? ''));
+        if ($showVerificationUrl) {
             $_SESSION['toy_debug_email_verification_url'] = $verificationUrl;
         }
         if (!$mailSent) {

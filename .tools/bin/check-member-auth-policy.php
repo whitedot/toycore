@@ -122,6 +122,11 @@ if ($loginAction !== '') {
         'Login action should write an auth log event when verification mail delivery fails.'
     );
     toy_member_auth_policy_assert(
+        strpos($loginAction, '$showVerificationUrl = !empty($config[\'debug\']) && toy_is_local_host((string) ($site[\'base_url\'] ?? \'\'));') !== false
+            && strpos($loginAction, 'if ($showVerificationUrl)') !== false,
+        'Login action should only store debug email verification URLs when the configured site base URL is localhost.'
+    );
+    toy_member_auth_policy_assert(
         strpos($loginAction, "toy_get_string('password_reset', 10) === '1'") !== false
             && strpos($loginAction, '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.') !== false,
         'Login action should show a fixed completion notice after password reset redirect.'
@@ -283,6 +288,11 @@ if ($accountAction !== '') {
             && strpos($accountAction, '!toy_is_http_url($profile[\'avatar_path\'])') !== false,
         'Account action should validate avatar_path before saving it.'
     );
+    toy_member_auth_policy_assert(
+        strpos($accountAction, 'toy_is_local_host((string) ($site[\'base_url\'] ?? \'\'))') !== false
+            && strpos($accountAction, 'toy_debug_email_verification_url') !== false,
+        'Account action should only render debug email verification URLs for localhost site base URLs.'
+    );
 }
 
 $withdrawAction = toy_member_auth_policy_read('modules/member/actions/withdraw.php');
@@ -369,6 +379,11 @@ if ($registerAction !== '') {
     toy_member_auth_policy_assert(
         strpos($registerAction, 'email_verification_mail_failed') !== false,
         'Register action should write an auth log event when verification mail delivery fails.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($registerAction, '$showVerificationUrl = !empty($config[\'debug\']) && toy_is_local_host((string) ($site[\'base_url\'] ?? \'\'));') !== false
+            && strpos($registerAction, 'if ($showVerificationUrl)') !== false,
+        'Register action should only store debug email verification URLs when the configured site base URL is localhost.'
     );
     $registerTransaction = strpos($registerAction, '$pdo->beginTransaction();');
     $registerConsent = strpos($registerAction, "toy_member_record_consent(\$pdo, \$accountId, 'privacy'");
@@ -467,6 +482,11 @@ if ($emailVerificationRequestAction !== '') {
     toy_member_auth_policy_assert(
         strpos($emailVerificationRequestAction, 'email_verification_mail_failed') !== false,
         'Email verification request action should write an auth log event when mail delivery fails.'
+    );
+    toy_member_auth_policy_assert(
+        strpos($emailVerificationRequestAction, '$showVerificationUrl = !empty($config[\'debug\']) && toy_is_local_host((string) ($site[\'base_url\'] ?? \'\'));') !== false
+            && strpos($emailVerificationRequestAction, 'if ($showVerificationUrl)') !== false,
+        'Email verification request action should only store debug verification URLs when the configured site base URL is localhost.'
     );
 }
 

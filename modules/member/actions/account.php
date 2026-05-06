@@ -15,7 +15,13 @@ $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled']
 $profileFields = toy_member_profile_field_settings($memberSettings);
 $profileFieldsEnabled = in_array(true, $profileFields, true);
 
-if ($emailVerificationEnabled && !empty($config['debug']) && !empty($_SESSION['toy_debug_email_verification_url']) && is_string($_SESSION['toy_debug_email_verification_url'])) {
+if (
+    $emailVerificationEnabled
+    && !empty($config['debug'])
+    && toy_is_local_host((string) ($site['base_url'] ?? ''))
+    && !empty($_SESSION['toy_debug_email_verification_url'])
+    && is_string($_SESSION['toy_debug_email_verification_url'])
+) {
     $emailVerificationUrl = $_SESSION['toy_debug_email_verification_url'];
 }
 
