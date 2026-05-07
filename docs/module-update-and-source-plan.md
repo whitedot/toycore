@@ -168,7 +168,7 @@ Toycore 검증 버전
 - README의 빠른 시작은 `toycore-standard.zip` 기준으로 안내
 - `minimal`은 "작게 시작하는 고급/개발자 선택지"로 설명
 - `standard/ops` 패키지에 포함된 모듈 목록과 각 모듈 버전을 release note에 표기
-- 배포 패키지 생성 시 포함 모듈의 `module.php version` 목록을 manifest로 남김
+- 배포 패키지 생성 시 포함 모듈의 `module.php` version, Toycore 최소 버전, 모듈 계약 버전을 manifest로 남김
 
 ### 2단계: zip 업로드 설치/업데이트
 
@@ -217,7 +217,7 @@ Toycore 검증 버전
 - 각 모듈 리포지토리는 `module/` 구조와 `package-module` 스크립트를 가진다.
 - toycore 배포 패키지는 `minimal`, `standard`, `ops`로 나눌 수 있다.
 - 배포 패키지는 포함 모듈, 모듈 버전, Toycore 최소 버전, 모듈 계약 버전을 `distribution-manifest.json`에 남긴다.
-- `.tools/bin/check-distributions.php`로 생성된 배포 패키지의 manifest, 포함 모듈 버전, 설치 화면 선택 모듈 구성을 검증할 수 있다.
+- `.tools/bin/check-distributions.php`로 생성된 배포 패키지의 manifest, 포함 모듈 버전, Toycore 최소 버전, 모듈 계약 버전, 설치 화면 선택 모듈 구성을 검증할 수 있다.
 - 공식 모듈 registry는 `docs/module-index.json`에 둔다.
 - 운영 환경에서 repository archive를 반영하려면 registry의 `repository_refs`에 40자 commit SHA와 sha256 checksum을 함께 등록한다. Branch나 tag ref는 움직일 수 있으므로 개발/스테이징용 고급 경로로만 취급한다.
 - 관리자 모듈 화면은 설치 버전, 코드 버전, Toycore 호환 정보를 표시한다.
