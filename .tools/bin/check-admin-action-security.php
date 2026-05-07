@@ -366,6 +366,14 @@ if (is_string($coreSettingsHelper) && (
 )) {
     $errors[] = 'Core module runtime loading must require the current module contract metadata.';
 }
+if (is_string($coreSettingsHelper) && (
+    strpos($coreSettingsHelper, 'function toy_module_metadata') === false
+    || strpos($coreSettingsHelper, 'catch (Throwable $exception)') === false
+    || strpos($coreSettingsHelper, "toy_log_exception(\$exception, 'module_metadata_load_failed_' . \$moduleKey)") === false
+    || strpos($coreSettingsHelper, '$cache[$moduleKey] = [];') === false
+)) {
+    $errors[] = 'Core module metadata loading must fail closed when module.php throws.';
+}
 
 $frontController = file_get_contents($root . '/index.php');
 if (!is_string($frontController)) {

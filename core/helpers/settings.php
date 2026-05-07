@@ -271,7 +271,17 @@ function toy_module_metadata(string $moduleKey): array
         return [];
     }
 
-    $metadata = include $file;
+    try {
+        $metadata = include $file;
+    } catch (Throwable $exception) {
+        if (function_exists('toy_log_exception')) {
+            toy_log_exception($exception, 'module_metadata_load_failed_' . $moduleKey);
+        }
+
+        $cache[$moduleKey] = [];
+        return [];
+    }
+
     $cache[$moduleKey] = is_array($metadata) ? $metadata : [];
 
     return $cache[$moduleKey];
