@@ -13,11 +13,18 @@
 
 ## 2. 본체 배포 패키지 생성
 
-GitHub Actions를 사용할 수 있으면 `Release packages` workflow를 수동 실행한다. 이 workflow는 `docs/module-index.json`의 공식 모듈 저장소를 checkout하고, 전체 점검과 `package-distributions`, `check-distributions`를 실행한 뒤 `dist/toycore-*` 산출물을 artifact로 업로드한다.
+GitHub Actions를 사용할 수 있으면 `Release packages` workflow를 수동 실행한다. 이 workflow는 `.tools/bin/clone-official-modules.php`로 `docs/module-index.json`의 공식 모듈 저장소를 checkout하고, 전체 점검과 `package-distributions`, `check-distributions`를 실행한 뒤 `dist/toycore-*` 산출물을 artifact로 업로드한다.
+
+공식 모듈 ref 선택 기준:
+
+- workflow의 `module_ref` 입력값이 있으면 모든 공식 모듈을 그 ref로 checkout한다.
+- `module_ref`가 비어 있고 `module-index.json`의 `latest_version`이 있으면 `v{latest_version}` 태그를 사용한다.
+- 둘 다 없으면 해당 모듈 저장소의 기본 브랜치를 사용한다. 이 경로는 초기 조립이나 개발 검증용이며, 재현 가능한 공식 릴리스에서는 고정 ref를 사용한다.
 
 로컬 maintainer 환경에서는 다음 명령을 사용한다.
 
 ```sh
+php .tools/bin/clone-official-modules.php ..
 ./.tools/bin/package-distributions 2026.05.001
 ```
 

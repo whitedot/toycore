@@ -12,6 +12,11 @@ on:
         required: true
         default: 'main'
         type: string
+      module_ref:
+        description: 'Optional shared official module ref. Empty uses module-index latest_version tags or default branches.'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   package:
@@ -31,30 +36,10 @@ jobs:
           coverage: none
 
       - name: Checkout official modules
-        run: |
-          php -r '
-          $index = json_decode(file_get_contents("docs/module-index.json"), true);
-          if (!is_array($index) || !is_array($index["modules"] ?? null)) {
-              fwrite(STDERR, "module-index.json is invalid\n");
-              exit(1);
-          }
-          foreach ($index["modules"] as $module) {
-              if (!is_array($module)) {
-                  continue;
-              }
-              $repository = (string) ($module["repository"] ?? "");
-              if ($repository === "") {
-                  continue;
-              }
-              $name = basename(parse_url($repository, PHP_URL_PATH));
-              $target = "../" . $name;
-              passthru("git clone --depth=1 " . escapeshellarg($repository) . " " . escapeshellarg($target), $exitCode);
-              if ($exitCode !== 0) {
-                  exit($exitCode);
-              }
-          }
-          '
+        run: php .tools/bin/clone-official-modules.php ..
         working-directory: toycore
+        env:
+          TOYCORE_MODULE_REF: ${{ inputs.module_ref }}
 
       - name: Run checks
         run: ./.tools/bin/check
