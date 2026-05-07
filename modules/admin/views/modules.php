@@ -264,6 +264,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 </details>
                             <?php } elseif ($canManageModuleSources && !$moduleSourcesEnabled && (!empty($module['download_ready']) || !empty($module['repository_archive_ready']))) { ?>
                                 소스 반영 비활성화
+                            <?php } elseif (empty($module['contract_ready'])) { ?>
+                                계약 불일치
                             <?php } elseif (!empty($module['repository_ready']) && !empty($module['repository_archive_production'])) { ?>
                                 registry checksum 필요
                             <?php } else { ?>
