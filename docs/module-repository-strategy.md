@@ -112,7 +112,7 @@ git@github.com:whitedot/toycore-module-reward.git
 코어 경계 유지 효과: 높음
 개발 효율: 중상
 운영자 설치 편의: 아직 낮음
-릴리스 체계 완성도: 보완 필요
+릴리스 체계 완성도: 진행 중
 ```
 
 효과적인 지점:
@@ -128,6 +128,12 @@ git@github.com:whitedot/toycore-module-reward.git
 - standard/ops 배포 zip을 릴리스하지 않으면 여러 리포지토리를 직접 다루는 부담이 생긴다.
 - 모듈 업데이트는 파일 버전, DB 버전, SQL 적용 버전을 함께 관리해야 한다.
 - 조합 테스트와 release note 작성 책임이 릴리스 담당자에게 생긴다.
+
+현재 보완된 지점:
+
+- 공식 모듈 checkout, 배포 패키지 조립, artifact 업로드를 GitHub Actions workflow로 실행할 수 있다.
+- 공식 모듈 checkout 규칙은 `.tools/bin/clone-official-modules.php`로 분리해 로컬 maintainer 환경과 workflow에서 같은 기준을 쓴다.
+- 모듈 계약 버전은 `TOY_MODULE_CONTRACT_VERSION`과 `toycore.module_contract`로 검증한다.
 
 결론:
 

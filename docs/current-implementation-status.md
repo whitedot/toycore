@@ -50,9 +50,11 @@
 - `.tools/bin/update-module-index`로 release zip checksum을 계산해 공식 모듈 registry를 갱신 가능
 - `.tools/bin/update-module-index --repository-refs`로 운영용 repository archive commit SHA/checksum 등록 가능
 - `.tools/bin/publish-module-release`로 공식 모듈 zip 수집, registry 갱신, GitHub Release 업로드 보조 가능
+- `.tools/bin/clone-official-modules.php`로 공식 모듈 리포지토리 checkout 가능
 - Toycore 본체에서 선택 모듈 복사본 제거
 - Toycore 본체 배포 패키지는 minimal/standard/ops로 분리 가능
 - standard/ops 배포 패키지는 같은 상위 디렉터리의 외부 모듈 리포지토리에서 선택 모듈을 조립
+- GitHub Actions `Release packages` workflow로 공식 모듈 checkout, 전체 점검, 배포 패키지 조립, artifact 업로드 가능
 - `.tools/bin/check-distributions.php`로 배포 패키지 manifest, 포함 모듈 버전, 설치 화면 선택 모듈 구성 검증 가능
 
 ### 코어
@@ -71,6 +73,7 @@
 - 활성 모듈 간 method/path 충돌 감지와 오류 로그 기록
 - action 상대 경로 검증
 - 모듈 `module.php` 메타데이터 조회 helper
+- 모듈 `toycore.module_contract`와 현재 코어 계약 버전 검증 helper
 - 모듈 `requires` 메타데이터 기반 활성화 의존성 검증
 - 모듈 type 조회 helper
 - 활성 모듈 계약 파일 조회 helper

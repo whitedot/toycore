@@ -40,6 +40,8 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 모듈 파일 교체 전 백업과 교체 확인, downgrade 차단, checksum/압축 크기 검증
 - 모듈 release zip checksum을 계산해 공식 registry를 갱신하는 도구
 - 공식 모듈 release zip 수집, registry 갱신, GitHub Release 업로드 보조 도구
+- 공식 모듈 리포지토리 checkout 도구
+- 공식 모듈 checkout, 전체 점검, 배포 패키지 조립, artifact 업로드용 GitHub Actions workflow
 
 ## 개발 및 검증 도구
 
@@ -60,6 +62,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - action 파일 상대 경로 검증
 - core helper의 큰 책임 단위 분리
 - 모듈 `module.php` 메타데이터 조회
+- 모듈 `toycore.module_contract`와 현재 코어 계약 버전 검증
 - 모듈 의존성 메타데이터 검증
 - 모듈 type 조회
 - 활성 모듈 계약 파일 조회 helper
