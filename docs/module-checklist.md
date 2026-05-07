@@ -1,15 +1,12 @@
 # 모듈 체크리스트
 
-이 문서는 외부 모듈을 zip으로 배포하거나 Toycore 관리자에서 업로드하기 전에 확인할 항목이다.
+이 문서는 모듈을 Toycore 관리자에서 zip으로 업로드하거나 `modules/{module_key}`에 배치하기 전에 확인할 항목이다.
 
 ## 기본 파일
 
-- `module/module.php`가 있다.
-- `module/install.sql`이 있다.
-- 공개 배포나 반복 배포용 프로젝트라면 `README.md`가 있다.
-- 공개 배포나 AI 보조 작업을 쓴다면 `AGENTS.md`가 있고 구현 규칙과 점검 기준이 현재 Toycore 문서와 맞다.
-- 버전 이력을 관리한다면 `CHANGELOG.md`가 있다.
-- 프로젝트 생성 도구를 사용했다면 `.tools/bin/package-module`이 있다.
+- `{module_key}/module.php`가 있다.
+- `{module_key}/install.sql`이 있다.
+- 모듈 key와 폴더 이름이 일치한다.
 
 ## module.php
 
@@ -37,12 +34,6 @@
 
 ## zip 구조
 
-프로젝트 생성 도구로 만든 모듈이라면 zip을 만들기 전에 다음 명령을 실행한다.
-
-```sh
-php .tools/bin/package-module 2026.05.001
-```
-
 좋은 구조:
 
 ```text
@@ -60,30 +51,6 @@ banner-2026.05.001.zip
    - module.php
    - install.sql
 ```
-
-## 로컬 점검
-
-zip을 만들기 전에 Toycore 소스 경로와 모듈 런타임 폴더 경로를 지정해 점검한다. 두 폴더가 같은 상위 디렉터리에 있을 필요는 없다.
-
-```sh
-TOYCORE=/path/to/toycore
-php "$TOYCORE/.tools/bin/check-external-module.php" module banner
-```
-
-Windows PowerShell에서는 다음처럼 실행한다.
-
-```powershell
-$env:TOYCORE = 'C:\path\to\toycore'
-php "$env:TOYCORE\.tools\bin\check-external-module.php" module banner
-```
-
-Toycore 소스 루트에서 실행한다면 모듈 런타임 폴더를 절대 경로 또는 명시적 상대 경로로 넘긴다.
-
-```sh
-php .tools/bin/check-external-module.php /path/to/banner banner
-```
-
-프로젝트 생성 도구를 쓴 폴더라면 `/path/to/banner-module/module`처럼 `module/` 경로를 넘긴다. GitHub Actions를 쓰는 프로젝트라면 `.github/workflows/check.yml`의 `TOYCORE_MODULE_KEY`와 `TOYCORE_REF`가 현재 모듈과 지원 Toycore 버전에 맞는지 확인한다.
 
 ## 운영 반영
 

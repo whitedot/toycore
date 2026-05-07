@@ -160,15 +160,11 @@ function toy_check_php_lint(): void
 
 toy_check_run('git diff --check');
 toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-distribution-manifest-entry.php'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-create-external-module.php'));
 toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-distribution-policy.php'));
 toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-retention-targets.php'));
 toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-auth-runtime.php'));
 toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-runtime-helpers.php'));
 toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-output-helpers.php'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-external-module.php') . ' ' . escapeshellarg('modules/member') . ' ' . escapeshellarg('member'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-external-module.php') . ' ' . escapeshellarg('modules/admin') . ' ' . escapeshellarg('admin'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-external-module.php') . ' ' . escapeshellarg('examples/sample_module') . ' ' . escapeshellarg('sample_notice'));
 toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-member-auth-policy.php'));
 toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-action-security.php'));
 toy_check_sql_files();

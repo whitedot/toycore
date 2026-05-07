@@ -12,8 +12,6 @@ Toycore의 모듈은 프레임워크 패키지가 아니다. 모듈은 정해진
 - 저가형 웹호스팅에서도 PHP 파일과 SQL만으로 설치 가능할 것
 - 보안 판단을 view나 클라이언트 코드에 미루지 않을 것
 
-외부 모듈을 처음 만든다면 이 문서보다 [외부 모듈 제작 빠른 시작](external-module-quickstart.md)을 먼저 본다. 처음에는 모듈 폴더와 zip 업로드 흐름만 이해하면 된다. zip 배포 전에는 [모듈 체크리스트](module-checklist.md)를 확인한다. GitHub Actions 자동 점검은 필요해진 뒤 [모듈 자동 점검 빠른 시작](module-ci-quickstart.md)을 참고한다.
-
 모듈 저장 위치와 배포 기준은 [모듈 저장 위치 기준](module-storage-policy.md)을 따른다. Toycore 안에서는 모듈을 항상 `modules/{module_key}` 폴더로 다룬다.
 
 ## 1. 모듈 판단 기준
@@ -238,8 +236,6 @@ return [
 - 활성화되지 않은 모듈의 부팅 처리
 
 `module.php`는 Service Provider가 아니다. 정보 파일이다.
-
-외부 모듈은 먼저 Toycore 소스의 `.tools/bin/check-external-module.php`로 점검한다. Toycore 소스와 모듈 폴더가 같은 상위 디렉터리에 있을 필요는 없으며, 프로젝트 생성 도구를 쓴 폴더에서는 `TOYCORE=/path/to/toycore`처럼 점검에 사용할 Toycore 소스 경로를 명시한다. GitHub Actions를 쓰면 같은 점검을 push할 때 자동으로 실행할 수 있다. 자동 점검을 켤 때는 [module-ci-template.yml](module-ci-template.yml)을 `.github/workflows/check.yml`로 복사하고, 템플릿의 `TOYCORE_MODULE_KEY`와 `TOYCORE_REF`를 모듈에 맞게 바꾼다.
 
 ## 5. 의존성 선언
 
@@ -711,7 +707,7 @@ return [
 
 ## 15-1. 계약 파일 반환 구조
 
-외부 모듈 점검 도구는 계약 파일의 최소 반환 구조를 확인한다. 더 깊은 의미 검증은 소비 모듈이 다시 수행한다.
+계약 파일의 최소 반환 구조는 전체 점검과 소비 모듈의 로드 시점 검증으로 확인한다. 더 깊은 의미 검증은 소비 모듈이 다시 수행한다.
 
 `paths.php`:
 

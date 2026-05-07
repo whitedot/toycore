@@ -48,39 +48,6 @@ php .tools/bin/check.php
 
 이 PHP 점검 도구는 `git diff --check`, 전체 PHP 문법 검사, SQL 파일 비어 있음 여부, 모듈 기본 계약 파일 구성, 관리자 메뉴 path와 모듈 `paths.php` GET route 일치 여부, 런타임/회원 인증 정책 검사를 확인한다.
 
-## 외부 모듈 제작
-
-반복 제작이나 공개 배포를 위한 외부 모듈 프로젝트 폴더를 만들 때:
-
-```sh
-php .tools/bin/create-external-module.php banner /path/to/banner-module
-```
-
-GitHub Actions 자동 점검 파일까지 함께 만들려면:
-
-```sh
-php .tools/bin/create-external-module.php banner /path/to/banner-module --with-ci
-```
-
-zip을 만들기 전 모듈 구조를 확인할 때는 Toycore 소스와 모듈 폴더의 상대 위치를 가정하지 않는다. Toycore 소스 루트에서 실행한다면 모듈 런타임 폴더 경로를 명시한다.
-
-```sh
-php .tools/bin/check-external-module.php /path/to/banner banner
-```
-
-프로젝트 생성 도구로 만든 폴더에서 실행한다면 Toycore 소스 경로를 지정한다.
-
-```sh
-TOYCORE=/path/to/toycore
-php "$TOYCORE/.tools/bin/check-external-module.php" module banner
-```
-
-프로젝트 생성 도구가 만든 모듈 폴더에서는 다음 명령으로 업로드용 zip을 만들 수 있다.
-
-```sh
-php .tools/bin/package-module 2026.05.001
-```
-
 ## HTTP 스모크 점검
 
 내장 서버를 실행한 뒤 최소 HTTP 점검을 실행할 수 있다.
