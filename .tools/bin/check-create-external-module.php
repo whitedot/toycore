@@ -77,6 +77,8 @@ try {
     if (
         !str_contains($readme, 'Toycore 외부 모듈 `banner`')
         || !str_contains($readme, 'git checkout v0.1.1')
+        || !str_contains($readme, 'php .tools/bin/check-external-module.php ../toycore-module-banner/module banner')
+        || !str_contains($readme, '`../toycore-module-banner/module` 부분만 실제 `module/` 폴더 경로로 바꾼다')
         || !str_contains($readme, 'work/')
         || !str_contains($ci, 'TOYCORE_MODULE_KEY: banner')
     ) {
