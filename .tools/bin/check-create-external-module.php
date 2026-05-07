@@ -63,6 +63,7 @@ try {
         'CHANGELOG.md',
         'module/module.php',
         'module/install.sql',
+        '.tools/bin/package-module',
         '.github/workflows/check.yml',
     ] as $path) {
         if (!is_file($targetDir . '/' . $path)) {
@@ -83,6 +84,9 @@ try {
     toy_check_create_external_module_run(
         escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-external-module.php') . ' '
         . escapeshellarg($targetDir . '/module') . ' ' . escapeshellarg('banner')
+    );
+    toy_check_create_external_module_run(
+        escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($targetDir . '/.tools/bin/package-module')
     );
 } catch (Throwable $exception) {
     fwrite(STDERR, "external module scaffold checks failed: " . $exception->getMessage() . "\n");

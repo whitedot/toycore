@@ -16,6 +16,7 @@ Toycore 검증 버전: TOYCORE_VERSION
 module/
 - module.php
 - install.sql
+.tools/bin/package-module
 ```
 
 Toycore에 업로드되는 실제 모듈 파일은 `module/` 아래에 둔다.
@@ -40,6 +41,12 @@ MODULE_KEY-2026.05.001.zip
 -> MODULE_KEY/
    - module.php
    - install.sql
+```
+
+스캐폴딩 도구가 만든 저장소라면 다음 명령으로 zip을 만들 수 있다.
+
+```sh
+./.tools/bin/package-module 2026.05.001
 ```
 
 ## Toycore 관리자 업로드

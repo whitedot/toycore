@@ -62,6 +62,69 @@ function toy_create_external_module_template(string $path, array $replacements):
     return strtr($content, $replacements);
 }
 
+function toy_create_external_module_package_script(string $moduleKey): string
+{
+    return <<<'PHP'
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__, 2);
+$moduleDir = $root . '/module';
+$moduleFile = $moduleDir . '/module.php';
+$metadata = is_file($moduleFile) ? include $moduleFile : [];
+$metadata = is_array($metadata) ? $metadata : [];
+$moduleKey = '__MODULE_KEY__';
+$version = (string) ($argv[1] ?? ($metadata['version'] ?? ''));
+
+if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $version) !== 1) {
+    fwrite(STDERR, "Usage: ./.tools/bin/package-module YYYY.MM.NNN\n");
+    exit(1);
+}
+
+if (!class_exists('ZipArchive')) {
+    fwrite(STDERR, "PHP ZipArchive extension is required to create module zip files.\n");
+    exit(1);
+}
+
+$distDir = $root . '/dist';
+if (!is_dir($distDir) && !mkdir($distDir, 0755, true)) {
+    fwrite(STDERR, "dist directory cannot be created.\n");
+    exit(1);
+}
+
+$zipPath = $distDir . '/' . $moduleKey . '-' . $version . '.zip';
+if (is_file($zipPath) && !unlink($zipPath)) {
+    fwrite(STDERR, "existing zip cannot be removed: " . $zipPath . "\n");
+    exit(1);
+}
+
+$zip = new ZipArchive();
+if ($zip->open($zipPath, ZipArchive::CREATE) !== true) {
+    fwrite(STDERR, "zip cannot be created: " . $zipPath . "\n");
+    exit(1);
+}
+
+$files = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($moduleDir, FilesystemIterator::SKIP_DOTS)
+);
+
+foreach ($files as $file) {
+    if (!$file instanceof SplFileInfo || !$file->isFile()) {
+        continue;
+    }
+
+    $path = $file->getPathname();
+    $relative = str_replace('\\', '/', substr($path, strlen($moduleDir) + 1));
+    $zip->addFile($path, $moduleKey . '/' . $relative);
+}
+
+$zip->close();
+echo "Created module zip: " . $zipPath . "\n";
+PHP;
+}
+
 $moduleName = toy_create_external_module_title($moduleKey);
 $repositoryName = basename(str_replace('\\', '/', rtrim($targetDir, "/\\")));
 $replacements = [
@@ -110,6 +173,8 @@ toy_create_external_module_write_file($targetDir . '/README.md', $readme);
 toy_create_external_module_write_file($targetDir . '/CHANGELOG.md', "# Changelog\n\n## 2026.05.001\n\n- Initial module scaffold.\n");
 toy_create_external_module_write_file($targetDir . '/module/module.php', $modulePhp);
 toy_create_external_module_write_file($targetDir . '/module/install.sql', '-- ' . $moduleName . " module has no tables yet.\n");
+toy_create_external_module_write_file($targetDir . '/.tools/bin/package-module', str_replace('__MODULE_KEY__', $moduleKey, toy_create_external_module_package_script($moduleKey)));
 toy_create_external_module_write_file($targetDir . '/.github/workflows/check.yml', $ciTemplate);
+@chmod($targetDir . '/.tools/bin/package-module', 0755);
 
 echo "Created external module scaffold: " . $targetDir . "\n";
