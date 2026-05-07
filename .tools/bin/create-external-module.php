@@ -8,10 +8,27 @@ require_once $root . '/core/version.php';
 
 $moduleKey = (string) ($argv[1] ?? '');
 $targetDir = (string) ($argv[2] ?? '');
-$toycoreRef = (string) ($argv[3] ?? ('v' . TOY_CORE_VERSION));
+$toycoreRef = 'v' . TOY_CORE_VERSION;
+$withCi = true;
+
+for ($i = 3; $i < $argc; $i++) {
+    $argument = (string) $argv[$i];
+    if ($argument === '--no-ci') {
+        $withCi = false;
+        continue;
+    }
+
+    if ($argument !== '' && $argument[0] !== '-') {
+        $toycoreRef = $argument;
+        continue;
+    }
+
+    fwrite(STDERR, "Usage: php .tools/bin/create-external-module.php <module-key> <target-dir> [toycore-ref] [--no-ci]\n");
+    exit(1);
+}
 
 if ($moduleKey === '' || $targetDir === '' || preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) !== 1) {
-    fwrite(STDERR, "Usage: php .tools/bin/create-external-module.php <module-key> <target-dir> [toycore-ref]\n");
+    fwrite(STDERR, "Usage: php .tools/bin/create-external-module.php <module-key> <target-dir> [toycore-ref] [--no-ci]\n");
     exit(1);
 }
 
@@ -174,7 +191,9 @@ toy_create_external_module_write_file($targetDir . '/CHANGELOG.md', "# Changelog
 toy_create_external_module_write_file($targetDir . '/module/module.php', $modulePhp);
 toy_create_external_module_write_file($targetDir . '/module/install.sql', '-- ' . $moduleName . " module has no tables yet.\n");
 toy_create_external_module_write_file($targetDir . '/.tools/bin/package-module', str_replace('__MODULE_KEY__', $moduleKey, toy_create_external_module_package_script($moduleKey)));
-toy_create_external_module_write_file($targetDir . '/.github/workflows/check.yml', $ciTemplate);
 @chmod($targetDir . '/.tools/bin/package-module', 0755);
+if ($withCi) {
+    toy_create_external_module_write_file($targetDir . '/.github/workflows/check.yml', $ciTemplate);
+}
 
 echo "Created external module scaffold: " . $targetDir . "\n";

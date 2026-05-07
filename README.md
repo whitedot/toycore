@@ -205,6 +205,8 @@ Toycore의 모듈은 프레임워크 패키지가 아니라, 정해진 디렉터
 php .tools/bin/create-external-module.php banner ../toycore-module-banner
 ```
 
+GitHub Actions 자동 점검 파일을 아직 만들지 않으려면 `--no-ci`를 붙입니다.
+
 ```text
 modules/{module_key}/
 - module.php

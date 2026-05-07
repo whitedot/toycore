@@ -35,6 +35,12 @@ php .tools/bin/create-external-module.php banner ../toycore-module-banner
 
 이 명령은 `README.md`, `CHANGELOG.md`, `.tools/bin/package-module`, `module/module.php`, `module/install.sql`, `.github/workflows/check.yml`을 만든다. 기존 파일은 덮어쓰지 않으므로 빈 디렉터리를 대상으로 실행한다.
 
+GitHub Actions를 아직 쓰지 않으려면 자동 점검 파일을 빼고 만든다.
+
+```sh
+php .tools/bin/create-external-module.php banner ../toycore-module-banner --no-ci
+```
+
 ## 2. module.php 작성
 
 최소 예시는 다음과 같다.

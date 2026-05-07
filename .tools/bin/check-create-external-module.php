@@ -8,6 +8,7 @@ chdir($root);
 
 $workRoot = $root . '/storage/check-create-external-module-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
 $targetDir = $workRoot . '/toycore-module-banner';
+$noCiTargetDir = $workRoot . '/toycore-module-popup';
 
 function toy_check_create_external_module_remove_directory(string $directory): void
 {
@@ -88,6 +89,17 @@ try {
     toy_check_create_external_module_run(
         escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($targetDir . '/.tools/bin/package-module')
     );
+
+    toy_check_create_external_module_run(
+        escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/create-external-module.php') . ' '
+        . escapeshellarg('popup_layer') . ' ' . escapeshellarg($noCiTargetDir) . ' ' . escapeshellarg('--no-ci')
+    );
+    if (is_file($noCiTargetDir . '/.github/workflows/check.yml')) {
+        throw new RuntimeException('CI workflow should not be created with --no-ci.');
+    }
+    if (!is_file($noCiTargetDir . '/module/module.php') || !is_file($noCiTargetDir . '/.tools/bin/package-module')) {
+        throw new RuntimeException('no-ci scaffold is incomplete.');
+    }
 } catch (Throwable $exception) {
     fwrite(STDERR, "external module scaffold checks failed: " . $exception->getMessage() . "\n");
     toy_check_create_external_module_remove_directory($workRoot);
