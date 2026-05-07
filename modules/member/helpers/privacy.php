@@ -188,16 +188,7 @@ function toy_member_privacy_export_reauth_errors(PDO $pdo, array $account): arra
 function toy_member_module_privacy_exports(PDO $pdo, int $accountId): array
 {
     $exports = [];
-    foreach (toy_enabled_module_keys($pdo) as $moduleKey) {
-        if ($moduleKey === 'member' || !toy_is_safe_module_key($moduleKey)) {
-            continue;
-        }
-
-        $exportFile = TOY_ROOT . '/modules/' . $moduleKey . '/privacy-export.php';
-        if (!is_file($exportFile)) {
-            continue;
-        }
-
+    foreach (toy_enabled_module_contract_files($pdo, 'privacy-export.php', ['member']) as $moduleKey => $exportFile) {
         try {
             $moduleExport = include $exportFile;
             if (is_callable($moduleExport)) {

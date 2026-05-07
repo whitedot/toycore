@@ -361,6 +361,7 @@ if ($privacyHelper !== '') {
     );
     toy_member_auth_policy_assert(
         strpos($privacyHelper, 'function toy_member_privacy_export_sanitize_module_data') !== false
+            && strpos($privacyHelper, "toy_enabled_module_contract_files(\$pdo, 'privacy-export.php', ['member'])") !== false
             && strpos($privacyHelper, 'function toy_member_privacy_export_internal_key') !== false
             && strpos($privacyHelper, '$moduleExportData = $moduleExport($pdo, $accountId)') !== false
             && strpos($privacyHelper, 'if (is_array($moduleExportData))') !== false
