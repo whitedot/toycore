@@ -644,6 +644,17 @@ if (!is_string($adminDashboardHelper)) {
     $errors[] = 'Admin dashboard recovery markers must mask secret-like messages before display.';
 }
 
+$communityReportsHelper = file_get_contents($root . '/modules/community/helpers/reports.php');
+$communityMessageDeleteAction = file_get_contents($root . '/modules/community/actions/message-delete.php');
+if (!is_string($communityReportsHelper) || !is_string($communityMessageDeleteAction)) {
+    $errors[] = 'Community message report/delete files cannot be read.';
+} elseif (
+    strpos($communityReportsHelper, 'toy_community_message_participants_for_account($pdo, $targetId, $actorAccountId)') === false
+    || strpos($communityMessageDeleteAction, 'toy_community_message_participants_for_account($pdo, $messageId, (int) $account[\'id\'])') === false
+) {
+    $errors[] = 'Community message report and delete flows must avoid loading message bodies.';
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "admin action security checks failed:\n");
     foreach ($errors as $error) {
