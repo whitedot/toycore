@@ -79,6 +79,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <p>
+            <label>이미지 최대 용량(bytes)<br>
+                <input type="number" name="attachment_max_bytes" min="1024" max="10485760" value="2097152">
+            </label>
+        </p>
+        <p>
             <label>정렬 순서<br>
                 <input type="number" name="sort_order" min="0" max="1000000" value="0">
             </label>
@@ -168,6 +173,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <label>
                                     <input type="checkbox" name="image_uploads_enabled" value="1"<?php echo (int) $board['image_uploads_enabled'] === 1 ? ' checked' : ''; ?>>
                                     이미지 첨부 허용
+                                </label>
+                            </p>
+                            <p>
+                                <label>이미지 최대 용량(bytes)<br>
+                                    <input type="number" name="attachment_max_bytes" min="1024" max="10485760" value="<?php echo toy_e((string) ($board['attachment_max_bytes'] ?? 2097152)); ?>">
                                 </label>
                             </p>
                             <p>

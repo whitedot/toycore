@@ -29,6 +29,7 @@ if (toy_request_method() === 'POST') {
     $writePolicy = toy_post_string('write_policy', 30);
     $commentPolicy = toy_post_string('comment_policy', 30);
     $sortOrder = toy_admin_post_int_in_range('sort_order', 0, 1000000);
+    $attachmentMaxBytes = toy_admin_post_int_in_range('attachment_max_bytes', 1024, 10485760);
 
     if ($intent === 'create' && !toy_community_board_key_is_valid($boardKey)) {
         $errors[] = '게시판 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
@@ -64,6 +65,11 @@ if (toy_request_method() === 'POST') {
         $sortOrder = 0;
     }
 
+    if ($attachmentMaxBytes === null) {
+        $errors[] = '이미지 최대 용량은 1024 이상 10485760 이하의 정수여야 합니다.';
+        $attachmentMaxBytes = 2097152;
+    }
+
     if ($errors === [] && $intent === 'create' && toy_community_board_by_key($pdo, $boardKey) !== null) {
         $errors[] = '이미 사용 중인 게시판 key입니다.';
     }
@@ -94,6 +100,7 @@ if (toy_request_method() === 'POST') {
                 'status' => $status,
             ],
         ]);
+        toy_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
 
         $notice = '게시판을 만들었습니다.';
     } elseif ($intent === 'update' && $errors === []) {
@@ -115,6 +122,7 @@ if (toy_request_method() === 'POST') {
                 'image_uploads_enabled' => ($_POST['image_uploads_enabled'] ?? '') === '1',
                 'sort_order' => (int) $sortOrder,
             ]);
+            toy_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
 
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -139,5 +147,9 @@ if (toy_request_method() === 'POST') {
 }
 
 $boards = toy_community_boards($pdo);
+foreach ($boards as &$board) {
+    $board['attachment_max_bytes'] = toy_community_board_attachment_max_bytes($pdo, (int) $board['id']);
+}
+unset($board);
 
 include TOY_ROOT . '/modules/community/views/admin-boards.php';

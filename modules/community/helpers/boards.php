@@ -142,3 +142,63 @@ function toy_community_update_board(PDO $pdo, int $boardId, array $data): void
         'id' => $boardId,
     ]);
 }
+
+function toy_community_board_setting_value(PDO $pdo, int $boardId, string $settingKey): ?string
+{
+    if ($boardId < 1 || $settingKey === '') {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT setting_value
+         FROM toy_community_board_settings
+         WHERE board_id = :board_id
+           AND setting_key = :setting_key
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'board_id' => $boardId,
+        'setting_key' => $settingKey,
+    ]);
+    $value = $stmt->fetchColumn();
+
+    return is_string($value) ? $value : null;
+}
+
+function toy_community_set_board_setting(PDO $pdo, int $boardId, string $settingKey, string $settingValue, string $valueType = 'string'): void
+{
+    if ($boardId < 1 || $settingKey === '') {
+        return;
+    }
+
+    $now = toy_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_community_board_settings
+            (board_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:board_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'board_id' => $boardId,
+        'setting_key' => $settingKey,
+        'setting_value' => $settingValue,
+        'value_type' => $valueType,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+}
+
+function toy_community_board_attachment_max_bytes(PDO $pdo, int $boardId, array $settings = []): int
+{
+    $default = min(10485760, max(1024, (int) ($settings['attachment_max_bytes'] ?? 2097152)));
+    $value = toy_community_board_setting_value($pdo, $boardId, 'attachment_max_bytes');
+    if (!is_string($value) || $value === '') {
+        return $default;
+    }
+
+    return min(10485760, max(1024, (int) $value));
+}
