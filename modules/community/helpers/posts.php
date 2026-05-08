@@ -133,6 +133,71 @@ function toy_community_update_post_status(PDO $pdo, int $postId, string $status)
     ]);
 }
 
+function toy_community_comment_statuses(): array
+{
+    return ['published', 'hidden', 'deleted'];
+}
+
+function toy_community_admin_comments(PDO $pdo, int $limit = 100): array
+{
+    $limit = max(1, min(200, $limit));
+    $stmt = $pdo->prepare(
+        'SELECT c.id, c.post_id, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at,
+                p.title AS post_title,
+                b.board_key, b.title AS board_title,
+                a.display_name AS author_display_name
+         FROM toy_community_comments c
+         INNER JOIN toy_community_posts p ON p.id = c.post_id
+         INNER JOIN toy_community_boards b ON b.id = p.board_id
+         LEFT JOIN toy_member_accounts a ON a.id = c.author_account_id
+         ORDER BY c.id DESC
+         LIMIT :limit_value'
+    );
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function toy_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
+{
+    if ($commentId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT c.id, c.post_id, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at,
+                p.title AS post_title,
+                b.board_key, b.title AS board_title,
+                a.display_name AS author_display_name
+         FROM toy_community_comments c
+         INNER JOIN toy_community_posts p ON p.id = c.post_id
+         INNER JOIN toy_community_boards b ON b.id = p.board_id
+         LEFT JOIN toy_member_accounts a ON a.id = c.author_account_id
+         WHERE c.id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $commentId]);
+    $comment = $stmt->fetch();
+
+    return is_array($comment) ? $comment : null;
+}
+
+function toy_community_update_comment_status(PDO $pdo, int $commentId, string $status): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE toy_community_comments
+         SET status = :status,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'status' => $status,
+        'updated_at' => toy_now(),
+        'id' => $commentId,
+    ]);
+}
+
 function toy_community_account_can_write_board(PDO $pdo, array $board, array $account): bool
 {
     $accountId = (int) ($account['id'] ?? 0);

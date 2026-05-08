@@ -55,11 +55,64 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td>
                             <form method="post" action="<?php echo toy_e(toy_url('/admin/community/posts')); ?>">
                                 <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="post_status">
                                 <input type="hidden" name="post_id" value="<?php echo toy_e((string) $post['id']); ?>">
                                 <label>상태
                                     <select name="status">
-                                        <?php foreach ($allowedStatuses as $status) { ?>
+                                        <?php foreach ($allowedPostStatuses as $status) { ?>
                                             <option value="<?php echo toy_e($status); ?>"<?php echo $status === (string) $post['status'] ? ' selected' : ''; ?>><?php echo toy_e($status); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </label>
+                                <button type="submit">변경</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    <?php } ?>
+</section>
+
+<section>
+    <h2>댓글 목록</h2>
+    <?php if ($comments === []) { ?>
+        <p>댓글이 없습니다.</p>
+    <?php } else { ?>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>게시글</th>
+                    <th>작성자</th>
+                    <th>본문</th>
+                    <th>상태</th>
+                    <th>작성일</th>
+                    <th>처리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($comments as $comment) { ?>
+                    <tr>
+                        <td><?php echo toy_e((string) $comment['id']); ?></td>
+                        <td>
+                            <a href="<?php echo toy_e(toy_url('/community/post?id=' . (string) $comment['post_id'])); ?>">
+                                <?php echo toy_e((string) $comment['post_title']); ?>
+                            </a>
+                        </td>
+                        <td><?php echo toy_e((string) ($comment['author_display_name'] ?? '') . ' #' . (string) $comment['author_account_id']); ?></td>
+                        <td><?php echo toy_community_plain_text_html((string) $comment['body_text']); ?></td>
+                        <td><?php echo toy_e((string) $comment['status']); ?></td>
+                        <td><?php echo toy_e((string) $comment['created_at']); ?></td>
+                        <td>
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/community/posts')); ?>">
+                                <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="comment_status">
+                                <input type="hidden" name="comment_id" value="<?php echo toy_e((string) $comment['id']); ?>">
+                                <label>상태
+                                    <select name="status">
+                                        <?php foreach ($allowedCommentStatuses as $status) { ?>
+                                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === (string) $comment['status'] ? ' selected' : ''; ?>><?php echo toy_e($status); ?></option>
                                         <?php } ?>
                                     </select>
                                 </label>
