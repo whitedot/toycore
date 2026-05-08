@@ -59,7 +59,7 @@ function toy_community_remove_scrap(PDO $pdo, int $accountId, int $postId): void
     ]);
 }
 
-function toy_community_account_scraps(PDO $pdo, int $accountId, int $limit = 50): array
+function toy_community_account_scraps(PDO $pdo, int $accountId, ?array $account = null, int $limit = 50): array
 {
     if ($accountId < 1) {
         return [];
@@ -69,6 +69,7 @@ function toy_community_account_scraps(PDO $pdo, int $accountId, int $limit = 50)
     $stmt = $pdo->prepare(
         'SELECT s.id, s.account_id, s.post_id, s.created_at,
                 p.title, p.status AS post_status, p.created_at AS post_created_at,
+                b.id AS board_id,
                 b.board_key, b.title AS board_title, b.status AS board_status, b.read_policy
          FROM toy_community_scraps s
          LEFT JOIN toy_community_posts p ON p.id = s.post_id
@@ -81,12 +82,22 @@ function toy_community_account_scraps(PDO $pdo, int $accountId, int $limit = 50)
     $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
     $stmt->execute();
 
-    return $stmt->fetchAll();
+    $scraps = $stmt->fetchAll();
+    foreach ($scraps as &$scrap) {
+        $board = [
+            'id' => (int) ($scrap['board_id'] ?? 0),
+            'status' => (string) ($scrap['board_status'] ?? ''),
+            'read_policy' => (string) ($scrap['read_policy'] ?? ''),
+        ];
+        $scrap['can_view'] = (string) ($scrap['post_status'] ?? '') === 'published'
+            && toy_community_account_can_read_board($pdo, $board, $account);
+    }
+    unset($scrap);
+
+    return $scraps;
 }
 
 function toy_community_scrap_row_is_public(array $scrap): bool
 {
-    return (string) ($scrap['post_status'] ?? '') === 'published'
-        && (string) ($scrap['board_status'] ?? '') === 'enabled'
-        && (string) ($scrap['read_policy'] ?? '') === 'public';
+    return !empty($scrap['can_view']);
 }

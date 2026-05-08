@@ -14,14 +14,14 @@ $intent = toy_post_string('intent', 20);
 
 if ($intent === 'remove') {
     toy_community_remove_scrap($pdo, (int) $account['id'], $postId);
-    $post = toy_community_public_post($pdo, $postId);
+    $post = toy_community_post_for_read($pdo, $postId, $account);
     if (!is_array($post)) {
         toy_redirect('/community/scraps');
     }
     toy_redirect('/community/post?id=' . (string) $postId);
 }
 
-$post = toy_community_public_post($pdo, $postId);
+$post = toy_community_post_for_read($pdo, $postId, $account);
 if (!is_array($post)) {
     toy_render_error(404, '게시글을 찾을 수 없습니다.');
 } else {
