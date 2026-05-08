@@ -77,6 +77,32 @@ function toy_community_message_by_id_for_account(PDO $pdo, int $messageId, int $
     return is_array($message) ? $message : null;
 }
 
+function toy_community_message_participants_for_account(PDO $pdo, int $messageId, int $accountId): ?array
+{
+    if ($messageId < 1 || $accountId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, sender_account_id, recipient_account_id
+         FROM toy_community_messages
+         WHERE id = :id
+           AND (
+                (sender_account_id = :sender_account_id AND sender_deleted_at IS NULL)
+                OR (recipient_account_id = :recipient_account_id AND recipient_deleted_at IS NULL)
+           )
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'id' => $messageId,
+        'sender_account_id' => $accountId,
+        'recipient_account_id' => $accountId,
+    ]);
+    $message = $stmt->fetch();
+
+    return is_array($message) ? $message : null;
+}
+
 function toy_community_mark_message_read(PDO $pdo, array $message, int $accountId): void
 {
     if ((int) $message['recipient_account_id'] !== $accountId || (string) ($message['read_at'] ?? '') !== '') {

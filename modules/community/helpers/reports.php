@@ -74,7 +74,7 @@ function toy_community_report_target(PDO $pdo, string $targetType, int $targetId
     }
 
     if ($targetType === 'message' && $actorAccountId !== null) {
-        $message = toy_community_message_by_id_for_account($pdo, $targetId, $actorAccountId);
+        $message = toy_community_message_participants_for_account($pdo, $targetId, $actorAccountId);
         if (!is_array($message)) {
             return null;
         }
