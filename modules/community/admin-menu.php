@@ -6,4 +6,9 @@ return [
         'path' => '/admin/community/boards',
         'order' => 30,
     ],
+    [
+        'label' => '커뮤니티 신고',
+        'path' => '/admin/community/reports',
+        'order' => 31,
+    ],
 ];

@@ -7,8 +7,11 @@ return [
     'GET /community/write' => 'actions/write.php',
     'POST /community/write' => 'actions/write.php',
     'POST /community/comment' => 'actions/comment.php',
+    'POST /community/report' => 'actions/report.php',
     'GET /community/scraps' => 'actions/scraps.php',
     'POST /community/scrap' => 'actions/scrap-toggle.php',
     'GET /admin/community/boards' => 'actions/admin-boards.php',
     'POST /admin/community/boards' => 'actions/admin-boards.php',
+    'GET /admin/community/reports' => 'actions/admin-reports.php',
+    'POST /admin/community/reports' => 'actions/admin-reports.php',
 ];

@@ -18,6 +18,20 @@ $comments = toy_community_public_comments($pdo, (int) $post['id'], $commentsPerP
 $account = toy_member_current_account($pdo);
 $canComment = is_array($account) && toy_community_account_can_comment_post($pdo, $post, $account);
 $isScrapped = is_array($account) && toy_community_account_has_scrap($pdo, (int) $account['id'], (int) $post['id']);
+$reportReasonKeys = toy_community_report_reason_keys();
+$reportErrors = [];
+$reportNotice = '';
+if (isset($_SESSION['toy_community_report_errors']) && is_array($_SESSION['toy_community_report_errors'])) {
+    foreach ($_SESSION['toy_community_report_errors'] as $error) {
+        if (is_string($error) && $error !== '') {
+            $reportErrors[] = $error;
+        }
+    }
+}
+if (isset($_SESSION['toy_community_report_notice']) && is_string($_SESSION['toy_community_report_notice'])) {
+    $reportNotice = $_SESSION['toy_community_report_notice'];
+}
+unset($_SESSION['toy_community_report_errors'], $_SESSION['toy_community_report_notice']);
 $commentErrors = [];
 $commentBody = '';
 if (isset($_SESSION['toy_community_comment_errors']) && is_array($_SESSION['toy_community_comment_errors'])) {
