@@ -44,6 +44,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 관리자 메뉴 path와 모듈 `paths.php` GET route 일치 검사
 - 로컬 PHP 또는 Docker 실행 시 전체 PHP 문법 검사
 - 기본 점검 스크립트의 인증 런타임/회원 인증 정책 검사 실행
+- 업로드 helper 동작 검사
 - action 파일의 raw `exit`/`die`와 직접 `Location` 헤더 사용 검사
 
 ## 코어 기반
@@ -76,6 +77,10 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - title, description, canonical, robots, Open Graph 출력 슬롯
 - 활성 모듈 `extension-points.php` 기반 확장 지점 조회
 - 다운로드 응답 헤더 helper
+- 업로드 에러, 용량, 확장자, MIME, 실행 가능 확장자 차단, 파일명 정규화 helper
+- 업로드 랜덤 저장명 생성과 안전한 저장 경로/파일 이동 helper
+- 비공개 다운로드를 위한 단기 HMAC token helper
+- GD/Imagick 기반 선택 이미지 재인코딩 helper
 - 기본 mail helper
 - HMAC hash helper
 - 감사 로그 기록 helper

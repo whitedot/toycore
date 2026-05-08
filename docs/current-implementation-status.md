@@ -79,6 +79,10 @@
 - title, description, canonical, robots, Open Graph 출력 슬롯
 - 활성 모듈 `extension-points.php` 기반 확장 지점 조회
 - 다운로드 응답 헤더 helper
+- 업로드 에러, 용량, 확장자 allowlist, MIME, 실행 가능 확장자 차단, 파일명 정규화 helper
+- 업로드 랜덤 저장명 생성과 안전한 저장 경로/파일 이동 helper
+- 비공개 다운로드를 위한 단기 HMAC token helper
+- GD/Imagick 기반 선택 이미지 재인코딩 helper
 - 기본 mail helper
 - SMTP/HTTP API mail transport 설정 지원
 - 메일 subject/from name과 SMTP EHLO 값 제어 문자 방어
@@ -367,6 +371,7 @@
 - 로컬 PHP 기반 크로스플랫폼 기본 점검 스크립트
 - 클라우드 인증 런타임 정적 검사
 - trusted proxy와 app key 런타임 helper 동작 검사
+- 업로드 helper 동작 검사
 - Docker 없이 실행 가능한 공백, SQL 파일, 모듈 기본 구조 검사 선행
 - 관리자 메뉴 path와 모듈 `paths.php` GET route 일치 검사
 - 로컬 PHP 또는 Docker 실행 시 전체 PHP 문법 검사
@@ -392,6 +397,7 @@ SQL 파일 비어 있음 여부 검증
 인증 런타임 설정 검증
 런타임 helper 동작 검증
 출력 helper 동작 검증
+업로드 helper 동작 검증
 회원 인증 정책 검증
 관리자 action 보안 규칙 검증
 action 파일 raw exit/die와 직접 Location 헤더 금지 검증
@@ -410,4 +416,4 @@ SEO meta tag 출력 검증
 내부 SQL/PHP/문서/도구/저장소 파일 직접 접근 차단 HTTP 스모크 검증
 ```
 
-최근 로컬 실행에서는 `php .tools/bin/check.php` 기준으로 전체 PHP 파일 `php -l`, `git diff --check`, SQL 파일 비어 있음 여부 검증, 모듈 기본 계약 파일 구성 검증, 관리자 메뉴 path와 모듈 GET route 일치 검증, 보관 정리 대상/인증 런타임/런타임 helper/출력 helper/회원 인증 정책/관리자 action 보안 규칙 검사까지 통과했다. 관리자 action 보안 규칙 검사는 request contract helper 연결과 raw `exit`/`die`, 직접 `Location` 헤더 금지도 포함한다.
+최근 로컬 실행에서는 `php .tools/bin/check.php` 기준으로 전체 PHP 파일 `php -l`, `git diff --check`, SQL 파일 비어 있음 여부 검증, 모듈 기본 계약 파일 구성 검증, 관리자 메뉴 path와 모듈 GET route 일치 검증, 보관 정리 대상/인증 런타임/런타임 helper/출력 helper/업로드 helper/회원 인증 정책/관리자 action 보안 규칙 검사까지 통과했다. 관리자 action 보안 규칙 검사는 request contract helper 연결과 raw `exit`/`die`, 직접 `Location` 헤더 금지도 포함한다.
