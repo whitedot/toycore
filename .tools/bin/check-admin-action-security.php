@@ -655,6 +655,29 @@ if (!is_string($communityReportsHelper) || !is_string($communityMessageDeleteAct
     $errors[] = 'Community message report and delete flows must avoid loading message bodies.';
 }
 
+$communityWriteAction = file_get_contents($root . '/modules/community/actions/write.php');
+$communityAdminPostsAction = file_get_contents($root . '/modules/community/actions/admin-posts.php');
+$communityDeleteAction = file_get_contents($root . '/modules/community/actions/delete.php');
+if (!is_string($communityWriteAction) || !is_string($communityAdminPostsAction) || !is_string($communityDeleteAction)) {
+    $errors[] = 'Community post group evaluation action files cannot be read.';
+} else {
+    foreach ([
+        'post create' => $communityWriteAction,
+        'post status update' => $communityAdminPostsAction,
+        'post delete' => $communityDeleteAction,
+    ] as $label => $source) {
+        if (
+            strpos($source, 'toy_member_group_evaluate_account($pdo,') === false
+            || strpos($source, "'source_module_key' => 'community'") === false
+            || strpos($source, "'group_rules_evaluated' => (int) \$groupEvaluationSummary['evaluated']") === false
+            || strpos($source, "'group_memberships_granted' => (int) \$groupEvaluationSummary['granted']") === false
+            || strpos($source, "'group_memberships_revoked' => (int) \$groupEvaluationSummary['revoked']") === false
+        ) {
+            $errors[] = 'Community ' . $label . ' flow must evaluate community member group rules and audit the summary.';
+        }
+    }
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "admin action security checks failed:\n");
     foreach ($errors as $error) {
