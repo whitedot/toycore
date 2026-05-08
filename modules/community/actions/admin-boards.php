@@ -99,6 +99,16 @@ if (toy_request_method() === 'POST') {
         }
     }
 
+    foreach ([
+        '읽기' => [$readPolicy, $readGroupKeys],
+        '쓰기' => [$writePolicy, $writeGroupKeys],
+        '댓글' => [$commentPolicy, $commentGroupKeys],
+    ] as $label => $policyGroupKeys) {
+        if ((string) $policyGroupKeys[0] === 'group' && $policyGroupKeys[1] === []) {
+            $errors[] = $label . ' 정책을 group으로 선택하려면 그룹 key를 하나 이상 입력하세요.';
+        }
+    }
+
     if ($errors === [] && $intent === 'create' && toy_community_board_by_key($pdo, $boardKey) !== null) {
         $errors[] = '이미 사용 중인 게시판 key입니다.';
     }

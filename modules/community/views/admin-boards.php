@@ -58,6 +58,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <label>읽기 그룹 key<br>
                 <input type="text" name="read_group_keys" maxlength="1000" placeholder="regular_member, vip">
             </label>
+            <br>
+            <small>읽기 정책이 group일 때 사용합니다.</small>
         </p>
         <p>
             <label>쓰기 정책<br>
@@ -72,6 +74,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <label>쓰기 그룹 key<br>
                 <input type="text" name="write_group_keys" maxlength="1000" placeholder="regular_member, vip">
             </label>
+            <br>
+            <small>쓰기 정책이 group일 때 사용합니다.</small>
         </p>
         <p>
             <label>댓글 정책<br>
@@ -86,6 +90,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <label>댓글 그룹 key<br>
                 <input type="text" name="comment_group_keys" maxlength="1000" placeholder="regular_member, vip">
             </label>
+            <br>
+            <small>댓글 정책이 group일 때 사용합니다.</small>
         </p>
         <p>
             <label>
@@ -175,6 +181,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <label>읽기 그룹 key<br>
                                     <input type="text" name="read_group_keys" maxlength="1000" value="<?php echo toy_e(implode(', ', is_array($board['read_group_keys'] ?? null) ? $board['read_group_keys'] : [])); ?>">
                                 </label>
+                                <br>
+                                <small>읽기 정책이 group일 때 사용합니다.</small>
                             </p>
                             <p>
                                 <label>쓰기 정책<br>
@@ -189,6 +197,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <label>쓰기 그룹 key<br>
                                     <input type="text" name="write_group_keys" maxlength="1000" value="<?php echo toy_e(implode(', ', is_array($board['write_group_keys'] ?? null) ? $board['write_group_keys'] : [])); ?>">
                                 </label>
+                                <br>
+                                <small>쓰기 정책이 group일 때 사용합니다.</small>
                             </p>
                             <p>
                                 <label>댓글 정책<br>
@@ -203,6 +213,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <label>댓글 그룹 key<br>
                                     <input type="text" name="comment_group_keys" maxlength="1000" value="<?php echo toy_e(implode(', ', is_array($board['comment_group_keys'] ?? null) ? $board['comment_group_keys'] : [])); ?>">
                                 </label>
+                                <br>
+                                <small>댓글 정책이 group일 때 사용합니다.</small>
                             </p>
                             <p>
                                 <label>
