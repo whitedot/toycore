@@ -205,7 +205,8 @@ function toy_community_admin_posts(PDO $pdo, int $limit = 100): array
         'SELECT p.id, p.board_id, p.author_account_id, p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name,
-                (SELECT COUNT(*) FROM toy_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count
+                (SELECT COUNT(*) FROM toy_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
+                (SELECT COUNT(*) FROM toy_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
          FROM toy_community_posts p
          INNER JOIN toy_community_boards b ON b.id = p.board_id
          LEFT JOIN toy_member_accounts a ON a.id = p.author_account_id

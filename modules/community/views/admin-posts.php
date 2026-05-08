@@ -30,6 +30,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>작성자</th>
                     <th>상태</th>
                     <th>댓글</th>
+                    <th>첨부</th>
                     <th>작성일</th>
                     <th>처리</th>
                 </tr>
@@ -51,6 +52,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) ($post['author_display_name'] ?? '') . ' #' . (string) $post['author_account_id']); ?></td>
                         <td><?php echo toy_e((string) $post['status']); ?></td>
                         <td><?php echo toy_e((string) $post['published_comment_count']); ?></td>
+                        <td><?php echo toy_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
                         <td><?php echo toy_e((string) $post['created_at']); ?></td>
                         <td>
                             <form method="post" action="<?php echo toy_e(toy_url('/admin/community/posts')); ?>">
