@@ -34,8 +34,20 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === [] && is_array($recipient)) {
-        toy_community_create_message($pdo, (int) $account['id'], (int) $recipient['id'], (string) $values['body_text']);
+        $messageId = toy_community_create_message($pdo, (int) $account['id'], (int) $recipient['id'], (string) $values['body_text']);
         toy_community_record_message_rate_limit($pdo, (int) $account['id'], $settings);
+        toy_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'member',
+            'event_type' => 'community.message.sent',
+            'target_type' => 'community_message',
+            'target_id' => (string) $messageId,
+            'result' => 'success',
+            'message' => 'Community message sent.',
+            'metadata' => [
+                'recipient_account_id' => (int) $recipient['id'],
+            ],
+        ]);
         toy_redirect('/community/messages?box=sent');
     }
 }
