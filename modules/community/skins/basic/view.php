@@ -101,6 +101,24 @@ $seo = [
                 <?php echo toy_community_plain_text_html((string) $post['body_text']); ?>
             </div>
 
+            <?php if ($attachments !== []) { ?>
+                <section>
+                    <h2>첨부 이미지</h2>
+                    <ul>
+                        <?php foreach ($attachments as $attachment) { ?>
+                            <li>
+                                <a href="<?php echo toy_e(toy_url('/community/attachment?id=' . (string) $attachment['id'])); ?>">
+                                    <?php echo toy_e((string) $attachment['original_name']); ?>
+                                </a>
+                                <?php if ((int) ($attachment['size_bytes'] ?? 0) > 0) { ?>
+                                    (<?php echo toy_e((string) $attachment['size_bytes']); ?> bytes)
+                                <?php } ?>
+                            </li>
+                        <?php } ?>
+                    </ul>
+                </section>
+            <?php } ?>
+
             <?php echo toy_render_output_slot($pdo, [
                 'module_key' => 'community',
                 'point_key' => 'community.post.view',

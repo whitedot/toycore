@@ -30,6 +30,26 @@ function toy_community_attachment_for_read(PDO $pdo, int $attachmentId, ?array $
     return $attachment;
 }
 
+function toy_community_post_attachments(PDO $pdo, int $postId): array
+{
+    if ($postId < 1) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT id, post_id, uploader_account_id, original_name, stored_name, mime_type, size_bytes, width, height, status, created_at
+         FROM toy_community_attachments
+         WHERE post_id = :post_id
+           AND status = 'active'
+           AND mime_type IN ('image/jpeg', 'image/png', 'image/webp')
+         ORDER BY id ASC
+         LIMIT 20"
+    );
+    $stmt->execute(['post_id' => $postId]);
+
+    return $stmt->fetchAll();
+}
+
 function toy_community_attachment_mime_is_allowed(string $mimeType): bool
 {
     return in_array(strtolower(trim($mimeType)), [
