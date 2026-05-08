@@ -69,6 +69,14 @@ if (toy_request_method() === 'POST') {
                 'recipient_account_id' => (int) $recipient['id'],
             ],
         ]);
+        toy_community_create_account_notification(
+            $pdo,
+            (int) $recipient['id'],
+            '새 쪽지가 도착했습니다.',
+            toy_community_message_account_label((string) ($account['display_name'] ?? ''), (int) $account['id']) . '님이 쪽지를 보냈습니다.',
+            '/community/message?id=' . (string) $messageId,
+            (int) $account['id']
+        );
         $_SESSION['toy_community_message_notice'] = '쪽지를 보냈습니다.';
         toy_redirect('/community/messages?box=sent');
     }
