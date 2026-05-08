@@ -4,7 +4,7 @@ $pageTitle = (string) $board['title'];
 $seo = [
     'title' => $pageTitle,
     'description' => (string) ($board['description'] ?? ''),
-    'canonical' => '/community/board?key=' . rawurlencode((string) $board['board_key']),
+    'canonical' => '/community/board?key=' . rawurlencode((string) $board['board_key']) . ($page > 1 ? '&page=' . (string) $page : ''),
     'robots' => (string) $board['read_policy'] === 'public' ? 'index, follow' : 'noindex, nofollow',
 ];
 ?>
@@ -61,6 +61,20 @@ $seo = [
                     <?php } ?>
                 </tbody>
             </table>
+        <?php } ?>
+
+        <?php if ($totalPages > 1) { ?>
+            <nav aria-label="게시글 페이지">
+                <p>
+                    <?php if ($page > 1) { ?>
+                        <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . '&page=' . (string) ($page - 1))); ?>">이전</a>
+                    <?php } ?>
+                    <?php echo toy_e((string) $page); ?> / <?php echo toy_e((string) $totalPages); ?>
+                    <?php if ($page < $totalPages) { ?>
+                        <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . '&page=' . (string) ($page + 1))); ?>">다음</a>
+                    <?php } ?>
+                </p>
+            </nav>
         <?php } ?>
 
         <?php echo toy_render_output_slot($pdo, [

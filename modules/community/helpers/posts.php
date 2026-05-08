@@ -45,22 +45,41 @@ function toy_community_board_requires_login(array $board): bool
     return in_array((string) ($board['read_policy'] ?? ''), ['member', 'group'], true);
 }
 
-function toy_community_public_posts(PDO $pdo, int $boardId, int $limit = 20): array
+function toy_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0): array
 {
     $limit = max(1, min(100, $limit));
+    $offset = max(0, $offset);
     $stmt = $pdo->prepare(
         "SELECT id, board_id, author_account_id, title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at
          FROM toy_community_posts
          WHERE board_id = :board_id
            AND status = 'published'
          ORDER BY id DESC
-         LIMIT :limit_value"
+         LIMIT :limit_value OFFSET :offset_value"
     );
     $stmt->bindValue('board_id', $boardId, PDO::PARAM_INT);
     $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
     $stmt->execute();
 
     return $stmt->fetchAll();
+}
+
+function toy_community_public_post_count(PDO $pdo, int $boardId): int
+{
+    if ($boardId < 1) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*)
+         FROM toy_community_posts
+         WHERE board_id = :board_id
+           AND status = 'published'"
+    );
+    $stmt->execute(['board_id' => $boardId]);
+
+    return (int) $stmt->fetchColumn();
 }
 
 function toy_community_public_post(PDO $pdo, int $postId): ?array
