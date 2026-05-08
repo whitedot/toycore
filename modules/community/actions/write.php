@@ -20,6 +20,7 @@ if (!toy_community_account_can_write_board($pdo, $board, $account, $isAdminWrite
 
 $settings = toy_module_settings($pdo, 'community');
 $settings['attachment_max_bytes'] = toy_community_board_attachment_max_bytes($pdo, (int) $board['id'], $settings);
+$settings['attachment_max_count'] = toy_community_board_attachment_max_count($pdo, (int) $board['id'], $settings);
 $errors = [];
 $notice = '';
 $values = [

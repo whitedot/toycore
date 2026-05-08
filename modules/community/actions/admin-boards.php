@@ -30,6 +30,7 @@ if (toy_request_method() === 'POST') {
     $commentPolicy = toy_post_string('comment_policy', 30);
     $sortOrder = toy_admin_post_int_in_range('sort_order', 0, 1000000);
     $attachmentMaxBytes = toy_admin_post_int_in_range('attachment_max_bytes', 1024, 10485760);
+    $attachmentMaxCount = toy_admin_post_int_in_range('attachment_max_count', 0, 10);
 
     if ($intent === 'create' && !toy_community_board_key_is_valid($boardKey)) {
         $errors[] = '게시판 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
@@ -70,6 +71,11 @@ if (toy_request_method() === 'POST') {
         $attachmentMaxBytes = 2097152;
     }
 
+    if ($attachmentMaxCount === null) {
+        $errors[] = '이미지 최대 개수는 0 이상 10 이하의 정수여야 합니다.';
+        $attachmentMaxCount = 1;
+    }
+
     if ($errors === [] && $intent === 'create' && toy_community_board_by_key($pdo, $boardKey) !== null) {
         $errors[] = '이미 사용 중인 게시판 key입니다.';
     }
@@ -101,6 +107,7 @@ if (toy_request_method() === 'POST') {
             ],
         ]);
         toy_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
+        toy_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
 
         $notice = '게시판을 만들었습니다.';
     } elseif ($intent === 'update' && $errors === []) {
@@ -123,6 +130,7 @@ if (toy_request_method() === 'POST') {
                 'sort_order' => (int) $sortOrder,
             ]);
             toy_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
+            toy_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
 
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -149,6 +157,7 @@ if (toy_request_method() === 'POST') {
 $boards = toy_community_boards($pdo);
 foreach ($boards as &$board) {
     $board['attachment_max_bytes'] = toy_community_board_attachment_max_bytes($pdo, (int) $board['id']);
+    $board['attachment_max_count'] = toy_community_board_attachment_max_count($pdo, (int) $board['id']);
 }
 unset($board);
 

@@ -56,6 +56,10 @@ function toy_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAcc
         return null;
     }
 
+    if ((int) ($settings['attachment_max_count'] ?? 1) < 1) {
+        return null;
+    }
+
     $maxBytes = min(10485760, max(1, (int) ($settings['attachment_max_bytes'] ?? 2097152)));
     $validated = toy_upload_validate_file($file, [
         'max_bytes' => $maxBytes,

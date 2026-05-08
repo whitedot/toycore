@@ -202,3 +202,14 @@ function toy_community_board_attachment_max_bytes(PDO $pdo, int $boardId, array 
 
     return min(10485760, max(1024, (int) $value));
 }
+
+function toy_community_board_attachment_max_count(PDO $pdo, int $boardId, array $settings = []): int
+{
+    $default = min(10, max(0, (int) ($settings['attachment_max_count'] ?? 1)));
+    $value = toy_community_board_setting_value($pdo, $boardId, 'attachment_max_count');
+    if (!is_string($value) || $value === '') {
+        return $default;
+    }
+
+    return min(10, max(0, (int) $value));
+}
