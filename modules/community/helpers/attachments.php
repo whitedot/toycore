@@ -167,6 +167,23 @@ function toy_community_update_post_attachments_status(PDO $pdo, int $postId, str
     return $stmt->rowCount();
 }
 
+function toy_community_restore_hidden_post_attachments(PDO $pdo, int $postId): int
+{
+    if ($postId < 1) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        "UPDATE toy_community_attachments
+         SET status = 'active'
+         WHERE post_id = :post_id
+           AND status = 'hidden'"
+    );
+    $stmt->execute(['post_id' => $postId]);
+
+    return $stmt->rowCount();
+}
+
 function toy_community_attachment_mime_is_allowed(string $mimeType): bool
 {
     return in_array(strtolower(trim($mimeType)), [

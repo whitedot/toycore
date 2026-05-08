@@ -39,6 +39,8 @@ if (toy_request_method() === 'POST') {
             $updatedAttachmentCount = 0;
             if (in_array($status, ['hidden', 'deleted'], true)) {
                 $updatedAttachmentCount = toy_community_update_post_attachments_status($pdo, $postId, $status);
+            } elseif ($status === 'published' && (string) $post['status'] === 'hidden') {
+                $updatedAttachmentCount = toy_community_restore_hidden_post_attachments($pdo, $postId);
             }
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
