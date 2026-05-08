@@ -33,28 +33,26 @@ $pageTitle = (string) $post['title'];
                     <input type="hidden" name="intent" value="<?php echo $isScrapped ? 'remove' : 'add'; ?>">
                     <button type="submit"><?php echo $isScrapped ? '스크랩 해제' : '스크랩'; ?></button>
                 </form>
-                <?php if ((int) $account['id'] !== (int) $post['author_account_id']) { ?>
-                    <form method="post" action="<?php echo toy_e(toy_url('/community/report')); ?>">
-                        <?php echo toy_csrf_field(); ?>
-                        <input type="hidden" name="target_type" value="post">
-                        <input type="hidden" name="target_id" value="<?php echo toy_e((string) $post['id']); ?>">
-                        <p>
-                            <label>신고 사유<br>
-                                <select name="reason_key" required>
-                                    <?php foreach ($reportReasonKeys as $reasonKey) { ?>
-                                        <option value="<?php echo toy_e($reasonKey); ?>"><?php echo toy_e(toy_community_report_reason_label($reasonKey)); ?></option>
-                                    <?php } ?>
-                                </select>
-                            </label>
-                        </p>
-                        <p>
-                            <label>신고 메모<br>
-                                <textarea name="memo_text" rows="3" cols="60"></textarea>
-                            </label>
-                        </p>
-                        <button type="submit">게시글 신고</button>
-                    </form>
-                <?php } ?>
+                <form method="post" action="<?php echo toy_e(toy_url('/community/report')); ?>">
+                    <?php echo toy_csrf_field(); ?>
+                    <input type="hidden" name="target_type" value="post">
+                    <input type="hidden" name="target_id" value="<?php echo toy_e((string) $post['id']); ?>">
+                    <p>
+                        <label>신고 사유<br>
+                            <select name="reason_key" required>
+                                <?php foreach ($reportReasonKeys as $reasonKey) { ?>
+                                    <option value="<?php echo toy_e($reasonKey); ?>"><?php echo toy_e(toy_community_report_reason_label($reasonKey)); ?></option>
+                                <?php } ?>
+                            </select>
+                        </label>
+                    </p>
+                    <p>
+                        <label>신고 메모<br>
+                            <textarea name="memo_text" rows="3" cols="60"></textarea>
+                        </label>
+                    </p>
+                    <button type="submit">게시글 신고</button>
+                </form>
             <?php } ?>
 
             <?php if ($reportNotice !== '') { ?>
@@ -109,7 +107,7 @@ $pageTitle = (string) $post['title'];
                                 <?php echo toy_e((string) $comment['created_at']); ?>
                             </p>
                             <p><?php echo toy_community_plain_text_html((string) $comment['body_text']); ?></p>
-                            <?php if (is_array($account) && (int) $account['id'] !== (int) $comment['author_account_id']) { ?>
+                            <?php if (is_array($account)) { ?>
                                 <form method="post" action="<?php echo toy_e(toy_url('/community/report')); ?>">
                                     <?php echo toy_csrf_field(); ?>
                                     <input type="hidden" name="target_type" value="comment">

@@ -32,7 +32,8 @@ function toy_community_report_target(PDO $pdo, string $targetType, int $targetId
     }
 
     if ($targetType === 'post') {
-        $post = toy_community_public_post($pdo, $targetId);
+        $account = $actorAccountId !== null ? ['id' => $actorAccountId] : null;
+        $post = toy_community_post_for_read($pdo, $targetId, $account);
         if (!is_array($post)) {
             return null;
         }
@@ -47,7 +48,8 @@ function toy_community_report_target(PDO $pdo, string $targetType, int $targetId
     }
 
     if ($targetType === 'comment') {
-        $comment = toy_community_public_comment($pdo, $targetId);
+        $account = $actorAccountId !== null ? ['id' => $actorAccountId] : null;
+        $comment = toy_community_comment_for_read($pdo, $targetId, $account);
         if (!is_array($comment)) {
             return null;
         }
@@ -83,7 +85,7 @@ function toy_community_report_target(PDO $pdo, string $targetType, int $targetId
     return null;
 }
 
-function toy_community_public_comment(PDO $pdo, int $commentId): ?array
+function toy_community_comment_for_read(PDO $pdo, int $commentId, ?array $account): ?array
 {
     if ($commentId < 1) {
         return null;
@@ -92,7 +94,7 @@ function toy_community_public_comment(PDO $pdo, int $commentId): ?array
     $stmt = $pdo->prepare(
         "SELECT c.id, c.post_id, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at,
                 p.status AS post_status,
-                b.status AS board_status, b.read_policy
+                b.id AS board_id, b.status AS board_status, b.read_policy
          FROM toy_community_comments c
          INNER JOIN toy_community_posts p ON p.id = c.post_id
          INNER JOIN toy_community_boards b ON b.id = p.board_id
@@ -100,13 +102,22 @@ function toy_community_public_comment(PDO $pdo, int $commentId): ?array
            AND c.status = 'published'
            AND p.status = 'published'
            AND b.status = 'enabled'
-           AND b.read_policy = 'public'
          LIMIT 1"
     );
     $stmt->execute(['id' => $commentId]);
     $comment = $stmt->fetch();
 
-    return is_array($comment) ? $comment : null;
+    if (!is_array($comment)) {
+        return null;
+    }
+
+    $board = [
+        'id' => (int) $comment['board_id'],
+        'status' => (string) $comment['board_status'],
+        'read_policy' => (string) $comment['read_policy'],
+    ];
+
+    return toy_community_account_can_read_board($pdo, $board, $account) ? $comment : null;
 }
 
 function toy_community_report_exists(PDO $pdo, int $reporterAccountId, string $targetType, int $targetId): bool
