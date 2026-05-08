@@ -4,6 +4,7 @@ return [
     'GET /community' => 'actions/home.php',
     'GET /community/board' => 'actions/list.php',
     'GET /community/post' => 'actions/view.php',
+    'GET /community/attachment' => 'actions/attachment.php',
     'GET /community/write' => 'actions/write.php',
     'POST /community/write' => 'actions/write.php',
     'GET /community/edit' => 'actions/edit.php',
