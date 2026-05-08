@@ -43,14 +43,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         toy_community_record_post_rate_limit($pdo, (int) $account['id'], $settings);
         toy_member_group_evaluate_account($pdo, (int) $account['id'], ['source_module_key' => 'community']);
         $attachmentId = null;
+        $attachmentResult = 'not_requested';
         if ((int) $board['image_uploads_enabled'] === 1 && isset($_FILES['image_attachment']) && is_array($_FILES['image_attachment'])) {
             try {
                 $attachmentId = toy_community_upload_post_image($pdo, $postId, (int) $account['id'], $_FILES['image_attachment'], $settings);
                 if (is_int($attachmentId) && $attachmentId > 0) {
+                    $attachmentResult = 'attached';
                     $_SESSION['toy_community_post_notice'] = '이미지를 첨부했습니다.';
+                    toy_audit_log($pdo, [
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'member',
+                        'event_type' => 'community.attachment.created',
+                        'target_type' => 'community_attachment',
+                        'target_id' => (string) $attachmentId,
+                        'result' => 'success',
+                        'message' => 'Community attachment created.',
+                        'metadata' => [
+                            'post_id' => $postId,
+                            'board_key' => (string) $board['board_key'],
+                        ],
+                    ]);
+                } else {
+                    $attachmentResult = 'none';
                 }
             } catch (Throwable $exception) {
                 toy_log_exception($exception, 'community_post_image_upload');
+                $attachmentResult = 'failed';
                 $_SESSION['toy_community_post_notice'] = '게시글은 등록했지만 이미지 첨부는 처리하지 못했습니다.';
             }
         }
@@ -65,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'metadata' => [
                 'board_key' => (string) $board['board_key'],
                 'attachment_id' => $attachmentId,
+                'attachment_result' => $attachmentResult,
             ],
         ]);
         toy_redirect('/community/post?id=' . (string) $postId);
