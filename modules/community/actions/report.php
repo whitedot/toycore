@@ -29,6 +29,10 @@ if ($memoText === null) {
     $memoText = '';
 }
 
+if ((int) $target['reported_account_id'] === (int) $account['id']) {
+    $errors[] = '본인이 작성한 대상은 신고할 수 없습니다.';
+}
+
 $settings = toy_module_settings($pdo, 'community');
 if ($errors === [] && toy_community_report_rate_limited($pdo, (int) $account['id'], $settings)) {
     $errors[] = '짧은 시간에 신고를 너무 많이 접수했습니다. 잠시 후 다시 시도해 주세요.';
