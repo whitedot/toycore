@@ -816,9 +816,9 @@ board_id
 예상 setting key:
 
 ```text
-allowed_read_group_keys
-allowed_write_group_keys
-allowed_comment_group_keys
+read_group_keys
+write_group_keys
+comment_group_keys
 post_default_status
 post_title_max_length
 post_body_max_length
