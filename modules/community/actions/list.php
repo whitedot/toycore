@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once TOY_ROOT . '/modules/admin/helpers.php';
 require_once TOY_ROOT . '/modules/community/helpers.php';
 
 $boardKey = toy_get_string('key', 60);
@@ -17,6 +18,8 @@ if (!is_array($account) && toy_community_board_requires_login($board)) {
 if (!toy_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)) {
     toy_render_error(403, '이 게시판을 볼 수 없습니다.');
 }
+$isAdminWriter = is_array($account) && toy_admin_has_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+$canWriteBoard = is_array($account) && toy_community_account_can_write_board($pdo, $board, $account, $isAdminWriter);
 
 $settings = toy_module_settings($pdo, 'community');
 $postsPerPage = max(1, min(100, (int) ($settings['posts_per_page'] ?? 20)));

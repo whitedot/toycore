@@ -37,9 +37,11 @@ $seo = [
             <p><?php echo toy_e($boardNotice); ?></p>
         <?php } ?>
 
-        <p>
-            <a href="<?php echo toy_e(toy_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>">글쓰기</a>
-        </p>
+        <?php if ($canWriteBoard) { ?>
+            <p>
+                <a href="<?php echo toy_e(toy_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>">글쓰기</a>
+            </p>
+        <?php } ?>
 
         <form method="get" action="<?php echo toy_e(toy_url('/community/board')); ?>">
             <input type="hidden" name="key" value="<?php echo toy_e((string) $board['board_key']); ?>">
