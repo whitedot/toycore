@@ -101,7 +101,12 @@ function toy_community_account_scraps(PDO $pdo, int $accountId, ?array $account 
     return $scraps;
 }
 
-function toy_community_scrap_row_is_public(array $scrap): bool
+function toy_community_scrap_row_can_view(array $scrap): bool
 {
     return !empty($scrap['can_view']);
+}
+
+function toy_community_scrap_row_is_public(array $scrap): bool
+{
+    return toy_community_scrap_row_can_view($scrap);
 }

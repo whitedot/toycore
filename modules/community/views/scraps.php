@@ -39,7 +39,7 @@ $seo = [
                     <?php foreach ($scraps as $scrap) { ?>
                         <tr>
                             <td>
-                                <?php if (toy_community_scrap_row_is_public($scrap)) { ?>
+                                <?php if (toy_community_scrap_row_can_view($scrap)) { ?>
                                     <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $scrap['board_key']))); ?>">
                                         <?php echo toy_e((string) ($scrap['board_title'] ?? '')); ?>
                                     </a>
@@ -48,7 +48,7 @@ $seo = [
                                 <?php } ?>
                             </td>
                             <td>
-                                <?php if (toy_community_scrap_row_is_public($scrap)) { ?>
+                                <?php if (toy_community_scrap_row_can_view($scrap)) { ?>
                                     <a href="<?php echo toy_e(toy_url('/community/post?id=' . (string) $scrap['post_id'])); ?>">
                                         <?php echo toy_e((string) $scrap['title']); ?>
                                     </a>
