@@ -31,6 +31,7 @@ if (toy_request_method() === 'POST') {
     $sortOrder = toy_admin_post_int_in_range('sort_order', 0, 1000000);
     $attachmentMaxBytes = toy_admin_post_int_in_range('attachment_max_bytes', 1024, 10485760);
     $attachmentMaxCount = toy_admin_post_int_in_range('attachment_max_count', 0, 10);
+    $imageUploadsEnabled = ($_POST['image_uploads_enabled'] ?? '') === '1';
 
     if ($intent === 'create' && !toy_community_board_key_is_valid($boardKey)) {
         $errors[] = '게시판 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
@@ -89,7 +90,7 @@ if (toy_request_method() === 'POST') {
             'read_policy' => $readPolicy,
             'write_policy' => $writePolicy,
             'comment_policy' => $commentPolicy,
-            'image_uploads_enabled' => ($_POST['image_uploads_enabled'] ?? '') === '1',
+            'image_uploads_enabled' => $imageUploadsEnabled,
             'sort_order' => (int) $sortOrder,
         ]);
 
@@ -104,6 +105,9 @@ if (toy_request_method() === 'POST') {
             'metadata' => [
                 'board_key' => $boardKey,
                 'status' => $status,
+                'image_uploads_enabled' => $imageUploadsEnabled,
+                'attachment_max_bytes' => $attachmentMaxBytes,
+                'attachment_max_count' => $attachmentMaxCount,
             ],
         ]);
         toy_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
@@ -119,6 +123,8 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === [] && is_array($board)) {
+            $beforeAttachmentMaxBytes = toy_community_board_attachment_max_bytes($pdo, $boardId);
+            $beforeAttachmentMaxCount = toy_community_board_attachment_max_count($pdo, $boardId);
             toy_community_update_board($pdo, $boardId, [
                 'title' => $title,
                 'description' => (string) $description,
@@ -126,7 +132,7 @@ if (toy_request_method() === 'POST') {
                 'read_policy' => $readPolicy,
                 'write_policy' => $writePolicy,
                 'comment_policy' => $commentPolicy,
-                'image_uploads_enabled' => ($_POST['image_uploads_enabled'] ?? '') === '1',
+                'image_uploads_enabled' => $imageUploadsEnabled,
                 'sort_order' => (int) $sortOrder,
             ]);
             toy_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
@@ -144,6 +150,12 @@ if (toy_request_method() === 'POST') {
                     'board_key' => (string) $board['board_key'],
                     'before_status' => (string) $board['status'],
                     'after_status' => $status,
+                    'before_image_uploads_enabled' => (int) $board['image_uploads_enabled'] === 1,
+                    'after_image_uploads_enabled' => $imageUploadsEnabled,
+                    'before_attachment_max_bytes' => $beforeAttachmentMaxBytes,
+                    'after_attachment_max_bytes' => $attachmentMaxBytes,
+                    'before_attachment_max_count' => $beforeAttachmentMaxCount,
+                    'after_attachment_max_count' => $attachmentMaxCount,
                 ],
             ]);
 
