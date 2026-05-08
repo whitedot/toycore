@@ -733,6 +733,10 @@ return [
 - `privacy-export.php`: 회원 개인정보 내보내기 확장
 - `sitemap.php`: SEO sitemap URL 확장
 
+계획 중인 계약 파일:
+
+- `member-group-rules.php`: 회원 그룹 자동 부여 조건 후보. 실제 구현 전에는 `core/helpers/settings.php`의 알려진 계약 파일 목록과 정적 검사를 먼저 갱신한다.
+
 계약 파일 규칙:
 
 - 모듈 디렉터리 바로 아래에 둔다.
@@ -790,6 +794,51 @@ return [
 - 배열 또는 callable을 반환한다.
 - 배열 항목은 최소 `loc` 값을 가진다.
 - callable 형식은 `function (PDO $pdo, ?array $site): array`이다.
+
+## 15-2. 계약 파일 소비 지도
+
+계약 파일은 "제공하는 모듈"과 "읽는 소비 주체"가 분리된다. 제공 모듈은 `module.php`의 `contracts.provides`에 파일을 선언하고 실제 파일을 둔다. 소비 모듈은 `contracts.consumes`에 읽는 계약 파일을 기록하고, 필요한 시점에 `toy_enabled_module_contract_files()`와 `toy_load_module_contract_file()`로 명시적으로 읽는다.
+
+코어가 읽는 계약 파일은 특정 모듈의 `contracts.consumes`에 적지 않는다. 예를 들어 front controller가 읽는 `paths.php`와 `toy_render_output_slot()`이 읽는 `output-slots.php`는 코어 실행 기반의 소비다.
+
+계약 파일별 소비 주체:
+
+| 계약 파일 | 읽는 주체 | 읽는 시점 | 목적 |
+| --- | --- | --- | --- |
+| `paths.php` | core front controller | 모든 요청의 route 매칭 | 활성 모듈 action include 허용 목록 |
+| `paths.php` | `admin` 모듈 | 관리자 내비게이션 구성 | `admin-menu.php` path가 실제 GET route인지 확인 |
+| `admin-menu.php` | `admin` 모듈 | 관리자 레이아웃/내비게이션 구성 | 활성 모듈 관리자 메뉴 노출 |
+| `menu-links.php` | `site_menu` 모듈 | 사이트 메뉴 관리자 화면 | 운영자가 선택할 수 있는 메뉴 후보 |
+| `extension-points.php` | `banner` 모듈 | 배너 관리자 대상 선택 | content slot 대상 목록 |
+| `extension-points.php` | `popup_layer` 모듈 | 팝업 관리자 대상 선택 | public overlay/content 대상 목록 |
+| `output-slots.php` | core output helper | 화면 소유 모듈이 `toy_render_output_slot()` 호출 시 | 저장된 출력 규칙 렌더링 |
+| `privacy-export.php` | `member` 모듈 | 회원 개인정보 export 생성 | 모듈별 회원 귀속 데이터 수집 |
+| `sitemap.php` | `seo` 모듈 | sitemap 응답 생성 | 모듈별 공개 URL 수집 |
+| `member-group-rules.php` | `member` 모듈 | 회원 그룹 자동화 관리자 화면과 재평가 | 모듈별 자동 그룹 부여 조건 후보 |
+
+현재 번들 모듈 기준 제공/소비 지도:
+
+| 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
+| --- | --- | --- |
+| `admin` | `paths.php` | `admin-menu.php`, `paths.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php` | `privacy-export.php`; 계획: `member-group-rules.php` |
+| `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |
+| `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
+| `banner` | `paths.php`, `admin-menu.php`, `output-slots.php` | `extension-points.php` |
+| `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php` | `extension-points.php` |
+| `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | 없음 |
+| `point` | `paths.php`, `admin-menu.php` | 없음 |
+| `deposit` | `paths.php`, `admin-menu.php` | 없음 |
+| `reward` | `paths.php`, `admin-menu.php` | 없음 |
+| `community` 계획 | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `sitemap.php`; 회원 그룹 구현 후 `member-group-rules.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
+
+모듈 메타데이터 작성 기준:
+
+- 실제 파일을 제공하면 `contracts.provides`에 반드시 선언한다.
+- 다른 모듈의 계약 파일을 직접 읽으면 `contracts.consumes`에 기록한다.
+- `toy_render_output_slot()`처럼 코어 helper를 호출해 출력 renderer를 실행하는 경우, 화면 소유 모듈은 어떤 point/slot을 호출하는지 view에서 명시한다. `output-slots.php` 파일 탐색 자체는 core helper가 담당한다.
+- 계약 파일을 읽는 모듈은 반환 구조를 다시 검증하고, 깨진 계약 파일 하나 때문에 전체 화면이 500으로 죽지 않게 안전 로더를 사용한다.
+- 계약 파일 소비 관계가 새로 생기면 이 표와 `module.php`의 `contracts.consumes`를 함께 갱신한다.
 
 ## 16. Output Slots
 

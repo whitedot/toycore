@@ -138,7 +138,7 @@ toy_community_record_rate_attempt($pdo, $bucket, $subject, $windowSeconds)
 
 모듈 key는 `community`로 가정한다. 테이블명은 프로젝트 prefix를 사용해 `toy_community_*`로 둔다.
 
-v1은 "게시판형 커뮤니티" 하나를 작게 제공한다.
+v1은 "게시판별 운영 정책을 깊게 설정할 수 있는 게시판형 커뮤니티" 하나를 작게 제공한다. 단순 CRUD보다 게시판별 접근, 작성, 댓글, 첨부, SEO, moderation 정책을 관리자가 분리해 조정할 수 있는 점을 설득 포인트로 둔다.
 
 포함:
 
@@ -146,10 +146,12 @@ v1은 "게시판형 커뮤니티" 하나를 작게 제공한다.
 - 공개 게시글 보기
 - 로그인 회원 게시글 작성/수정/삭제 요청
 - 로그인 회원 댓글 작성/삭제 요청
-- 관리자 게시판 설정
+- 관리자 게시판 상세 설정
 - 관리자 게시글/댓글 숨김, 복구, 삭제 상태 관리
 - 이미지 첨부
+- 모듈 테마와 게시판별 스킨 선택 구조
 - sitemap, menu link, privacy export, extension point 계약
+- 회원 그룹 기반 접근 정책 연동 계획
 - 선택적 notification 연동
 
 제외:
@@ -163,7 +165,9 @@ v1은 "게시판형 커뮤니티" 하나를 작게 제공한다.
 - 별도 search 모듈
 - captcha plugin
 - 멀티사이트
-- 커뮤니티 데이터를 core 또는 member 테이블에 추가하는 방식
+- 커뮤니티 화면용 CSS 작성
+- 완성형 skin/theme pack
+- 커뮤니티 데이터를 core 또는 member 계정 테이블에 추가하는 방식
 
 ## 5. v1 정책 결정
 
@@ -221,13 +225,280 @@ v1 기본값은 비로그인 읽기 허용, 로그인 작성이다.
 - 관리자 화면은 `owner`, `admin`, `manager` 중 정책별로 제한
 - SEO 목적의 sitemap은 공개 게시글만 포함
 
-게시판별 정책은 `toy_community_boards`에 둔다.
+게시판별 핵심 상태는 `toy_community_boards`에 두고, 깊이가 있는 운영 설정은 `toy_community_board_settings`에 둔다. 자주 조회하고 인덱스 판단에 필요한 값은 컬럼으로 유지하되, 길이 제한, 첨부, SEO, 표시 정책처럼 확장 가능성이 큰 값은 설정 테이블로 분리한다.
 
 ```text
-read_policy: public | member
-write_policy: member | admin
-comment_policy: member | disabled
+read_policy: public | member | group
+write_policy: member | group | admin
+comment_policy: member | group | disabled
 ```
+
+`group` 정책은 member 모듈의 회원 그룹 기능이 구현된 뒤 활성화한다. community는 그룹 membership을 직접 저장하지 않고 member 공개 helper로 확인한다.
+
+### 5-5. 게시판 상세 설정
+
+관리자 게시판 설정은 v1의 핵심 화면이다. 설정은 다음 묶음으로 나눈다.
+
+기본 정보:
+
+- 게시판 key
+- 제목
+- 설명
+- 상태: enabled | disabled | archived
+- 정렬 순서
+
+접근 정책:
+
+- 읽기 정책: public | member | group
+- 작성 정책: member | group | admin
+- 댓글 정책: member | group | disabled
+- 허용 회원 그룹 key 목록
+
+글 정책:
+
+- 기본 작성 상태: published | pending
+- 제목 최대 길이
+- 본문 최대 길이
+- 작성자 수정 허용 여부
+- 작성자 삭제 요청 허용 여부
+- 수정 허용 시간 제한
+
+댓글 정책:
+
+- 댓글 기본 상태: published | pending
+- 댓글 최대 길이
+- 작성자 삭제 요청 허용 여부
+- 글이 hidden/deleted일 때 댓글 작성 차단
+
+첨부 정책:
+
+- 이미지 첨부 허용 여부
+- 게시글당 최대 이미지 수
+- 이미지 최대 용량
+- 허용 이미지 형식
+
+목록/표시 정책:
+
+- 페이지당 글 수
+- 기본 정렬
+- 조회수 표시 여부
+- 댓글 수 표시 여부
+- 작성자 표시 방식
+
+SEO 정책:
+
+- 게시판 목록 index 허용 여부
+- 게시글 index 허용 여부
+- 게시판 meta description
+
+운영 정책:
+
+- manager moderation 허용 여부
+- soft delete 기본 사용
+- pending 글 관리자 승인 필요 여부
+
+화면 정책:
+
+- 게시판 스킨 key
+- 모듈 테마 key
+
+### 5-6. 화면 구현과 스타일 경계
+
+커뮤니티 모듈의 public/account/admin 화면은 최초 구현에서 최소한의 HTML과 필요한 vanilla JavaScript만 작성한다. CSS는 v1 구현 범위에 넣지 않는다.
+
+규칙:
+
+- 의미가 드러나는 기본 HTML 요소를 우선 사용한다.
+- 화면 동작에 필요한 JS만 작성한다.
+- JS가 필요하면 build step 없이 `assets/community.js` 같은 정적 파일로 둔다.
+- `community.css` 또는 inline style을 작성하지 않는다.
+- 이후 스타일 작업을 위한 `class`, `data-*`, wrapper id를 미리 남기지 않는다.
+- `class`, `data-*`, wrapper id는 스크립트 동작에 필요한 경우에만 한정적으로 사용한다.
+- 버튼, form, table, list 같은 구조는 브라우저 기본 스타일로도 사용 가능해야 한다.
+- 화면 안내 문구는 기능 수행에 필요한 최소 문구만 둔다.
+
+관리자 화면도 같은 원칙을 따른다. `admin` 모듈 공통 레이아웃이 제공하는 기본 구조 외에 community 전용 CSS를 추가하지 않는다.
+
+추후 스타일 작업은 현재 DOM 구조를 보존해야 한다는 전제를 두지 않는다. 스타일 단계에서 필요한 경우 theme view와 skin view의 DOM 구조 자체를 변경할 수 있다.
+
+### 5-7. 모듈 테마와 게시판 스킨
+
+커뮤니티 모듈은 모듈 테마와 게시판 스킨을 분리한다.
+
+개념 구분:
+
+```text
+skin:
+- 게시판에 한정해 적용되는 PHP view partial 묶음
+- 특정 게시판의 글 목록, 게시글 보기, 글 작성/수정 form, 댓글/첨부 표시를 담당
+- 해당 게시판 화면의 DOM 구조, 색감, 여백, 타이포그래피, 아이콘, asset 같은 디자인 표현을 담당
+- form name, method, action, CSRF 위치, 출력 슬롯 호출 위치처럼 기능 DOM을 포함
+
+theme:
+- 게시판에 속하지 않는 community 모듈 화면을 담당하는 PHP view partial 묶음
+- 커뮤니티 홈, 게시판 선택/안내, 모듈 단위 빈 상태 같은 비게시판 public 화면을 담당
+- 후속 버전에서는 비게시판 화면의 DOM 구조와 디자인 표현도 담당할 수 있음
+- 게시판 글 목록/보기/쓰기/댓글 화면에는 직접 적용하지 않음
+```
+
+판단 기준:
+
+- 특정 게시판의 콘텐츠를 다루는 화면이면 `skin`이다.
+- 게시판 key나 post id 없이 community 모듈 자체를 보여주는 화면이면 `theme`이다.
+- 게시판 화면의 색감, 여백, 폰트 크기, 아이콘, 카드형/리스트형 같은 디자인을 바꾸면 `skin`이다.
+- 커뮤니티 홈이나 게시판 선택 화면의 구조와 디자인을 바꾸면 `theme`이다.
+- 접근 권한, validation, SEO, 개인정보, moderation 정책은 skin/theme이 아니라 community helper와 action이 판단한다.
+
+운영자에게 보이는 설명:
+
+```text
+테마: 커뮤니티 홈과 모듈 단위 화면
+스킨: 각 게시판의 목록, 글보기, 글쓰기 화면
+```
+
+운영 예:
+
+```text
+커뮤니티 테마: 기본 커뮤니티 홈
+- 자유게시판 skin: 일반 목록형
+- 사진게시판 skin: 갤러리형
+- 문의게시판 skin: Q&A형
+```
+
+v1 구현 방향:
+
+- 기본 theme은 `basic` 하나만 제공한다.
+- 기본 skin은 `basic` 하나만 제공한다.
+- 모듈 설정에는 `theme_key`를 저장한다.
+- 게시판 설정에는 `skin_key`를 저장한다.
+- `/community` 같은 비게시판 public action은 `theme_key`로 theme view를 include한다.
+- 특정 board context가 있는 public action은 board 설정의 `skin_key`로 skin view를 include한다.
+- v1 theme과 skin은 모두 최소 HTML만 제공하고 CSS/디자인 asset을 제공하지 않는다.
+- 알 수 없는 `theme_key`는 기본 `basic`으로 fallback한다.
+- 알 수 없는 `skin_key`는 기본 `basic`으로 fallback한다.
+- 관리자 화면은 v1에서 module theme은 `basic`, board skin은 `basic`만 선택 가능하게 하거나 읽기 전용으로 표시한다.
+
+theme과 skin 파일은 자동 탐색하지 않는다. community helper에 명시된 allowlist만 사용한다.
+
+예상 구조:
+
+```text
+modules/community/themes/basic/
+- home.php
+
+modules/community/skins/basic/
+- list.php
+- view.php
+- form.php
+```
+
+적용 위치:
+
+```text
+theme 설정 저장:
+- /admin/community/settings 또는 /admin/community/boards의 공통 설정 영역
+- theme_key를 community 모듈 설정에 저장
+
+board skin 설정 저장:
+- /admin/community/boards
+- skin_key를 toy_community_board_settings에 저장
+
+theme 적용:
+- /community
+- board가 선택되지 않은 community 모듈 단위 public 화면
+- action이 모듈 단위 데이터를 준비한 뒤 include할 theme view partial을 선택
+
+skin 적용:
+- /community/board
+- /community/post
+- /community/write
+- /community/edit
+- action이 board context와 데이터를 준비한 뒤 include할 skin view partial을 선택
+```
+
+theme 적용 방식:
+
+```text
+1. action이 community 모듈 설정을 조회한다.
+2. toy_community_theme_key($settings)가 theme_key를 정규화한다.
+3. toy_community_theme_view($themeKey, $viewKey)가 allowlist에서 view 파일을 찾는다.
+4. action이 게시판 목록, 안내 문구, SEO 값을 준비한다.
+5. action이 선택된 theme view 파일을 include한다.
+```
+
+theme view key 후보:
+
+```text
+home: 커뮤니티 홈 또는 게시판 선택 화면
+```
+
+v1의 `basic` theme mapping:
+
+```text
+home -> modules/community/themes/basic/home.php
+```
+
+theme view 책임:
+
+- 게시판 선택이나 커뮤니티 홈 같은 모듈 단위 변수 출력
+- `toy_e()` 같은 출력 escape
+- 모듈 단위 output slot 호출 위치 제공
+
+theme view가 하지 않는 것:
+
+- 특정 게시판의 글 목록/글보기/form 출력
+- DB 변경
+- 권한 최종 판단
+- 게시판 정책 판단
+- skin view include
+- 다른 모듈 계약 파일 직접 읽기
+
+skin 적용 방식:
+
+```text
+1. action이 board와 board settings를 조회한다.
+2. toy_community_board_skin_key($boardSettings)가 skin_key를 정규화한다.
+3. toy_community_skin_view($skinKey, $viewKey)가 allowlist에서 view 파일을 찾는다.
+4. action이 권한, 입력값, 조회 결과, SEO 값을 준비한다.
+5. action이 선택된 skin view 파일을 include한다.
+```
+
+skin view key 후보:
+
+```text
+list: 게시판 글 목록
+post: 게시글 보기
+form: 글 작성/수정 form
+```
+
+v1의 `basic` skin mapping:
+
+```text
+list -> modules/community/skins/basic/list.php
+post -> modules/community/skins/basic/view.php
+form -> modules/community/skins/basic/form.php
+```
+
+skin view 책임:
+
+- 특정 게시판의 글/댓글/첨부 관련 변수 출력
+- `toy_e()`와 `nl2br(toy_e(...))` 같은 출력 escape
+- CSRF field 출력
+- 게시판 화면 output slot 호출 위치 제공
+- form name/action/method 구조 유지
+
+skin view가 하지 않는 것:
+
+- DB 변경
+- 권한 최종 판단
+- 게시판 정책 판단
+- theme view include
+- 다른 모듈 계약 파일 직접 읽기
+
+후속 확장:
+
+- 외부 theme 또는 skin plugin이 필요해지면 `community-themes.php` 또는 `community-skins.php` 같은 계약 파일을 검토한다.
+- 이 계약을 추가할 때는 `TOY_MODULE_CONTRACT_VERSION`, `docs/module-guide.md`, 정적 검사를 함께 갱신한다.
 
 ## 6. 디렉터리 구조
 
@@ -243,13 +514,18 @@ modules/community/
   - settings.php
   - rate-limit.php
   - notifications.php
+  - member-groups.php
+  - skins.php
+  - themes.php
 - paths.php
 - admin-menu.php
 - menu-links.php
 - extension-points.php
+- member-group-rules.php (member 그룹 기능 구현 후)
 - privacy-export.php
 - sitemap.php
 - actions/
+  - home.php
   - list.php
   - view.php
   - write.php
@@ -261,14 +537,19 @@ modules/community/
   - admin-boards.php
   - admin-posts.php
 - views/
-  - list.php
-  - view.php
-  - write.php
-  - edit.php
   - admin-boards.php
   - admin-posts.php
+  - partials.php
+- themes/
+  - basic/
+    - home.php
+- skins/
+  - basic/
+    - list.php
+    - view.php
+    - form.php
 - assets/
-  - community.css
+  - community.js (필요할 때만)
 - lang/
   - ko.php
 - install.sql
@@ -301,6 +582,7 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'extension-points.php',
+            // member 그룹 기능 구현 후: 'member-group-rules.php',
             'privacy-export.php',
             'sitemap.php',
         ],
@@ -314,6 +596,7 @@ return [
         'comment_create_limit' => 30,
         'image_upload_max_bytes' => 2097152,
         'image_uploads_enabled' => true,
+        'theme_key' => 'basic',
     ],
 ];
 ```
@@ -326,7 +609,8 @@ return [
 <?php
 
 return [
-    'GET /community' => 'actions/list.php',
+    'GET /community' => 'actions/home.php',
+    'GET /community/board' => 'actions/list.php',
     'GET /community/post' => 'actions/view.php',
     'GET /community/write' => 'actions/write.php',
     'POST /community/write' => 'actions/write.php',
@@ -375,6 +659,53 @@ updated_at DATETIME
 ```text
 UNIQUE board_key
 status, sort_order, id
+```
+
+### 9-1-1. `toy_community_board_settings`
+
+깊이가 있는 게시판 설정은 key/value로 분리한다. 게시판별 정책은 community 도메인에 속하므로 core `toy_module_settings`가 아니라 community 소유 테이블에 둔다.
+
+```text
+id BIGINT UNSIGNED PK
+board_id BIGINT UNSIGNED
+setting_key VARCHAR(120)
+setting_value TEXT
+value_type VARCHAR(20) DEFAULT 'string'
+created_at DATETIME
+updated_at DATETIME
+```
+
+인덱스:
+
+```text
+UNIQUE board_id, setting_key
+board_id
+```
+
+예상 setting key:
+
+```text
+allowed_read_group_keys
+allowed_write_group_keys
+allowed_comment_group_keys
+post_default_status
+post_title_max_length
+post_body_max_length
+post_edit_window_minutes
+comment_default_status
+comment_body_max_length
+attachment_max_count
+attachment_max_bytes
+attachment_allowed_mime_types
+list_posts_per_page
+show_view_count
+show_comment_count
+author_display_mode
+skin_key
+seo_board_index
+seo_post_index
+seo_description
+manager_moderation_enabled
 ```
 
 ### 9-2. `toy_community_posts`
@@ -471,10 +802,12 @@ checksum_sha256
 
 - `read_policy = public`이고 게시판/게시글 상태가 공개이면 누구나 조회 가능
 - `read_policy = member`이면 `toy_member_require_login()` 필요
+- `read_policy = group`이면 로그인 후 member 그룹 membership을 확인한다.
 
 작성:
 
 - `write_policy = member`이면 로그인 회원 작성 가능
+- `write_policy = group`이면 로그인 후 허용된 member 그룹 membership을 확인한다.
 - `write_policy = admin`이면 관리자만 작성 가능
 - 계정 상태가 active가 아니면 member helper에서 로그인 상태가 유지되지 않는다.
 
@@ -487,6 +820,7 @@ checksum_sha256
 댓글:
 
 - `comment_policy = member`이면 로그인 회원 작성 가능
+- `comment_policy = group`이면 로그인 후 허용된 member 그룹 membership을 확인한다.
 - 작성자는 자기 댓글을 삭제 상태로 전환할 수 있다.
 - 관리자는 숨김, 복구, 삭제 상태 전환을 할 수 있다.
 
@@ -499,6 +833,8 @@ POST /admin/community/posts: owner, admin, manager
 ```
 
 게시판 구조 변경은 `owner`, `admin`으로 제한한다. 게시글 moderation은 `manager`도 허용한다.
+
+회원 그룹 확인은 community가 member의 공개 helper를 호출하는 방식으로만 수행한다. community는 `toy_member_group_memberships` 같은 member 내부 테이블을 직접 조회하지 않는다.
 
 ## 11. 출력과 SEO
 
@@ -531,7 +867,11 @@ POST /admin/community/posts: owner, admin, manager
 계획:
 
 ```text
-community.list
+community.home
+- before_content
+- after_content
+
+community.board.list
 - before_list
 - after_list
 
@@ -641,7 +981,45 @@ subject: ip:{toy_client_ip()}
 4. 성공 시 감사 로그에는 본문을 넣지 않음
 ```
 
-## 16. 구현 단계
+## 16. 회원 그룹 연동 계획
+
+회원 그룹 기능은 [회원 그룹과 모듈 조건 연동 계획](member-group-plan.md)을 따른다.
+
+community는 두 역할만 맡는다.
+
+1. 게시판 접근 정책에서 member 그룹 membership을 소비한다.
+2. member 그룹 자동화가 사용할 community 조건 후보를 제공한다.
+
+community가 제공할 조건 후보:
+
+```text
+community.board.post_count_at_least
+- 특정 게시판에 published 게시글 N개 이상 작성
+```
+
+후속 후보:
+
+```text
+community.total.post_count_at_least
+community.board.comment_count_at_least
+```
+
+평가 흐름:
+
+```text
+1. member 관리자 화면에서 "특정 게시판에 게시글 5개 이상" 조건을 선택한다.
+2. target group을 선택하고 evaluation_policy를 grant_only 또는 sync로 저장한다.
+3. 회원이 community 글 작성에 성공하면 community action이 member 그룹 재평가 helper를 명시 호출한다.
+4. member는 저장된 자동 규칙 중 source_module_key = community인 규칙만 평가한다.
+5. 조건을 만족하면 member가 자동 membership을 active로 저장한다.
+6. community 게시판 접근 helper는 member 그룹 조회 helper로 membership만 확인한다.
+```
+
+접근 요청에서는 전체 자동 조건을 다시 평가하지 않는다. 접근 제어는 저장된 membership 조회만 사용한다.
+
+이 연동은 v1 커뮤니티 구현과 병렬로 계획하되, 실제 group 정책 활성화는 member 그룹 Phase G1-G3이 끝난 뒤 Phase G4에서 붙인다.
+
+## 17. 구현 단계
 
 ### Phase 0. 권장 보강
 
@@ -666,20 +1044,26 @@ subject: ip:{toy_client_ip()}
 - admin menu path와 GET route 일치
 - `php .tools/bin/check.php` 통과
 
-### Phase 2. 공개 목록/보기
+### Phase 2. 공개 홈/목록/보기
 
-- `/community` 목록
+- `/community` 커뮤니티 홈 또는 게시판 선택 화면
+- `/community/board?key=...` 게시판 글 목록
 - `/community/post?id=...` 보기
 - 게시판 상태와 게시글 상태 필터
+- 모듈 theme 설정을 검증하고 `basic` theme home view include
+- 게시판별 skin 설정을 검증하고 `basic` skin view include
 - 작성자 fallback 표시
 - plain text escape 출력
 - 기본 SEO 태그
+- CSS 없이 최소 HTML로 화면 구성
 
 완료 기준:
 
 - 비로그인 공개 조회 가능
 - hidden/deleted 글은 일반 조회에서 제외
+- `/community`는 theme view, board context 화면은 skin view를 사용함
 - 출력 XSS가 escape됨
+- community 전용 CSS 파일이 없음
 
 ### Phase 3. 회원 작성/댓글
 
@@ -702,6 +1086,8 @@ subject: ip:{toy_client_ip()}
 - `/admin/community/boards`
 - `/admin/community/posts`
 - 게시판 생성/수정/상태 변경
+- 게시판별 접근/글/댓글/첨부/목록/SEO/운영 정책 설정
+- 모듈 theme key와 게시판별 skin key 설정
 - 게시글/댓글 상태 변경
 - 관리자 role 구분
 - 운영자 메시지와 감사 로그
@@ -710,6 +1096,9 @@ subject: ip:{toy_client_ip()}
 
 - `manager`는 moderation만 가능
 - `owner/admin`은 게시판 설정 가능
+- 게시판별 상세 설정이 community 소유 테이블에 저장됨
+- theme/skin 값은 allowlist와 안전한 key 형식으로 검증됨
+- v1에서 theme은 비게시판 public 화면 include에만 사용하고 CSS/디자인 asset을 제공하지 않음
 - 모든 관리자 POST는 로그인, role, CSRF 순서 준수
 
 ### Phase 5. 이미지 첨부
@@ -733,6 +1122,7 @@ subject: ip:{toy_client_ip()}
 - `extension-points.php`
 - `sitemap.php`
 - `privacy-export.php`
+- member 그룹 기능 적용 후 `member-group-rules.php`
 - 선택적 notification 연동
 
 완료 기준:
@@ -741,6 +1131,7 @@ subject: ip:{toy_client_ip()}
 - banner/popup_layer가 커뮤니티 출력 지점을 읽음
 - seo sitemap에 공개 글만 포함
 - 개인정보 export에 해당 회원 데이터만 포함
+- member가 community의 그룹 자동화 조건 후보를 읽을 수 있음
 
 ### Phase 7. 점검과 릴리스 준비
 
@@ -754,18 +1145,19 @@ subject: ip:{toy_client_ip()}
 
 ```text
 1. /admin/modules에서 community 설치
-2. /community 목록 조회
-3. 로그인 후 게시글 작성
-4. 게시글 보기
-5. 댓글 작성
-6. 관리자에서 게시글 숨김
-7. 숨김 글 일반 조회 차단
-8. sitemap.xml에 공개 글만 포함
-9. 개인정보 export에 작성 글/댓글 포함
-10. 모듈 disabled 후 route 404 확인
+2. /community 홈 조회
+3. /community/board?key=free 목록 조회
+4. 로그인 후 게시글 작성
+5. 게시글 보기
+6. 댓글 작성
+7. 관리자에서 게시글 숨김
+8. 숨김 글 일반 조회 차단
+9. sitemap.xml에 공개 글만 포함
+10. 개인정보 export에 작성 글/댓글 포함
+11. 모듈 disabled 후 route 404 확인
 ```
 
-## 17. 업데이트 계획
+## 18. 업데이트 계획
 
 v1 최초 버전:
 
@@ -788,7 +1180,7 @@ v1 최초 버전:
 2026.05.004: Markdown 또는 editor plugin 계약 검토
 ```
 
-## 18. 리스크와 대응
+## 19. 리스크와 대응
 
 | 리스크 | 대응 |
 | --- | --- |
@@ -800,8 +1192,13 @@ v1 최초 버전:
 | 탈퇴 회원 표시 | `account_id` 유지, 익명화 계정 fallback 표시 |
 | notification 선택 모듈 실패 | 댓글 작성과 알림 생성을 느슨하게 분리 |
 | 커뮤니티가 CMS로 커짐 | v1에서 board/post/comment/image까지만 제한 |
+| 게시판 설정이 과도하게 커짐 | 설정 묶음을 접근/글/댓글/첨부/목록/SEO/운영으로 제한하고 domain workflow는 후속 버전으로 분리 |
+| 회원 그룹 연동으로 모듈 결합 증가 | community는 조건 후보와 member 공개 helper만 사용하고 membership 저장은 member가 소유 |
+| 스킨 기능이 숨은 dispatcher로 변질 | skin allowlist helper로 검증하고 action에서 선택된 view include 흐름을 명시 |
+| theme이 게시판 화면까지 침범 | 게시판 목록/보기/쓰기/댓글은 skin 책임으로 제한하고 theme은 비게시판 모듈 화면만 담당 |
+| 스타일 작업이 v1에 섞임 | community 전용 CSS와 inline style 금지, 스타일용 class/data/id 선반영 금지 |
 
-## 19. 완료 정의
+## 20. 완료 정의
 
 첫 커뮤니티 모듈 v1은 다음 조건을 만족하면 완료로 본다.
 
@@ -814,4 +1211,8 @@ v1 최초 버전:
 - 설치/비활성화/업데이트 흐름이 기존 모듈과 같은 방식으로 동작한다.
 - `php .tools/bin/check.php`가 통과한다.
 - 개인정보 export, sitemap, menu-links, extension-points 계약을 제공한다.
+- member 그룹 기능이 활성화된 환경에서는 group 기반 게시판 접근 정책이 member 공개 helper로 동작한다.
+- public/admin 화면은 community 전용 CSS 없이 최소 HTML과 필요한 JS만 사용한다.
+- 모듈 theme과 게시판별 skin 설정 구조가 있고, v1 기본 skin과 theme은 모두 `basic`이다.
+- v1 theme은 `/community` 같은 비게시판 public 화면에만 적용되며 CSS/디자인 asset을 제공하지 않는다.
 - 커뮤니티 모듈 없이 `core + member + admin` 기준선이 계속 동작한다.
