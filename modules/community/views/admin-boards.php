@@ -16,6 +16,20 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
+<?php if ($enabledMemberGroups !== []) { ?>
+    <section>
+        <h2>사용 가능한 회원 그룹 key</h2>
+        <ul>
+            <?php foreach ($enabledMemberGroups as $memberGroup) { ?>
+                <li>
+                    <?php echo toy_e((string) $memberGroup['group_key']); ?>
+                    - <?php echo toy_e((string) $memberGroup['title']); ?>
+                </li>
+            <?php } ?>
+        </ul>
+    </section>
+<?php } ?>
+
 <section>
     <h2>게시판 생성</h2>
     <form method="post" action="<?php echo toy_e(toy_url('/admin/community/boards')); ?>">

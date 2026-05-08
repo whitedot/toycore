@@ -15,6 +15,17 @@ $allowedStatuses = toy_community_board_statuses();
 $allowedReadPolicies = toy_community_policy_values('read');
 $allowedWritePolicies = toy_community_policy_values('write');
 $allowedCommentPolicies = toy_community_policy_values('comment');
+$memberGroups = toy_member_groups($pdo);
+$enabledMemberGroups = [];
+$enabledMemberGroupKeys = [];
+foreach ($memberGroups as $memberGroup) {
+    if ((string) ($memberGroup['status'] ?? '') !== 'enabled') {
+        continue;
+    }
+
+    $enabledMemberGroups[] = $memberGroup;
+    $enabledMemberGroupKeys[] = (string) $memberGroup['group_key'];
+}
 
 if (toy_request_method() === 'POST') {
     toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
@@ -96,6 +107,17 @@ if (toy_request_method() === 'POST') {
         $invalidGroupKeys = toy_community_invalid_board_group_keys_from_input($groupKeysInput);
         if ($invalidGroupKeys !== []) {
             $errors[] = $label . ' key 형식이 올바르지 않습니다: ' . implode(', ', $invalidGroupKeys);
+        }
+    }
+
+    foreach ([
+        '읽기 그룹' => $readGroupKeys,
+        '쓰기 그룹' => $writeGroupKeys,
+        '댓글 그룹' => $commentGroupKeys,
+    ] as $label => $groupKeys) {
+        $unknownGroupKeys = array_values(array_diff($groupKeys, $enabledMemberGroupKeys));
+        if ($unknownGroupKeys !== []) {
+            $errors[] = $label . ' key는 활성 회원 그룹이어야 합니다: ' . implode(', ', $unknownGroupKeys);
         }
     }
 
