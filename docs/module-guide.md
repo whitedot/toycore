@@ -494,7 +494,29 @@ modules/board/
 - 운영 서버가 `modules/` 전체 직접 접근을 차단하는 구성이라면, 필요한 정적 파일만 허용하거나 모듈 action을 통해 응답하는 별도 방식을 둔다.
 - 사용자 업로드 파일 저장소로 `assets/`를 사용하지 않는다.
 
-## 9-2. 번역 파일
+## 9-2. 파일 업로드
+
+파일 업로드는 코어 기능처럼 보이지만 파일의 의미, 공개 범위, 다운로드 권한, 보존 정책은 모듈마다 다르다. 코어는 `core/helpers/upload.php`의 낮은 수준 helper만 제공하고, 파일 테이블과 관리자 화면은 파일을 소유한 모듈이 책임진다.
+
+모듈 action 책임:
+
+- `toy_upload_validate_file()`로 업로드 오류, 크기, 확장자 allowlist, MIME, 실행 가능 확장자 차단을 통과시킨다.
+- 저장 파일명은 원본 이름을 신뢰하지 않고 `toy_upload_random_filename()`으로 만든다.
+- 저장 위치는 웹에서 직접 실행되지 않는 디렉터리를 우선하고, 공개 파일이 필요하면 모듈이 별도 공개 응답 action을 둔다.
+- `toy_upload_move_uploaded_file()` 또는 검증된 값 기반의 명시적 이동만 사용한다.
+- 파일 metadata, 소유자, 공개/비공개 상태, 삭제/보존 정책은 모듈 테이블에 저장한다.
+- 비공개 다운로드는 직접 파일 URL 대신 `toy_download_token_create()`와 `toy_download_token_verify()`를 사용해 단기 token으로 처리한다.
+- 다운로드 응답은 `toy_send_download_headers()`로 헤더를 보내고 본문 출력 후 `toy_finish_response()`로 종료한다.
+- 이미지 업로드는 필요할 때 `toy_upload_reencode_image()`를 호출하되, GD/Imagick이 없거나 재인코딩에 실패하면 모듈 정책에 따라 거부하거나 원본 저장을 중단한다.
+
+하지 않는다:
+
+- `toy_files` 같은 코어 공통 파일 테이블을 전제로 작성하지 않는다.
+- 업로드 원본을 `modules/{module_key}/assets`에 저장하지 않는다.
+- 파일명, MIME, 확장자 중 하나만 믿고 공개하지 않는다.
+- 다운로드 권한 판단을 view나 클라이언트 JavaScript에 맡기지 않는다.
+
+## 9-3. 번역 파일
 
 모듈 UI 문구 번역은 `lang/{locale}.php` 파일로 둔다. 사용자 콘텐츠 다국어화는 각 모듈의 도메인 테이블과 화면에서 따로 설계한다.
 
