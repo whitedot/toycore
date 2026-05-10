@@ -282,21 +282,38 @@ function toy_member_public_account_summary_by_hash(PDO $pdo, array $config, stri
         return null;
     }
 
+    $accountsByHash = toy_member_public_account_summaries_by_hash($pdo, $config);
+    return $accountsByHash[$publicHash] ?? null;
+}
+
+function toy_member_public_account_summaries_by_hash(PDO $pdo, array $config): array
+{
+    static $cachedMaps = [];
+
+    $cacheKey = (string) spl_object_id($pdo) . ':' . toy_hmac_hash('member-public-account-map', $config);
+    if (isset($cachedMaps[$cacheKey])) {
+        return $cachedMaps[$cacheKey];
+    }
+
     $stmt = $pdo->query("SELECT id, display_name, locale, status FROM toy_member_accounts WHERE status = 'active' ORDER BY id ASC");
+    $accountsByHash = [];
     foreach ($stmt->fetchAll() as $account) {
         $accountId = (int) ($account['id'] ?? 0);
-        if ($accountId > 0 && hash_equals($publicHash, toy_member_public_account_hash($config, $accountId))) {
-            return [
-                'id' => $accountId,
+        if ($accountId > 0) {
+            $accountHash = toy_member_public_account_hash($config, $accountId);
+            $accountsByHash[$accountHash] = [
+                'id' => (int) $account['id'],
                 'display_name' => (string) $account['display_name'],
                 'locale' => (string) $account['locale'],
                 'status' => (string) $account['status'],
-                'public_hash' => $publicHash,
+                'public_hash' => $accountHash,
             ];
         }
     }
 
-    return null;
+    $cachedMaps[$cacheKey] = $accountsByHash;
+
+    return $accountsByHash;
 }
 
 function toy_member_safe_next_path(string $path): string

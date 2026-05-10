@@ -668,6 +668,7 @@ if (!is_string($communityReportsHelper) || !is_string($communityPostsHelper) || 
 
 $communityNotificationsHelper = file_get_contents($root . '/modules/community/helpers/notifications.php');
 $communityMessagesHelper = file_get_contents($root . '/modules/community/helpers/messages.php');
+$memberAccountsHelper = file_get_contents($root . '/modules/member/helpers/accounts.php');
 $communityMessageWriteAction = file_get_contents($root . '/modules/community/actions/message-write.php');
 $communityMessageViewAction = file_get_contents($root . '/modules/community/actions/message-view.php');
 $communityMessageWriteView = file_get_contents($root . '/modules/community/views/message-write.php');
@@ -677,6 +678,7 @@ $communityReportAction = file_get_contents($root . '/modules/community/actions/r
 if (
     !is_string($communityNotificationsHelper)
     || !is_string($communityMessagesHelper)
+    || !is_string($memberAccountsHelper)
     || !is_string($communityMessageWriteAction)
     || !is_string($communityMessageViewAction)
     || !is_string($communityMessageWriteView)
@@ -692,6 +694,8 @@ if (
     || strpos($communityNotificationsHelper, 'catch (Throwable $exception)') === false
     || strpos($communityNotificationsHelper, 'function toy_community_create_admin_report_notifications') === false
     || strpos($communityNotificationsHelper, "r.role_key IN ('owner', 'admin', 'manager')") === false
+    || strpos($memberAccountsHelper, 'function toy_member_public_account_summaries_by_hash') === false
+    || strpos($memberAccountsHelper, 'static $cachedMaps = [];') === false
     || strpos($communityMessagesHelper, 'recipient_account_hash') === false
     || strpos($communityMessagesHelper, "return \$label;") === false
     || strpos($communityMessageWriteAction, 'toy_community_create_account_notification(') === false
