@@ -3,9 +3,20 @@
 
 declare(strict_types=1);
 
-$baseUrl = rtrim((string) ($argv[1] ?? ''), '/');
+function toy_smoke_argument(array $argv, int $index, string $environmentKey): string
+{
+    $argument = (string) ($argv[$index] ?? '');
+    if ($argument !== '') {
+        return $argument;
+    }
+
+    $environmentValue = getenv($environmentKey);
+    return is_string($environmentValue) ? $environmentValue : '';
+}
+
+$baseUrl = rtrim(toy_smoke_argument($argv, 1, 'TOY_SMOKE_BASE_URL'), '/');
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl)) {
-    fwrite(STDERR, "Usage: php .tools/bin/smoke-http.php http://127.0.0.1:8080\n");
+    fwrite(STDERR, "Usage: php .tools/bin/smoke-http.php http://127.0.0.1:8080\nEnv: TOY_SMOKE_BASE_URL\n");
     exit(2);
 }
 
@@ -179,7 +190,11 @@ function toy_smoke_fetch(string $url, string $method): array
         ],
     ]);
 
+    set_error_handler(static function (): bool {
+        return true;
+    });
     $body = file_get_contents($url, false, $context);
+    restore_error_handler();
     $headers = $http_response_header ?? [];
     $status = 0;
     $location = '';
