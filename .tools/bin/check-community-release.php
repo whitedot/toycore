@@ -596,6 +596,14 @@ toy_community_release_file_contains('modules/community/helpers/notifications.php
     'toy_community_notification_admin_account_ids($pdo)',
     "'/admin/community/reports'",
 ], 'Community notification optional integration');
+toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
+    "'intent' => 'add'",
+    "toy_auth_smoke_assert_status(\$errors, 'scrap add', \$scrapResponse, [302])",
+    "toy_auth_smoke_assert_body_contains(\$errors, 'scrap list', \$scraps, \$title)",
+    "'intent' => 'remove'",
+    "toy_auth_smoke_assert_status(\$errors, 'scrap remove', \$scrapRemoveResponse, [302])",
+    "toy_auth_smoke_assert_body_not_contains(\$errors, 'scrap list after remove', \$scrapsAfterRemove, \$title)",
+], 'Community authenticated smoke scrap flow');
 
 toy_community_release_file_contains('modules/community/actions/admin-boards.php', [
     'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',

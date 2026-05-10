@@ -279,6 +279,15 @@ try {
         $scraps = toy_auth_smoke_request($baseUrl, 'GET', '/community/scraps', [], $cookies);
         toy_auth_smoke_assert_status($errors, 'scrap list', $scraps, [200]);
         toy_auth_smoke_assert_body_contains($errors, 'scrap list', $scraps, $title);
+        $scrapRemoveResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/scrap', [
+            'csrf_token' => $postViewCsrf,
+            'post_id' => (string) $createdPostId,
+            'intent' => 'remove',
+        ], $cookies);
+        toy_auth_smoke_assert_status($errors, 'scrap remove', $scrapRemoveResponse, [302]);
+        $scrapsAfterRemove = toy_auth_smoke_request($baseUrl, 'GET', '/community/scraps', [], $cookies);
+        toy_auth_smoke_assert_status($errors, 'scrap list after remove', $scrapsAfterRemove, [200]);
+        toy_auth_smoke_assert_body_not_contains($errors, 'scrap list after remove', $scrapsAfterRemove, $title);
     }
 
     if ($recipientIdentifier !== '') {
