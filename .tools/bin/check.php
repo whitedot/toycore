@@ -91,6 +91,17 @@ function toy_check_sql_files(): void
 
 function toy_check_module_contract_files(): void
 {
+    $knownContractFiles = [
+        'admin-menu.php',
+        'extension-points.php',
+        'member-group-rules.php',
+        'menu-links.php',
+        'output-slots.php',
+        'paths.php',
+        'privacy-export.php',
+        'sitemap.php',
+    ];
+
     foreach (toy_check_module_dirs() as $moduleDir) {
         $moduleFile = $moduleDir . '/module.php';
         if (!is_file($moduleFile)) {
@@ -114,6 +125,7 @@ function toy_check_module_contract_files(): void
         $provides = isset($metadata['contracts']['provides']) && is_array($metadata['contracts']['provides'])
             ? $metadata['contracts']['provides']
             : [];
+        $providedFiles = [];
         foreach ($provides as $contractFile) {
             $contractFile = is_string($contractFile) ? $contractFile : '';
             if (preg_match('/\A[a-z0-9][a-z0-9_.-]{0,80}\.php\z/', $contractFile) !== 1) {
@@ -121,8 +133,15 @@ function toy_check_module_contract_files(): void
                 continue;
             }
 
+            $providedFiles[$contractFile] = true;
             if (!is_file($moduleDir . '/' . $contractFile)) {
                 toy_check_add_error('Module declared contract file is missing: ' . $moduleDir . '/' . $contractFile);
+            }
+        }
+
+        foreach ($knownContractFiles as $contractFile) {
+            if (is_file($moduleDir . '/' . $contractFile) && !isset($providedFiles[$contractFile])) {
+                toy_check_add_error('Module contract file must be declared in contracts.provides: ' . $moduleDir . '/' . $contractFile);
             }
         }
     }
