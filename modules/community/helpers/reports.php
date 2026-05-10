@@ -29,10 +29,10 @@ function toy_community_report_account_label(?string $displayName, int $accountId
 {
     $label = trim((string) $displayName);
     if ($label !== '') {
-        return $label . ' #' . (string) $accountId;
+        return $label;
     }
 
-    return $accountId > 0 ? '회원 #' . (string) $accountId : '알 수 없는 회원';
+    return $accountId > 0 ? '회원' : '알 수 없는 회원';
 }
 
 function toy_community_report_target(PDO $pdo, string $targetType, int $targetId, ?int $actorAccountId = null): ?array

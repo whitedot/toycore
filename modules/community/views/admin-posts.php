@@ -49,7 +49,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo toy_e((string) $post['title']); ?>
                             <?php } ?>
                         </td>
-                        <td><?php echo toy_e((string) ($post['author_display_name'] ?? '') . ' #' . (string) $post['author_account_id']); ?></td>
+                        <td><?php echo toy_e(toy_community_report_account_label(
+                            is_string($post['author_display_name'] ?? null) ? $post['author_display_name'] : null,
+                            (int) $post['author_account_id']
+                        )); ?></td>
                         <td><?php echo toy_e((string) $post['status']); ?></td>
                         <td><?php echo toy_e((string) $post['published_comment_count']); ?></td>
                         <td><?php echo toy_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
@@ -102,7 +105,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo toy_e((string) $comment['post_title']); ?>
                             </a>
                         </td>
-                        <td><?php echo toy_e((string) ($comment['author_display_name'] ?? '') . ' #' . (string) $comment['author_account_id']); ?></td>
+                        <td><?php echo toy_e(toy_community_report_account_label(
+                            is_string($comment['author_display_name'] ?? null) ? $comment['author_display_name'] : null,
+                            (int) $comment['author_account_id']
+                        )); ?></td>
                         <td><?php echo toy_community_plain_text_html((string) $comment['body_text']); ?></td>
                         <td><?php echo toy_e((string) $comment['status']); ?></td>
                         <td><?php echo toy_e((string) $comment['created_at']); ?></td>

@@ -696,7 +696,7 @@ function toy_community_public_author_label(PDO $pdo, int $accountId): string
     }
 
     $displayName = trim((string) $summary['display_name']);
-    return $displayName !== '' ? $displayName : '회원 #' . (string) $accountId;
+    return $displayName !== '' ? $displayName : '회원';
 }
 
 function toy_community_plain_text_html(string $value): string

@@ -646,6 +646,8 @@ if (!is_string($adminDashboardHelper)) {
 
 $communityReportsHelper = file_get_contents($root . '/modules/community/helpers/reports.php');
 $communityMessageDeleteAction = file_get_contents($root . '/modules/community/actions/message-delete.php');
+$communityPostsHelper = file_get_contents($root . '/modules/community/helpers/posts.php');
+$communityAdminPostsView = file_get_contents($root . '/modules/community/views/admin-posts.php');
 if (!is_string($communityReportsHelper) || !is_string($communityMessageDeleteAction)) {
     $errors[] = 'Community message report/delete files cannot be read.';
 } elseif (
@@ -653,6 +655,15 @@ if (!is_string($communityReportsHelper) || !is_string($communityMessageDeleteAct
     || strpos($communityMessageDeleteAction, 'toy_community_message_participants_for_account($pdo, $messageId, (int) $account[\'id\'])') === false
 ) {
     $errors[] = 'Community message report and delete flows must avoid loading message bodies.';
+}
+if (!is_string($communityReportsHelper) || !is_string($communityPostsHelper) || !is_string($communityAdminPostsView)) {
+    $errors[] = 'Community account label files cannot be read.';
+} elseif (
+    strpos($communityReportsHelper, '회원 #') !== false
+    || strpos($communityPostsHelper, '회원 #') !== false
+    || strpos($communityAdminPostsView, "author_display_name'] ?? '') . ' #'") !== false
+) {
+    $errors[] = 'Community account labels must avoid exposing numeric member ids.';
 }
 
 $communityNotificationsHelper = file_get_contents($root . '/modules/community/helpers/notifications.php');
