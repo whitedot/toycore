@@ -165,6 +165,20 @@ function toy_auth_smoke_assert_body_contains(array &$errors, string $label, arra
     }
 }
 
+function toy_auth_smoke_assert_body_not_contains(array &$errors, string $label, array $response, string $needle): void
+{
+    if (str_contains((string) $response['body'], $needle)) {
+        $errors[] = $label . ' contained forbidden text "' . $needle . '".';
+    }
+}
+
+function toy_auth_smoke_assert_body_matches(array &$errors, string $label, array $response, string $pattern): void
+{
+    if (preg_match($pattern, (string) $response['body']) !== 1) {
+        $errors[] = $label . ' did not match expected pattern ' . $pattern . '.';
+    }
+}
+
 function toy_auth_smoke_location_path(string $location): string
 {
     $path = parse_url($location, PHP_URL_PATH);
@@ -270,6 +284,8 @@ try {
     if ($recipientIdentifier !== '') {
         $messageForm = toy_auth_smoke_request($baseUrl, 'GET', '/community/message/write', [], $cookies);
         toy_auth_smoke_assert_status($errors, 'message write form', $messageForm, [200]);
+        toy_auth_smoke_assert_body_not_contains($errors, 'message write form', $messageForm, 'name="recipient_account_id"');
+        toy_auth_smoke_assert_body_not_contains($errors, 'message write form', $messageForm, '/community/message/write?to=');
         $messageCsrf = toy_auth_smoke_csrf($messageForm, 'message write form');
         $messageBody = 'Toycore authenticated community message smoke.';
         $messageResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/message/write', [
@@ -284,6 +300,8 @@ try {
         $sentMessageView = toy_auth_smoke_request($baseUrl, 'GET', $sentMessagePath, [], $cookies);
         toy_auth_smoke_assert_status($errors, 'sent message view', $sentMessageView, [200]);
         toy_auth_smoke_assert_body_contains($errors, 'sent message view', $sentMessageView, $messageBody);
+        toy_auth_smoke_assert_body_matches($errors, 'sent message view reply link', $sentMessageView, '#/community/message/write\?to_account=[a-f0-9]{32}#');
+        toy_auth_smoke_assert_body_not_contains($errors, 'sent message view', $sentMessageView, '/community/message/write?to=');
         if ($recipientPassword !== '') {
             $recipientCookies = [];
             toy_auth_smoke_login($baseUrl, $recipientIdentifier, $recipientPassword, $recipientCookies, $errors, 'message recipient account');
@@ -292,6 +310,8 @@ try {
             $inboxMessageView = toy_auth_smoke_request($baseUrl, 'GET', $sentMessagePath, [], $recipientCookies);
             toy_auth_smoke_assert_status($errors, 'recipient message view', $inboxMessageView, [200]);
             toy_auth_smoke_assert_body_contains($errors, 'recipient message view', $inboxMessageView, $messageBody);
+            toy_auth_smoke_assert_body_matches($errors, 'recipient message view reply link', $inboxMessageView, '#/community/message/write\?to_account=[a-f0-9]{32}#');
+            toy_auth_smoke_assert_body_not_contains($errors, 'recipient message view', $inboxMessageView, '/community/message/write?to=');
         } else {
             echo "[skip] message receive requires recipient_password\n";
         }
