@@ -289,6 +289,48 @@ foreach ($requiredTables as $tableName) {
     }
 }
 
+$requiredInstallFragments = [
+    'toy_community_boards' => [
+        'board_key VARCHAR(60) NOT NULL',
+        'UNIQUE KEY uq_toy_community_boards_key (board_key)',
+        "('free', '자유게시판', '기본 커뮤니티 게시판입니다.', 'enabled', 'public', 'member', 'member', 1, 10, NOW(), NOW())",
+    ],
+    'toy_community_posts' => [
+        'body_format VARCHAR(20) NOT NULL DEFAULT \'plain\'',
+        'KEY idx_toy_community_posts_board_status_id (board_id, status, id)',
+        'KEY idx_toy_community_posts_author_id (author_account_id, id)',
+    ],
+    'toy_community_comments' => [
+        'KEY idx_toy_community_comments_post_status_id (post_id, status, id)',
+        'KEY idx_toy_community_comments_author_id (author_account_id, id)',
+    ],
+    'toy_community_attachments' => [
+        'checksum_sha256 CHAR(64) NOT NULL',
+        'KEY idx_toy_community_attachments_checksum (checksum_sha256)',
+    ],
+    'toy_community_reports' => [
+        'UNIQUE KEY uq_toy_community_reports_target_reporter (reporter_account_id, target_type, target_id)',
+        'KEY idx_toy_community_reports_status_created (status, created_at)',
+    ],
+    'toy_community_messages' => [
+        'sender_deleted_at DATETIME NULL',
+        'recipient_deleted_at DATETIME NULL',
+        'KEY idx_toy_community_messages_recipient_deleted_id (recipient_account_id, recipient_deleted_at, id)',
+        'KEY idx_toy_community_messages_sender_deleted_id (sender_account_id, sender_deleted_at, id)',
+    ],
+    'toy_community_scraps' => [
+        'UNIQUE KEY uq_toy_community_scraps_account_post (account_id, post_id)',
+        'KEY idx_toy_community_scraps_account_id (account_id, id)',
+    ],
+];
+foreach ($requiredInstallFragments as $installArea => $fragments) {
+    foreach ($fragments as $fragment) {
+        if (!str_contains($installSql, $fragment)) {
+            toy_community_release_error('Community install.sql is missing required ' . $installArea . ' fragment: ' . $fragment);
+        }
+    }
+}
+
 preg_match_all('/CREATE TABLE IF NOT EXISTS\s+([a-z0-9_]+)/i', $installSql, $matches);
 foreach ($matches[1] as $tableName) {
     if (!str_starts_with(strtolower((string) $tableName), 'toy_community_')) {
