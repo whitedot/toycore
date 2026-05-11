@@ -21,6 +21,7 @@ if (toy_request_method() === 'POST') {
     $notice = (string) $postResult['notice'];
 }
 
-$accounts = toy_admin_role_accounts($pdo);
+$runtimeConfig = isset($config) && is_array($config) ? $config : toy_runtime_config();
+$accounts = toy_admin_member_rows_with_public_hash($runtimeConfig, toy_admin_role_accounts($pdo));
 
 include TOY_ROOT . '/modules/admin/views/roles.php';

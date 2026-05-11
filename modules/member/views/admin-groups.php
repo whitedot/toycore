@@ -270,8 +270,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <form method="post" action="<?php echo toy_e(toy_url('/admin/member-group-evaluations/account')); ?>">
             <?php echo toy_csrf_field(); ?>
             <p>
-                <label>회원 ID<br>
-                    <input type="number" name="account_id" min="1" required>
+                <label>회원 공개 해시<br>
+                    <input type="text" name="account_identifier" maxlength="80" required>
                 </label>
             </p>
             <p>
@@ -304,8 +304,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <form method="post" action="<?php echo toy_e(toy_url('/admin/member-group-assignments/grant')); ?>">
             <?php echo toy_csrf_field(); ?>
             <p>
-                <label>회원 ID<br>
-                    <input type="number" name="account_id" min="1" required>
+                <label>회원 공개 해시<br>
+                    <input type="text" name="account_identifier" maxlength="80" required>
                 </label>
             </p>
             <p>
@@ -347,7 +347,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td><?php echo toy_e((string) $membership['id']); ?></td>
                         <td>
-                            #<?php echo toy_e((string) $membership['account_id']); ?>
+                            <?php echo toy_e((string) $membership['account_public_hash']); ?><br>
                             <?php echo toy_e(toy_admin_member_display_name_preview($membership)); ?>
                         </td>
                         <td><?php echo toy_e((string) $membership['group_title']); ?></td>
@@ -395,7 +395,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td><?php echo toy_e((string) $log['id']); ?></td>
                         <td>
-                            #<?php echo toy_e((string) $log['account_id']); ?>
+                            <?php echo toy_e((string) $log['account_public_hash']); ?><br>
                             <?php echo toy_e(toy_admin_member_display_name_preview($log)); ?>
                         </td>
                         <td><?php echo toy_e((string) $log['group_title']); ?></td>

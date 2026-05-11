@@ -19,7 +19,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <table>
     <thead>
         <tr>
-            <th>ID</th>
+            <th>공개 해시</th>
             <th>이메일</th>
             <th>표시명</th>
             <th>계정 상태</th>
@@ -30,7 +30,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <tbody>
         <?php foreach ($accounts as $adminAccount) { ?>
             <tr>
-                <td><?php echo toy_e((string) $adminAccount['id']); ?></td>
+                <td><?php echo toy_e((string) $adminAccount['account_public_hash']); ?></td>
                 <td><?php echo toy_e(toy_admin_member_email_display($adminAccount)); ?></td>
                 <td><?php echo toy_e(toy_admin_member_display_name_preview($adminAccount)); ?></td>
                 <td><?php echo toy_e((string) $adminAccount['status']); ?></td>

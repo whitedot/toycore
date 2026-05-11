@@ -16,11 +16,16 @@ $pointAdminPage = isset($pointAdminPage) ? (string) $pointAdminPage : 'balances'
 if (!in_array($pointAdminPage, ['balances', 'adjust', 'transactions'], true)) {
     $pointAdminPage = 'balances';
 }
+$runtimeConfig = isset($config) && is_array($config) ? $config : toy_runtime_config();
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
 
-    $targetAccountId = (int) toy_post_string('account_id', 20);
+    $targetAccountIdentifier = toy_post_string('account_identifier', 80);
+    if ($targetAccountIdentifier === '') {
+        $targetAccountIdentifier = toy_post_string('account_id', 80);
+    }
+    $targetAccountId = toy_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $targetAccountIdentifier);
     $amountInput = toy_post_string('amount', 30);
     $transactionType = toy_post_string('transaction_type', 40);
     $reason = toy_point_clean_text(toy_post_string('reason', 255), 255);
@@ -28,7 +33,7 @@ if (toy_request_method() === 'POST') {
     $referenceId = toy_point_clean_reference_id(toy_post_string('reference_id', 120), 120);
 
     if ($targetAccountId <= 0) {
-        $errors[] = '회원을 선택하세요.';
+        $errors[] = '회원 공개 해시를 입력하세요.';
     }
 
     if (preg_match('/\A-?\d+\z/', $amountInput) !== 1) {
@@ -98,7 +103,11 @@ if (toy_request_method() === 'POST') {
     }
 }
 
-$accountIdFilter = (int) toy_get_string('account_id', 20);
+$accountIdentifierFilter = toy_get_string('account_identifier', 80);
+if ($accountIdentifierFilter === '') {
+    $accountIdentifierFilter = toy_get_string('account_id', 80);
+}
+$accountIdFilter = toy_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $accountIdentifierFilter);
 $selectedAccount = null;
 $selectedBalance = null;
 if ($accountIdFilter > 0) {
@@ -106,7 +115,8 @@ if ($accountIdFilter > 0) {
     $stmt->execute(['id' => $accountIdFilter]);
     $row = $stmt->fetch();
     if (is_array($row)) {
-        $selectedAccount = $row;
+        $selectedAccount = toy_admin_member_row_with_public_hash($runtimeConfig, $row);
+        $accountIdentifierFilter = (string) $selectedAccount['account_public_hash'];
         $selectedBalance = toy_point_balance($pdo, $accountIdFilter);
     }
 }
@@ -120,7 +130,7 @@ $stmt = $pdo->query(
      LIMIT 50'
 );
 foreach ($stmt->fetchAll() as $row) {
-    $balances[] = $row;
+    $balances[] = toy_admin_member_row_with_public_hash($runtimeConfig, $row);
 }
 
 $transactions = [];
@@ -146,7 +156,7 @@ if ($accountIdFilter > 0) {
     );
 }
 foreach ($stmt->fetchAll() as $row) {
-    $transactions[] = $row;
+    $transactions[] = toy_admin_member_row_with_public_hash($runtimeConfig, $row);
 }
 
 include TOY_ROOT . '/modules/point/views/admin-points.php';

@@ -45,8 +45,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
             </p>
             <p>
-                <label>회원 ID<br>
-                    <input type="number" name="account_id" value="">
+                <label>회원 공개 해시<br>
+                    <input type="text" name="account_identifier" value="" maxlength="80">
                 </label>
             </p>
             <p>

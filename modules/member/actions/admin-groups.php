@@ -22,6 +22,7 @@ $allowedStatuses = toy_member_group_statuses();
 $allowedRuleStatuses = toy_member_group_rule_statuses();
 $allowedEvaluationPolicies = toy_member_group_evaluation_policies();
 $ruleDefinitions = toy_member_group_rule_definitions($pdo);
+$runtimeConfig = isset($config) && is_array($config) ? $config : toy_runtime_config();
 
 if (toy_request_method() === 'POST') {
     toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
@@ -170,12 +171,16 @@ if (toy_request_method() === 'POST') {
             $notice = $ruleId > 0 ? '자동 규칙을 수정했습니다.' : '자동 규칙을 만들었습니다.';
         }
     } elseif ($intent === 'evaluate_account' || $intent === 'evaluate_batch') {
-        $targetAccountId = toy_admin_post_positive_int('account_id');
+        $targetAccountIdentifier = toy_post_string('account_identifier', 80);
+        if ($targetAccountIdentifier === '') {
+            $targetAccountIdentifier = toy_post_string('account_id', 80);
+        }
+        $targetAccountId = toy_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $targetAccountIdentifier);
         $sourceModuleKey = toy_post_string('source_module_key', 60);
         $limit = toy_admin_post_int_in_range('limit', 1, 200);
 
         if ($intent === 'evaluate_account' && $targetAccountId < 1) {
-            $errors[] = '재평가할 회원을 선택하세요.';
+            $errors[] = '재평가할 회원 공개 해시를 입력하세요.';
         }
 
         if ($intent === 'evaluate_batch' && $limit === null) {
@@ -228,14 +233,18 @@ if (toy_request_method() === 'POST') {
         }
     } elseif ($intent === 'grant_manual' || $intent === 'revoke_manual') {
         $groupId = toy_admin_post_positive_int('group_id');
-        $targetAccountId = toy_admin_post_positive_int('account_id');
+        $targetAccountIdentifier = toy_post_string('account_identifier', 80);
+        if ($targetAccountIdentifier === '') {
+            $targetAccountIdentifier = toy_post_string('account_id', 80);
+        }
+        $targetAccountId = toy_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $targetAccountIdentifier);
 
         if ($groupId < 1) {
             $errors[] = '그룹을 선택하세요.';
         }
 
         if ($targetAccountId < 1) {
-            $errors[] = '회원을 선택하세요.';
+            $errors[] = '회원 공개 해시를 입력하세요.';
         }
 
         if ($errors === []) {
@@ -300,7 +309,7 @@ $editGroup = $editGroupId > 0 ? toy_member_group_by_id($pdo, $editGroupId) : nul
 $editRule = $editRuleId > 0 ? toy_member_group_rule_by_id($pdo, $editRuleId) : null;
 $groups = toy_member_groups($pdo);
 $groupRules = toy_member_group_rules($pdo);
-$memberships = toy_member_group_memberships($pdo, 100);
-$membershipLogs = toy_member_group_logs($pdo, 50);
+$memberships = toy_admin_member_rows_with_public_hash($runtimeConfig, toy_member_group_memberships($pdo, 100));
+$membershipLogs = toy_admin_member_rows_with_public_hash($runtimeConfig, toy_member_group_logs($pdo, 50));
 
 include TOY_ROOT . '/modules/member/views/admin-groups.php';

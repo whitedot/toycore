@@ -17,7 +17,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </p>
     <p>
         <label>처리자 계정 ID<br>
-            <input type="number" name="actor_account_id" value="<?php echo toy_e($filters['actor_account_id']); ?>">
+            <input type="text" name="actor_account_id" value="<?php echo toy_e($filters['actor_account_id']); ?>" maxlength="20" inputmode="numeric" pattern="[0-9]*">
         </label>
     </p>
     <p>

@@ -18,6 +18,7 @@ $notificationAdminPage = isset($notificationAdminPage) ? (string) $notificationA
 if (!in_array($notificationAdminPage, ['list', 'new', 'deliveries'], true)) {
     $notificationAdminPage = 'list';
 }
+$runtimeConfig = isset($config) && is_array($config) ? $config : toy_runtime_config();
 $filters = [
     'audience' => toy_get_string('audience', 30),
     'delivery_channel' => toy_get_string('delivery_channel', 30),
@@ -143,7 +144,11 @@ if (toy_request_method() === 'POST') {
         }
     } else {
         $audience = toy_post_string('audience', 30);
-        $accountId = (int) toy_post_string('account_id', 20);
+        $accountIdentifier = toy_post_string('account_identifier', 80);
+        if ($accountIdentifier === '') {
+            $accountIdentifier = toy_post_string('account_id', 80);
+        }
+        $accountId = toy_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $accountIdentifier);
         $title = toy_notification_clean_single_line(toy_post_string('title', 160), 160);
         $bodyText = toy_notification_clean_text(toy_post_string('body_text', 5000), 5000);
         $rawLinkUrl = toy_post_string('link_url', 255);
@@ -156,7 +161,7 @@ if (toy_request_method() === 'POST') {
             $errors[] = '알림 대상을 선택하세요.';
         }
         if ($audience === 'account' && $accountId <= 0) {
-            $errors[] = '회원 ID를 입력하세요.';
+            $errors[] = '회원 공개 해시를 입력하세요.';
         }
         if ($audience === 'account' && $accountId > 0) {
             $stmt = $pdo->prepare('SELECT id FROM toy_member_accounts WHERE id = :id LIMIT 1');

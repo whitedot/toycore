@@ -25,6 +25,56 @@ function toy_admin_member_display_name_preview(array $member): string
     return toy_log_line_value((string) ($member['display_name'] ?? ''), 80);
 }
 
+function toy_admin_member_public_hash(array $config, int $accountId): string
+{
+    return toy_member_public_account_hash($config, $accountId);
+}
+
+function toy_admin_member_account_id_from_identifier(PDO $pdo, array $config, string $identifier): int
+{
+    $identifier = strtolower(trim($identifier));
+    if ($identifier === '') {
+        return 0;
+    }
+
+    if (toy_member_public_account_hash_is_valid($identifier)) {
+        $stmt = $pdo->query('SELECT id FROM toy_member_accounts ORDER BY id ASC');
+        foreach ($stmt->fetchAll() as $row) {
+            $accountId = (int) ($row['id'] ?? 0);
+            if ($accountId > 0 && hash_equals($identifier, toy_admin_member_public_hash($config, $accountId))) {
+                return $accountId;
+            }
+        }
+
+        return 0;
+    }
+
+    if (preg_match('/\A[1-9][0-9]*\z/', $identifier) === 1) {
+        return (int) $identifier;
+    }
+
+    return 0;
+}
+
+function toy_admin_member_row_with_public_hash(array $config, array $row): array
+{
+    $accountId = (int) ($row['account_id'] ?? ($row['id'] ?? 0));
+    $row['account_public_hash'] = toy_admin_member_public_hash($config, $accountId);
+
+    return $row;
+}
+
+function toy_admin_member_rows_with_public_hash(array $config, array $rows): array
+{
+    foreach ($rows as $index => $row) {
+        if (is_array($row)) {
+            $rows[$index] = toy_admin_member_row_with_public_hash($config, $row);
+        }
+    }
+
+    return $rows;
+}
+
 function toy_admin_handle_members_post(PDO $pdo, array $account, array $allowedStatuses): array
 {
     $errors = [];

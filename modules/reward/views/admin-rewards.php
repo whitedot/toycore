@@ -33,8 +33,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <section>
     <h2>회원 조회</h2>
     <form method="get" action="<?php echo toy_e(toy_url($rewardAdminPage === 'transactions' ? '/admin/rewards/transactions' : ($rewardAdminPage === 'adjust' ? '/admin/rewards/adjust' : '/admin/rewards/balances'))); ?>">
-        <label>회원 ID<br>
-            <input type="number" name="account_id" value="<?php echo $accountIdFilter > 0 ? toy_e((string) $accountIdFilter) : ''; ?>" min="1">
+        <label>회원 공개 해시<br>
+            <input type="text" name="account_identifier" value="<?php echo toy_e($accountIdentifierFilter); ?>" maxlength="80">
         </label>
         <button type="submit">조회</button>
     </form>
@@ -43,9 +43,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <p>
             <?php echo toy_e((string) $selectedAccount['display_name']); ?>
             (<?php echo toy_e((string) $selectedAccount['email']); ?>)
+            공개 해시: <?php echo toy_e((string) $selectedAccount['account_public_hash']); ?>
             잔액: <?php echo toy_e(number_format((int) $selectedBalance)); ?> 원
         </p>
-    <?php } elseif ($accountIdFilter > 0) { ?>
+    <?php } elseif ($accountIdentifierFilter !== '') { ?>
         <p>회원을 찾을 수 없습니다.</p>
     <?php } ?>
 </section>
@@ -53,11 +54,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($rewardAdminPage === 'adjust') { ?>
     <section>
         <h2>적립금 조정</h2>
-        <form method="post" action="<?php echo toy_e(toy_url('/admin/rewards/adjust' . ($accountIdFilter > 0 ? '?account_id=' . (string) $accountIdFilter : ''))); ?>">
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/rewards/adjust' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>">
             <?php echo toy_csrf_field(); ?>
             <p>
-                <label>회원 ID<br>
-                    <input type="number" name="account_id" value="<?php echo $accountIdFilter > 0 ? toy_e((string) $accountIdFilter) : ''; ?>" min="1" required>
+                <label>회원 공개 해시<br>
+                    <input type="text" name="account_identifier" value="<?php echo toy_e($accountIdentifierFilter); ?>" maxlength="80" required>
                 </label>
             </p>
             <p>
@@ -117,7 +118,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <?php foreach ($transactions as $transaction) { ?>
                         <tr>
                             <td><?php echo toy_e((string) $transaction['id']); ?></td>
-                            <td><?php echo toy_e((string) $transaction['display_name']); ?><br><?php echo toy_e((string) $transaction['email']); ?></td>
+                            <td>
+                                <?php echo toy_e((string) $transaction['display_name']); ?><br>
+                                <?php echo toy_e((string) $transaction['email']); ?><br>
+                                <?php echo toy_e((string) $transaction['account_public_hash']); ?>
+                            </td>
                             <td><?php echo toy_e((string) $transaction['transaction_type']); ?></td>
                             <td><?php echo toy_e(number_format((int) $transaction['amount'])); ?> 원</td>
                             <td><?php echo toy_e(number_format((int) $transaction['balance_after'])); ?> 원</td>
@@ -139,7 +144,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <table>
                 <thead>
                     <tr>
-                        <th>회원 ID</th>
+                        <th>회원 공개 해시</th>
                         <th>회원</th>
                         <th>상태</th>
                         <th>잔액</th>
@@ -149,7 +154,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php foreach ($balances as $balance) { ?>
                         <tr>
-                            <td><a href="<?php echo toy_e(toy_url('/admin/rewards/transactions?account_id=' . rawurlencode((string) $balance['account_id']))); ?>"><?php echo toy_e((string) $balance['account_id']); ?></a></td>
+                            <td><a href="<?php echo toy_e(toy_url('/admin/rewards/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>"><?php echo toy_e((string) $balance['account_public_hash']); ?></a></td>
                             <td><?php echo toy_e((string) $balance['display_name']); ?><br><?php echo toy_e((string) $balance['email']); ?></td>
                             <td><?php echo toy_e((string) $balance['status']); ?></td>
                             <td><?php echo toy_e(number_format((int) $balance['balance'])); ?> 원</td>

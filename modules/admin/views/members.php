@@ -33,7 +33,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <table>
     <thead>
         <tr>
-            <th>ID</th>
+            <th>공개 해시</th>
             <th>이메일</th>
             <th>표시명</th>
             <th>상태</th>
@@ -53,7 +53,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
         <?php foreach ($members as $member) { ?>
             <tr>
-                <td><?php echo toy_e((string) $member['id']); ?></td>
+                <td><?php echo toy_e((string) $member['account_public_hash']); ?></td>
                 <td><?php echo toy_e(toy_admin_member_email_display($member)); ?></td>
                 <td><?php echo toy_e(toy_admin_member_display_name_preview($member)); ?></td>
                 <td><?php echo toy_e((string) $member['status']); ?></td>
