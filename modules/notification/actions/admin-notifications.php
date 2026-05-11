@@ -14,6 +14,10 @@ $allowedChannels = toy_notification_allowed_channels();
 $allowedDeliveryStatuses = ['queued', 'ready', 'sent', 'failed', 'canceled'];
 $errors = [];
 $notice = '';
+$notificationAdminPage = isset($notificationAdminPage) ? (string) $notificationAdminPage : 'list';
+if (!in_array($notificationAdminPage, ['list', 'new', 'deliveries'], true)) {
+    $notificationAdminPage = 'list';
+}
 $filters = [
     'audience' => toy_get_string('audience', 30),
     'delivery_channel' => toy_get_string('delivery_channel', 30),

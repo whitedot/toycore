@@ -12,6 +12,10 @@ toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 $allowedTransactionTypes = ['adjustment', 'deposit', 'use', 'refund', 'withdraw'];
 $errors = [];
 $notice = '';
+$depositAdminPage = isset($depositAdminPage) ? (string) $depositAdminPage : 'balances';
+if (!in_array($depositAdminPage, ['balances', 'adjust', 'transactions'], true)) {
+    $depositAdminPage = 'balances';
+}
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();

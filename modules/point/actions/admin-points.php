@@ -12,6 +12,10 @@ toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 $allowedTransactionTypes = ['adjustment', 'grant', 'use', 'refund', 'expire'];
 $errors = [];
 $notice = '';
+$pointAdminPage = isset($pointAdminPage) ? (string) $pointAdminPage : 'balances';
+if (!in_array($pointAdminPage, ['balances', 'adjust', 'transactions'], true)) {
+    $pointAdminPage = 'balances';
+}
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();

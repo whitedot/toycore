@@ -11,6 +11,10 @@ toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']
 
 $errors = [];
 $notice = '';
+$communityBoardGroupsPage = isset($communityBoardGroupsPage) ? (string) $communityBoardGroupsPage : 'list';
+if (!in_array($communityBoardGroupsPage, ['list', 'new', 'edit'], true)) {
+    $communityBoardGroupsPage = 'list';
+}
 $allowedGroupStatuses = toy_community_board_group_statuses();
 $allowedReadPolicies = toy_community_policy_values('read');
 $allowedWritePolicies = toy_community_policy_values('write');
@@ -216,6 +220,22 @@ $boardGroups = toy_community_board_groups($pdo);
 $boardGroupSettings = [];
 foreach ($boardGroups as $boardGroup) {
     $boardGroupSettings[(int) $boardGroup['id']] = toy_community_board_group_settings($pdo, (int) $boardGroup['id']);
+}
+
+$editBoardGroup = null;
+if ($communityBoardGroupsPage === 'edit') {
+    $editGroupIdValue = isset($_GET['edit_id']) ? (string) $_GET['edit_id'] : '';
+    $editGroupId = preg_match('/\A[1-9][0-9]*\z/', $editGroupIdValue) === 1 ? (int) $editGroupIdValue : 0;
+    foreach ($boardGroups as $boardGroup) {
+        if ((int) $boardGroup['id'] === $editGroupId) {
+            $editBoardGroup = $boardGroup;
+            break;
+        }
+    }
+
+    if (!is_array($editBoardGroup)) {
+        toy_render_error(404, '게시판 그룹을 찾을 수 없습니다.');
+    }
 }
 
 include TOY_ROOT . '/modules/community/views/admin-board-groups.php';

@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+$communityBoardsPage = 'edit';
+$_POST['intent'] = 'update';
+if (isset($_POST['board_id'])) {
+    $_GET['edit_id'] = $_POST['board_id'];
+}
+
+include TOY_ROOT . '/modules/community/actions/admin-boards.php';

@@ -13,6 +13,10 @@ $allowedStatuses = ['enabled', 'disabled'];
 $allowedTargets = ['self', 'blank'];
 $errors = [];
 $notice = '';
+$siteMenuPage = isset($siteMenuPage) ? (string) $siteMenuPage : 'menus';
+if (!in_array($siteMenuPage, ['menus', 'menu_form', 'items', 'item_form'], true)) {
+    $siteMenuPage = 'menus';
+}
 $menuLinkSuggestions = toy_site_menu_link_suggestions($pdo);
 
 if (toy_request_method() === 'POST') {

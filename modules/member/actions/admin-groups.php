@@ -14,6 +14,10 @@ if (!toy_member_groups_table_exists($pdo)) {
 
 $errors = [];
 $notice = '';
+$memberGroupsPage = isset($memberGroupsPage) ? (string) $memberGroupsPage : 'groups';
+if (!in_array($memberGroupsPage, ['groups', 'group_form', 'rules', 'rule_form', 'evaluations', 'assignments'], true)) {
+    $memberGroupsPage = 'groups';
+}
 $allowedStatuses = toy_member_group_statuses();
 $allowedRuleStatuses = toy_member_group_rule_statuses();
 $allowedEvaluationPolicies = toy_member_group_evaluation_policies();

@@ -11,6 +11,10 @@ toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']
 
 $errors = [];
 $notice = '';
+$communityBoardsPage = isset($communityBoardsPage) ? (string) $communityBoardsPage : 'list';
+if (!in_array($communityBoardsPage, ['list', 'new', 'edit'], true)) {
+    $communityBoardsPage = 'list';
+}
 $allowedStatuses = toy_community_board_statuses();
 $allowedReadPolicies = toy_community_policy_values('read');
 $allowedWritePolicies = toy_community_policy_values('write');
@@ -293,5 +297,21 @@ foreach ($boards as &$board) {
     $board['effective_comment_group_keys'] = toy_community_board_group_keys($pdo, (int) $board['id'], 'comment_group_keys');
 }
 unset($board);
+
+$editBoard = null;
+if ($communityBoardsPage === 'edit') {
+    $editBoardIdValue = isset($_GET['edit_id']) ? (string) $_GET['edit_id'] : '';
+    $editBoardId = preg_match('/\A[1-9][0-9]*\z/', $editBoardIdValue) === 1 ? (int) $editBoardIdValue : 0;
+    foreach ($boards as $board) {
+        if ((int) $board['id'] === $editBoardId) {
+            $editBoard = $board;
+            break;
+        }
+    }
+
+    if (!is_array($editBoard)) {
+        toy_render_error(404, '게시판을 찾을 수 없습니다.');
+    }
+}
 
 include TOY_ROOT . '/modules/community/views/admin-boards.php';

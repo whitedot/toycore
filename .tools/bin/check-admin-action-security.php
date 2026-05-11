@@ -105,6 +105,29 @@ function toy_admin_action_security_has_location_header(string $content): bool
     return false;
 }
 
+function toy_admin_action_security_effective_content(string $root, string $content): string
+{
+    preg_match_all(
+        "#include\s+TOY_ROOT\s*\.\s*'(/modules/[a-z0-9_]+/actions/[a-z0-9_\-]+\.php)'#",
+        $content,
+        $matches
+    );
+
+    foreach ($matches[1] as $includePath) {
+        $absolutePath = $root . (string) $includePath;
+        if (!is_file($absolutePath)) {
+            continue;
+        }
+
+        $includedContent = file_get_contents($absolutePath);
+        if (is_string($includedContent)) {
+            $content .= "\n" . $includedContent;
+        }
+    }
+
+    return $content;
+}
+
 foreach (toy_admin_action_security_module_dirs($root) as $moduleDir) {
     $pathsFile = $moduleDir . '/paths.php';
     if (!is_file($pathsFile)) {
@@ -143,36 +166,37 @@ foreach (toy_admin_action_security_module_dirs($root) as $moduleDir) {
             $errors[] = 'Action file cannot be read: ' . $actionFile;
             continue;
         }
+        $effectiveContent = toy_admin_action_security_effective_content($root, $content);
 
-        if ($method === 'POST' && strpos($content, 'toy_require_csrf(') === false) {
+        if ($method === 'POST' && strpos($effectiveContent, 'toy_require_csrf(') === false) {
             $errors[] = 'POST action must require CSRF: ' . $route . ' -> ' . $actionFile;
         }
 
-        if (toy_admin_action_security_has_raw_exit($content)) {
+        if (toy_admin_action_security_has_raw_exit($effectiveContent)) {
             $errors[] = 'Action must end through toy_redirect(), toy_render_error(), or toy_finish_response() instead of raw exit/die: ' . $route . ' -> ' . $actionFile;
         }
 
-        if (toy_admin_action_security_has_location_header($content)) {
+        if (toy_admin_action_security_has_location_header($effectiveContent)) {
             $errors[] = 'Action must use toy_redirect() instead of a direct Location header: ' . $route . ' -> ' . $actionFile;
         }
 
-        if (strpos($content, 'toy_request_contract_mark(') !== false || strpos($content, 'toy_request_contract_guard_blocked(') !== false) {
+        if (strpos($effectiveContent, 'toy_request_contract_mark(') !== false || strpos($effectiveContent, 'toy_request_contract_guard_blocked(') !== false) {
             $errors[] = 'Action must use public guard helpers instead of low-level request contract markers: ' . $route . ' -> ' . $actionFile;
         }
 
         if (str_starts_with($path, '/admin')) {
-            if (strpos($content, 'toy_member_require_login(') === false) {
+            if (strpos($effectiveContent, 'toy_member_require_login(') === false) {
                 $errors[] = 'Admin action must require login: ' . $route . ' -> ' . $actionFile;
             }
 
-            if (strpos($content, 'toy_admin_require_role(') === false) {
+            if (strpos($effectiveContent, 'toy_admin_require_role(') === false) {
                 $errors[] = 'Admin action must require an admin role: ' . $route . ' -> ' . $actionFile;
             }
 
             if ($method === 'POST') {
-                $loginPosition = strpos($content, 'toy_member_require_login(');
-                $rolePosition = strpos($content, 'toy_admin_require_role(');
-                $csrfPosition = strpos($content, 'toy_require_csrf(');
+                $loginPosition = strpos($effectiveContent, 'toy_member_require_login(');
+                $rolePosition = strpos($effectiveContent, 'toy_admin_require_role(');
+                $csrfPosition = strpos($effectiveContent, 'toy_require_csrf(');
                 if (
                     $loginPosition !== false
                     && $rolePosition !== false

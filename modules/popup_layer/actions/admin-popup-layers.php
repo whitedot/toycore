@@ -13,6 +13,10 @@ $allowedStatuses = ['draft', 'enabled', 'disabled'];
 $allowedMatchTypes = ['all', 'exact'];
 $errors = [];
 $notice = '';
+$popupLayerAdminPage = isset($popupLayerAdminPage) ? (string) $popupLayerAdminPage : 'list';
+if (!in_array($popupLayerAdminPage, ['list', 'form'], true)) {
+    $popupLayerAdminPage = 'list';
+}
 $availableTargets = toy_popup_layer_available_targets($pdo);
 
 if (toy_request_method() === 'POST') {

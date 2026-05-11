@@ -13,6 +13,10 @@ $allowedStatuses = ['draft', 'enabled', 'disabled'];
 $allowedMatchTypes = ['all', 'exact'];
 $errors = [];
 $notice = '';
+$bannerAdminPage = isset($bannerAdminPage) ? (string) $bannerAdminPage : 'list';
+if (!in_array($bannerAdminPage, ['list', 'form'], true)) {
+    $bannerAdminPage = 'list';
+}
 $availableTargets = toy_banner_available_targets($pdo);
 $filters = [
     'status' => toy_get_string('status', 30),
