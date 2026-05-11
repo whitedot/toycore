@@ -174,6 +174,8 @@ function toy_community_board_with_effective_settings(PDO $pdo, array $board): ar
     $board['effective_write_policy'] = toy_community_effective_board_policy($pdo, $board, 'write_policy');
     $board['effective_comment_policy'] = toy_community_effective_board_policy($pdo, $board, 'comment_policy');
     $board['effective_image_uploads_enabled'] = toy_community_effective_board_image_uploads_enabled($pdo, $board) ? 1 : 0;
+    $board['banner_before_list_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_before_list_id') ?? 0);
+    $board['banner_after_list_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_after_list_id') ?? 0);
 
     return $board;
 }

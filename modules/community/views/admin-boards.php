@@ -35,6 +35,8 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'image_uploads_enabled' => 1,
     'attachment_max_bytes' => 2097152,
     'attachment_max_count' => 1,
+    'banner_before_list_id' => 0,
+    'banner_after_list_id' => 0,
     'sort_order' => 0,
     'read_group_keys' => [],
     'write_group_keys' => [],
@@ -293,6 +295,32 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo toy_e((string) ($formBoard['effective_attachment_max_count'] ?? $formBoard['attachment_max_count'])); ?></small>
                 <?php } ?>
+            </p>
+            <p>
+                <label>목록 상단 배너<br>
+                    <select name="banner_before_list_id">
+                        <option value="0">사용 안 함</option>
+                        <?php foreach ($publicBanners as $publicBanner) { ?>
+                            <option value="<?php echo toy_e((string) $publicBanner['id']); ?>"<?php echo (int) $boardField($formBoard, 'banner_before_list_id', '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
+                                <?php echo toy_e((string) $publicBanner['title']); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
+                <br>
+                <small>배너 관리에서 출력 위치를 공용 배너로 저장한 항목만 선택할 수 있습니다.</small>
+            </p>
+            <p>
+                <label>목록 하단 배너<br>
+                    <select name="banner_after_list_id">
+                        <option value="0">사용 안 함</option>
+                        <?php foreach ($publicBanners as $publicBanner) { ?>
+                            <option value="<?php echo toy_e((string) $publicBanner['id']); ?>"<?php echo (int) $boardField($formBoard, 'banner_after_list_id', '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
+                                <?php echo toy_e((string) $publicBanner['title']); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
             </p>
             <p>
                 <label>정렬 순서<br>

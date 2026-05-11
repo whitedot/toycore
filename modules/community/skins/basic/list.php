@@ -10,6 +10,9 @@ $seo = [
         ? 'noindex, nofollow'
         : ($keyword === '' ? 'index, follow' : 'noindex, follow'),
 ];
+if (is_file(TOY_ROOT . '/modules/banner/helpers.php')) {
+    require_once TOY_ROOT . '/modules/banner/helpers.php';
+}
 toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main>
@@ -19,6 +22,9 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             'slot_key' => 'before_list',
             'subject_id' => (string) $board['id'],
         ]); ?>
+        <?php if (function_exists('toy_banner_render_public_banner') && toy_module_enabled($pdo, 'banner')) { ?>
+            <?php echo toy_banner_render_public_banner($pdo, (int) ($board['banner_before_list_id'] ?? 0)); ?>
+        <?php } ?>
 
         <p><a href="<?php echo toy_e(toy_url('/community')); ?>">커뮤니티</a></p>
         <h1><?php echo toy_e($pageTitle); ?></h1>
@@ -102,5 +108,8 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             'slot_key' => 'after_list',
             'subject_id' => (string) $board['id'],
         ]); ?>
+        <?php if (function_exists('toy_banner_render_public_banner') && toy_module_enabled($pdo, 'banner')) { ?>
+            <?php echo toy_banner_render_public_banner($pdo, (int) ($board['banner_after_list_id'] ?? 0)); ?>
+        <?php } ?>
     </main>
 <?php toy_public_layout_end(); ?>

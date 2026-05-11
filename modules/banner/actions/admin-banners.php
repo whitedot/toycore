@@ -25,8 +25,9 @@ $filters = [
 if ($filters['status'] !== '' && !in_array($filters['status'], $allowedStatuses, true)) {
     $filters['status'] = '';
 }
-$filterTarget = $filters['target'] !== '' ? toy_banner_target_from_option($filters['target']) : null;
-if ($filters['target'] !== '' && $filterTarget === null) {
+$filterPublicTarget = toy_banner_is_public_target_option($filters['target']);
+$filterTarget = $filters['target'] !== '' && !$filterPublicTarget ? toy_banner_target_from_option($filters['target']) : null;
+if ($filters['target'] !== '' && !$filterPublicTarget && $filterTarget === null) {
     $filters['target'] = '';
 }
 
@@ -87,7 +88,8 @@ if (toy_request_method() === 'POST') {
         $endsAt = toy_banner_clean_admin_datetime($endsAtInput);
         $sortOrder = max(-100000, min(100000, (int) toy_post_string('sort_order', 20)));
         $targetOption = toy_post_string('target_option', 300);
-        $target = toy_banner_find_target($availableTargets, $targetOption);
+        $isPublicBanner = toy_banner_is_public_target_option($targetOption);
+        $target = $isPublicBanner ? null : toy_banner_find_target($availableTargets, $targetOption);
         $matchType = toy_post_string('match_type', 20);
         $subjectId = toy_banner_clean_single_line(toy_post_string('subject_id', 80), 80);
 
@@ -112,7 +114,7 @@ if (toy_request_method() === 'POST') {
         if ($startsAt !== null && $endsAt !== null && $startsAt > $endsAt) {
             $errors[] = '종료 시각은 시작 시각 이후여야 합니다.';
         }
-        if ($target === null) {
+        if (!$isPublicBanner && $target === null) {
             if ($bannerId > 0) {
                 $stmt = $pdo->prepare(
                     'SELECT module_key, point_key, slot_key
@@ -131,13 +133,13 @@ if (toy_request_method() === 'POST') {
             }
 
             if ($target === null) {
-                $errors[] = '모듈이 선언한 출력 위치를 선택하세요.';
+                $errors[] = '공용 배너 또는 모듈이 선언한 출력 위치를 선택하세요.';
             }
         }
         if (!in_array($matchType, $allowedMatchTypes, true)) {
             $errors[] = '매칭 방식이 올바르지 않습니다.';
         }
-        if ($matchType === 'exact' && $subjectId === '') {
+        if (!$isPublicBanner && $matchType === 'exact' && $subjectId === '') {
             $errors[] = '특정 subject ID를 입력하세요.';
         }
 
@@ -164,7 +166,7 @@ if (toy_request_method() === 'POST') {
             }
         }
 
-        if ($errors === [] && $target !== null) {
+        if ($errors === [] && ($isPublicBanner || $target !== null)) {
             try {
                 $now = toy_now();
                 $pdo->beginTransaction();
@@ -213,21 +215,23 @@ if (toy_request_method() === 'POST') {
                 $stmt = $pdo->prepare('DELETE FROM toy_banner_targets WHERE banner_id = :banner_id');
                 $stmt->execute(['banner_id' => $bannerId]);
 
-                $stmt = $pdo->prepare(
-                    'INSERT INTO toy_banner_targets
-                        (banner_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
-                     VALUES
-                        (:banner_id, :module_key, :point_key, :slot_key, :subject_id, :match_type, :created_at)'
-                );
-                $stmt->execute([
-                    'banner_id' => $bannerId,
-                    'module_key' => (string) $target['module_key'],
-                    'point_key' => (string) $target['point_key'],
-                    'slot_key' => (string) $target['slot_key'],
-                    'subject_id' => $matchType === 'exact' ? $subjectId : '',
-                    'match_type' => $matchType,
-                    'created_at' => $now,
-                ]);
+                if (!$isPublicBanner && $target !== null) {
+                    $stmt = $pdo->prepare(
+                        'INSERT INTO toy_banner_targets
+                            (banner_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
+                         VALUES
+                            (:banner_id, :module_key, :point_key, :slot_key, :subject_id, :match_type, :created_at)'
+                    );
+                    $stmt->execute([
+                        'banner_id' => $bannerId,
+                        'module_key' => (string) $target['module_key'],
+                        'point_key' => (string) $target['point_key'],
+                        'slot_key' => (string) $target['slot_key'],
+                        'subject_id' => $matchType === 'exact' ? $subjectId : '',
+                        'match_type' => $matchType,
+                        'created_at' => $now,
+                    ]);
+                }
 
                 $pdo->commit();
 
@@ -240,9 +244,10 @@ if (toy_request_method() === 'POST') {
                     'result' => 'success',
                     'message' => 'Banner saved.',
                     'metadata' => [
-                        'module_key' => (string) $target['module_key'],
-                        'point_key' => (string) $target['point_key'],
-                        'slot_key' => (string) $target['slot_key'],
+                        'scope' => $isPublicBanner ? 'public' : 'targeted',
+                        'module_key' => $target !== null ? (string) $target['module_key'] : '',
+                        'point_key' => $target !== null ? (string) $target['point_key'] : '',
+                        'slot_key' => $target !== null ? (string) $target['slot_key'] : '',
                     ],
                 ]);
 
@@ -302,6 +307,8 @@ if ($filterTarget !== null) {
     $bannerParams['filter_module_key'] = (string) $filterTarget['module_key'];
     $bannerParams['filter_point_key'] = (string) $filterTarget['point_key'];
     $bannerParams['filter_slot_key'] = (string) $filterTarget['slot_key'];
+} elseif ($filterPublicTarget) {
+    $bannerWhere[] = 't.id IS NULL';
 }
 if ($bannerWhere !== []) {
     $bannerSql .= ' WHERE ' . implode(' AND ', $bannerWhere);

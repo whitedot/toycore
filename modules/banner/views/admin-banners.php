@@ -3,9 +3,10 @@
 $bannerAdminPage = isset($bannerAdminPage) ? (string) $bannerAdminPage : 'list';
 $editing = is_array($editBanner);
 $adminPageTitle = $bannerAdminPage === 'form' ? ($editing ? '배너 수정' : '배너 추가') : '배너';
-$selectedTargetOption = $editing
-    ? (string) ($editBanner['module_key'] ?? '') . '|' . (string) ($editBanner['point_key'] ?? '') . '|' . (string) ($editBanner['slot_key'] ?? '')
-    : '';
+$selectedTargetOption = toy_banner_public_target_option_value();
+if ($editing && (string) ($editBanner['module_key'] ?? '') !== '') {
+    $selectedTargetOption = (string) ($editBanner['module_key'] ?? '') . '|' . (string) ($editBanner['point_key'] ?? '') . '|' . (string) ($editBanner['slot_key'] ?? '');
+}
 include TOY_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -61,8 +62,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <small>JPEG, PNG, WebP / 최대 <?php echo toy_e(toy_banner_format_bytes(toy_banner_image_upload_max_bytes())); ?>. 업로드하면 이미지 URL보다 우선 적용됩니다.</small>
             </p>
             <p>
-                <label>모듈이 선언한 출력 위치<br>
+                <label>출력 위치<br>
                     <select name="target_option">
+                        <option value="<?php echo toy_e(toy_banner_public_target_option_value()); ?>"<?php echo $selectedTargetOption === toy_banner_public_target_option_value() ? ' selected' : ''; ?>>
+                            공용 배너
+                        </option>
                         <?php foreach ($availableTargets as $target) { ?>
                             <?php $optionValue = toy_banner_target_option_value($target); ?>
                             <option value="<?php echo toy_e($optionValue); ?>"<?php echo $selectedTargetOption === $optionValue ? ' selected' : ''; ?>>
@@ -71,6 +75,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                 </label>
+                <br>
+                <small>공용 배너는 자동 출력되지 않고, 게시판 같은 모듈의 개별 설정에서 선택해 사용합니다.</small>
             </p>
             <p>
                 <label>매칭 방식<br>
@@ -143,6 +149,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>출력 위치<br>
                     <select name="target">
                         <option value=""<?php echo $filters['target'] === '' ? ' selected' : ''; ?>>전체</option>
+                        <option value="<?php echo toy_e(toy_banner_public_target_option_value()); ?>"<?php echo $filters['target'] === toy_banner_public_target_option_value() ? ' selected' : ''; ?>>공용 배너</option>
                         <?php foreach ($availableTargets as $target) { ?>
                             <?php $optionValue = toy_banner_target_option_value($target); ?>
                             <option value="<?php echo toy_e($optionValue); ?>"<?php echo $filters['target'] === $optionValue ? ' selected' : ''; ?>>
@@ -173,8 +180,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php foreach ($banners as $banner) { ?>
                         <?php
-                        $bannerTargetOption = (string) $banner['module_key'] . '|' . (string) $banner['point_key'] . '|' . (string) $banner['slot_key'];
-                        $bannerTargetLabel = (string) ($targetLabels[$bannerTargetOption] ?? ('선언이 사라진 출력 위치 / ' . (string) $banner['module_key'] . ' / ' . (string) $banner['point_key'] . ' / ' . (string) $banner['slot_key']));
+                        if ((string) ($banner['module_key'] ?? '') === '') {
+                            $bannerTargetLabel = '공용 배너';
+                        } else {
+                            $bannerTargetOption = (string) $banner['module_key'] . '|' . (string) $banner['point_key'] . '|' . (string) $banner['slot_key'];
+                            $bannerTargetLabel = (string) ($targetLabels[$bannerTargetOption] ?? ('선언이 사라진 출력 위치 / ' . (string) $banner['module_key'] . ' / ' . (string) $banner['point_key'] . ' / ' . (string) $banner['slot_key']));
+                        }
                         ?>
                         <tr>
                             <td><?php echo toy_e((string) $banner['title']); ?></td>

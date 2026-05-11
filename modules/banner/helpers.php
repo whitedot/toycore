@@ -239,6 +239,16 @@ function toy_banner_target_option_value(array $target): string
     return (string) $target['module_key'] . '|' . (string) $target['point_key'] . '|' . (string) $target['slot_key'];
 }
 
+function toy_banner_public_target_option_value(): string
+{
+    return '__public__';
+}
+
+function toy_banner_is_public_target_option(string $option): bool
+{
+    return $option === toy_banner_public_target_option_value();
+}
+
 function toy_banner_find_target(array $targets, string $option): ?array
 {
     foreach ($targets as $target) {
@@ -407,11 +417,6 @@ function toy_banner_click_target(PDO $pdo, int $bannerId): ?array
            AND b.link_url <> ''
            AND (b.starts_at IS NULL OR b.starts_at <= :now_start)
            AND (b.ends_at IS NULL OR b.ends_at >= :now_end)
-           AND EXISTS (
-               SELECT 1
-               FROM toy_banner_targets t
-               WHERE t.banner_id = b.id
-           )
          LIMIT 1"
     );
     $now = toy_now();
@@ -463,6 +468,85 @@ function toy_banner_link_type_label(string $url): string
     return toy_is_http_url($url) ? '외부 링크' : '내부 링크';
 }
 
+function toy_banner_public_banners(PDO $pdo): array
+{
+    $stmt = $pdo->prepare(
+        "SELECT b.id, b.title, b.status, b.starts_at, b.ends_at, b.sort_order
+         FROM toy_banners b
+         WHERE NOT EXISTS (
+             SELECT 1
+             FROM toy_banner_targets t
+             WHERE t.banner_id = b.id
+         )
+         ORDER BY b.sort_order ASC, b.id DESC"
+    );
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function toy_banner_public_banner_option_labels(PDO $pdo): array
+{
+    $labels = [];
+    foreach (toy_banner_public_banners($pdo) as $banner) {
+        $labels[(int) $banner['id']] = (string) $banner['title'];
+    }
+
+    return $labels;
+}
+
+function toy_banner_render_item(array $banner): string
+{
+    $content = '';
+    $imageUrl = toy_banner_clean_image_url((string) ($banner['image_url'] ?? ''));
+    if ($imageUrl !== '') {
+        $imageSrc = toy_is_http_url($imageUrl) ? $imageUrl : toy_url($imageUrl);
+        $content .= '<img src="' . toy_e($imageSrc) . '" alt="' . toy_e((string) $banner['title']) . '">';
+    }
+    $content .= '<strong>' . toy_e((string) $banner['title']) . '</strong>';
+    if ((string) ($banner['body_text'] ?? '') !== '') {
+        $content .= '<span>' . nl2br(toy_e((string) $banner['body_text'])) . '</span>';
+    }
+
+    $linkAttributes = toy_banner_click_link_attributes((int) $banner['id'], (string) ($banner['link_url'] ?? ''));
+    if ($linkAttributes !== '') {
+        $content = '<a' . $linkAttributes . '>' . $content . '</a>';
+    }
+
+    return '<aside class="toy-banner" data-banner-id="' . toy_e((string) $banner['id']) . '">' . $content . '</aside>';
+}
+
+function toy_banner_render_public_banner(PDO $pdo, int $bannerId): string
+{
+    if ($bannerId <= 0) {
+        return '';
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT b.id, b.title, b.body_text, b.link_url, b.image_url
+         FROM toy_banners b
+         WHERE b.id = :id
+           AND b.status = 'enabled'
+           AND (b.starts_at IS NULL OR b.starts_at <= :now_start)
+           AND (b.ends_at IS NULL OR b.ends_at >= :now_end)
+           AND NOT EXISTS (
+               SELECT 1
+               FROM toy_banner_targets t
+               WHERE t.banner_id = b.id
+           )
+         LIMIT 1"
+    );
+    $now = toy_now();
+    $stmt->execute([
+        'id' => $bannerId,
+        'now_start' => $now,
+        'now_end' => $now,
+    ]);
+
+    $banner = $stmt->fetch();
+    return is_array($banner) ? toy_banner_render_item($banner) : '';
+}
+
 function toy_banner_render_slot(PDO $pdo, array $context): string
 {
     $moduleKey = (string) ($context['module_key'] ?? '');
@@ -496,23 +580,7 @@ function toy_banner_render_slot(PDO $pdo, array $context): string
 
     $html = '';
     foreach ($stmt->fetchAll() as $banner) {
-        $content = '';
-        $imageUrl = toy_banner_clean_image_url((string) $banner['image_url']);
-        if ($imageUrl !== '') {
-            $imageSrc = toy_is_http_url($imageUrl) ? $imageUrl : toy_url($imageUrl);
-            $content .= '<img src="' . toy_e($imageSrc) . '" alt="' . toy_e((string) $banner['title']) . '">';
-        }
-        $content .= '<strong>' . toy_e((string) $banner['title']) . '</strong>';
-        if ((string) ($banner['body_text'] ?? '') !== '') {
-            $content .= '<span>' . nl2br(toy_e((string) $banner['body_text'])) . '</span>';
-        }
-
-        $linkAttributes = toy_banner_click_link_attributes((int) $banner['id'], (string) $banner['link_url']);
-        if ($linkAttributes !== '') {
-            $content = '<a' . $linkAttributes . '>' . $content . '</a>';
-        }
-
-        $html .= '<aside class="toy-banner" data-banner-id="' . toy_e((string) $banner['id']) . '">' . $content . '</aside>';
+        $html .= toy_banner_render_item($banner);
     }
 
     return $html;
