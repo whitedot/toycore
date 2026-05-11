@@ -75,6 +75,9 @@ if (toy_request_method() === 'POST') {
         $linkUrl = toy_banner_clean_url($rawLinkUrl);
         $rawImageUrl = toy_post_string('image_url', 255);
         $imageUrl = toy_banner_clean_image_url($rawImageUrl);
+        $imageUploadFile = $_FILES['image_upload'] ?? null;
+        $imageUploadProvided = toy_banner_image_upload_was_provided($imageUploadFile);
+        $uploadedImage = null;
         $status = toy_post_string('status', 30);
         $startsAtInput = toy_post_string('starts_at', 30);
         $endsAtInput = toy_post_string('ends_at', 30);
@@ -92,8 +95,8 @@ if (toy_request_method() === 'POST') {
         if ($rawLinkUrl !== '' && $linkUrl === '') {
             $errors[] = '링크 URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다.';
         }
-        if ($rawImageUrl !== '' && $imageUrl === '') {
-            $errors[] = '이미지 URL은 /로 시작하는 내부 경로여야 합니다.';
+        if (!$imageUploadProvided && $rawImageUrl !== '' && $imageUrl === '') {
+            $errors[] = '이미지 URL은 /로 시작하는 내부 경로 또는 http/https URL이어야 합니다.';
         }
         if (!in_array($status, $allowedStatuses, true)) {
             $errors[] = '상태 값이 올바르지 않습니다.';
@@ -141,6 +144,21 @@ if (toy_request_method() === 'POST') {
             $stmt->execute(['id' => $bannerId]);
             if (!is_array($stmt->fetch())) {
                 $errors[] = '수정할 배너를 찾을 수 없습니다.';
+            }
+        }
+
+        if ($errors === [] && $imageUploadProvided) {
+            if (!is_array($imageUploadFile)) {
+                $errors[] = '업로드할 배너 이미지를 확인할 수 없습니다.';
+            } else {
+                try {
+                    $uploadedImage = toy_banner_upload_image($imageUploadFile);
+                    if (is_array($uploadedImage)) {
+                        $imageUrl = (string) $uploadedImage['url'];
+                    }
+                } catch (Throwable $exception) {
+                    $errors[] = $exception->getMessage();
+                }
             }
         }
 
@@ -230,6 +248,9 @@ if (toy_request_method() === 'POST') {
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
+                }
+                if (is_array($uploadedImage) && is_string($uploadedImage['path'] ?? null)) {
+                    @unlink((string) $uploadedImage['path']);
                 }
                 $errors[] = '배너 저장 중 오류가 발생했습니다.';
             }

@@ -30,7 +30,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($bannerAdminPage === 'form') { ?>
     <section>
         <h2><?php echo $editing ? '배너 수정' : '배너 추가'; ?></h2>
-        <form method="post" action="<?php echo toy_e(toy_url('/admin/banners/save')); ?>">
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/banners/save')); ?>" enctype="multipart/form-data">
             <?php echo toy_csrf_field(); ?>
             <input type="hidden" name="banner_id" value="<?php echo $editing ? toy_e((string) $editBanner['id']) : '0'; ?>">
             <p>
@@ -49,9 +49,16 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
             </p>
             <p>
-                <label>이미지 URL (/로 시작하는 내부 경로)<br>
+                <label>이미지 URL (/ 내부 경로 또는 http/https URL)<br>
                     <input type="text" name="image_url" value="<?php echo $editing ? toy_e((string) $editBanner['image_url']) : ''; ?>" maxlength="255">
                 </label>
+            </p>
+            <p>
+                <label>이미지 업로드<br>
+                    <input type="file" name="image_upload" accept="image/jpeg,image/png,image/webp">
+                </label>
+                <br>
+                <small>JPEG, PNG, WebP / 최대 <?php echo toy_e(toy_banner_format_bytes(toy_banner_image_upload_max_bytes())); ?>. 업로드하면 이미지 URL보다 우선 적용됩니다.</small>
             </p>
             <p>
                 <label>모듈이 선언한 출력 위치<br>

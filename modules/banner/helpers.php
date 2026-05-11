@@ -27,11 +27,124 @@ function toy_banner_clean_url(string $value): string
 function toy_banner_clean_image_url(string $value): string
 {
     $value = trim($value);
-    if ($value === '' || toy_is_safe_relative_url($value)) {
+    if ($value === '' || toy_is_safe_relative_url($value) || toy_is_http_url($value)) {
         return $value;
     }
 
     return '';
+}
+
+function toy_banner_image_upload_max_bytes(): int
+{
+    return 5242880;
+}
+
+function toy_banner_format_bytes(int $bytes): string
+{
+    if ($bytes >= 1048576) {
+        return number_format($bytes / 1048576, 1) . ' MB';
+    }
+
+    if ($bytes >= 1024) {
+        return number_format($bytes / 1024, 1) . ' KB';
+    }
+
+    return number_format(max(0, $bytes)) . ' bytes';
+}
+
+function toy_banner_image_upload_was_provided(mixed $file): bool
+{
+    return is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+}
+
+function toy_banner_image_format_for_mime(string $mimeType): string
+{
+    return match (strtolower(trim($mimeType))) {
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        default => '',
+    };
+}
+
+function toy_banner_image_mime_is_allowed(string $mimeType): bool
+{
+    return in_array(strtolower(trim($mimeType)), ['image/jpeg', 'image/png', 'image/webp'], true);
+}
+
+function toy_banner_upload_image(array $file): ?array
+{
+    if (!toy_banner_image_upload_was_provided($file)) {
+        return null;
+    }
+
+    $validated = toy_upload_validate_file($file, [
+        'max_bytes' => toy_banner_image_upload_max_bytes(),
+        'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
+        'allowed_mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+    ]);
+
+    $targetFormat = toy_banner_image_format_for_mime((string) $validated['mime_type']);
+    if ($targetFormat === '') {
+        throw new RuntimeException('허용되지 않은 이미지 형식입니다.');
+    }
+
+    $datePath = date('Y/m');
+    $directory = TOY_ROOT . '/storage/banner/images/' . $datePath;
+    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('배너 이미지 저장 디렉터리를 만들 수 없습니다.');
+    }
+
+    $storedName = toy_upload_random_filename($targetFormat);
+    $targetPath = toy_upload_safe_target_path($directory, $storedName);
+    toy_upload_assert_target_path_writable($targetPath);
+
+    if (!toy_upload_reencode_image((string) $validated['tmp_name'], $targetPath, $targetFormat, [
+        'max_pixels' => 25000000,
+        'quality' => 85,
+    ])) {
+        throw new RuntimeException('이미지 재인코딩에 실패했습니다.');
+    }
+
+    $storedMimeType = toy_upload_detect_mime($targetPath);
+    if (!toy_banner_image_mime_is_allowed($storedMimeType)) {
+        @unlink($targetPath);
+        throw new RuntimeException('저장된 이미지 MIME을 확인할 수 없습니다.');
+    }
+
+    $storageKey = $datePath . '/' . $storedName;
+
+    return [
+        'path' => $targetPath,
+        'storage_key' => $storageKey,
+        'url' => '/banner/image?file=' . rawurlencode($storageKey),
+    ];
+}
+
+function toy_banner_image_storage_path(string $storageKey): ?string
+{
+    $storageKey = trim($storageKey);
+    if (preg_match('#\A\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp)\z#', $storageKey) !== 1) {
+        return null;
+    }
+
+    $storageRoot = realpath(TOY_ROOT . '/storage/banner/images');
+    if (!is_string($storageRoot) || !is_dir($storageRoot)) {
+        return null;
+    }
+
+    $candidate = $storageRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $storageKey);
+    $realPath = realpath($candidate);
+    if (!is_string($realPath) || !is_file($realPath)) {
+        return null;
+    }
+
+    $storageRootPrefix = rtrim($storageRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    if (!str_starts_with($realPath, $storageRootPrefix)) {
+        return null;
+    }
+
+    return $realPath;
 }
 
 function toy_banner_clean_admin_datetime(string $value): ?string
@@ -244,8 +357,10 @@ function toy_banner_render_slot(PDO $pdo, array $context): string
     $html = '';
     foreach ($stmt->fetchAll() as $banner) {
         $content = '';
-        if ((string) $banner['image_url'] !== '') {
-            $content .= '<img src="' . toy_e((string) $banner['image_url']) . '" alt="' . toy_e((string) $banner['title']) . '">';
+        $imageUrl = toy_banner_clean_image_url((string) $banner['image_url']);
+        if ($imageUrl !== '') {
+            $imageSrc = toy_is_http_url($imageUrl) ? $imageUrl : toy_url($imageUrl);
+            $content .= '<img src="' . toy_e($imageSrc) . '" alt="' . toy_e((string) $banner['title']) . '">';
         }
         $content .= '<strong>' . toy_e((string) $banner['title']) . '</strong>';
         if ((string) ($banner['body_text'] ?? '') !== '') {

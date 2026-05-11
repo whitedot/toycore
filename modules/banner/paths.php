@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'GET /banner/image' => 'actions/image.php',
     'GET /admin/banners' => 'actions/admin-banners.php',
     'POST /admin/banners' => 'actions/admin-banners.php',
     'GET /admin/banners/new' => 'actions/admin-banner-new.php',
