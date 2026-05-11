@@ -37,14 +37,20 @@ function toy_community_message_box(PDO $pdo, int $accountId, string $box, int $l
     return $stmt->fetchAll();
 }
 
-function toy_community_message_account_label(?string $displayName, int $accountId): string
+function toy_community_message_account_label(?string $displayName, int $accountId, bool $showIdentifier = false, ?array $config = null): string
 {
     $label = trim((string) $displayName);
-    if ($label !== '') {
+    if ($label === '') {
+        $label = $accountId > 0 ? '회원' : '알 수 없는 회원';
+    }
+
+    if (!$showIdentifier || $accountId < 1) {
         return $label;
     }
 
-    return $accountId > 0 ? '회원' : '알 수 없는 회원';
+    $runtimeConfig = is_array($config) ? $config : toy_runtime_config();
+
+    return toy_community_member_label_with_identifier($label, $runtimeConfig, $accountId, $showIdentifier);
 }
 
 function toy_community_message_by_id_for_account(PDO $pdo, int $messageId, int $accountId): ?array

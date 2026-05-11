@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once TOY_ROOT . '/modules/community/helpers/boards.php';
+require_once TOY_ROOT . '/modules/community/helpers/members.php';
 require_once TOY_ROOT . '/modules/community/helpers/posts.php';
 require_once TOY_ROOT . '/modules/community/helpers/attachments.php';
 require_once TOY_ROOT . '/modules/community/helpers/reports.php';

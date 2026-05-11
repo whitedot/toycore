@@ -42,7 +42,9 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                             <td>
                                 <?php echo toy_e(toy_community_message_account_label(
                                     is_string($message['other_display_name'] ?? null) ? $message['other_display_name'] : null,
-                                    $box === 'sent' ? (int) $message['recipient_account_id'] : (int) $message['sender_account_id']
+                                    $box === 'sent' ? (int) $message['recipient_account_id'] : (int) $message['sender_account_id'],
+                                    $canViewMemberIdentifiers,
+                                    $config
                                 )); ?>
                             </td>
                             <td><?php echo $box === 'sent' ? ((string) ($message['read_at'] ?? '') === '' ? '읽지 않음' : '읽음') : ((string) ($message['read_at'] ?? '') === '' ? '새 쪽지' : '읽음'); ?></td>

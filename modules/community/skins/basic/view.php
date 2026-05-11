@@ -26,7 +26,7 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <article>
             <h1><?php echo toy_e($pageTitle); ?></h1>
             <p>
-                작성자: <?php echo toy_e(toy_community_public_author_label($pdo, (int) $post['author_account_id'])); ?>
+                작성자: <?php echo toy_e(toy_community_public_author_label($pdo, (int) $post['author_account_id'], $canViewMemberIdentifiers, $config)); ?>
                 /
                 작성일: <?php echo toy_e((string) $post['created_at']); ?>
                 /
@@ -150,7 +150,7 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <?php foreach ($comments as $comment) { ?>
                         <li>
                             <p>
-                                <?php echo toy_e(toy_community_public_author_label($pdo, (int) $comment['author_account_id'])); ?>
+                                <?php echo toy_e(toy_community_public_author_label($pdo, (int) $comment['author_account_id'], $canViewMemberIdentifiers, $config)); ?>
                                 /
                                 <?php echo toy_e((string) $comment['created_at']); ?>
                             </p>

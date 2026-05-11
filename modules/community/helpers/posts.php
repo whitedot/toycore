@@ -721,7 +721,7 @@ function toy_community_rate_limits_table_exists(PDO $pdo): bool
     return $exists;
 }
 
-function toy_community_public_author_label(PDO $pdo, int $accountId): string
+function toy_community_public_author_label(PDO $pdo, int $accountId, bool $showIdentifier = false, ?array $config = null): string
 {
     $summary = toy_member_public_account_summary($pdo, $accountId);
     if (!is_array($summary) || (string) $summary['status'] === 'anonymized') {
@@ -729,7 +729,10 @@ function toy_community_public_author_label(PDO $pdo, int $accountId): string
     }
 
     $displayName = trim((string) $summary['display_name']);
-    return $displayName !== '' ? $displayName : '회원';
+    $label = $displayName !== '' ? $displayName : '회원';
+    $runtimeConfig = is_array($config) ? $config : toy_runtime_config();
+
+    return toy_community_member_label_with_identifier($label, $runtimeConfig, $accountId, $showIdentifier);
 }
 
 function toy_community_plain_text_html(string $value): string

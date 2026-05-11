@@ -19,6 +19,7 @@ if (!toy_community_account_can_read_board($pdo, $board, is_array($account) ? $ac
     toy_render_error(403, '이 게시판을 볼 수 없습니다.');
 }
 $isAdminWriter = is_array($account) && toy_admin_has_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+$canViewMemberIdentifiers = toy_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
 $canWriteBoard = is_array($account) && toy_community_account_can_write_board($pdo, $board, $account, $isAdminWriter);
 
 $settings = toy_module_settings($pdo, 'community');

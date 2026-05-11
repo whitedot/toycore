@@ -71,7 +71,7 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                                     <?php echo toy_e((string) $post['title']); ?>
                                 </a>
                             </td>
-                            <td><?php echo toy_e(toy_community_public_author_label($pdo, (int) $post['author_account_id'])); ?></td>
+                            <td><?php echo toy_e(toy_community_public_author_label($pdo, (int) $post['author_account_id'], $canViewMemberIdentifiers, $config)); ?></td>
                             <td><?php echo toy_e((string) $post['created_at']); ?></td>
                             <td><?php echo toy_e((string) ($post['published_comment_count'] ?? 0)); ?></td>
                             <td><?php echo toy_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>

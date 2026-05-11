@@ -21,12 +21,16 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <dt>보낸 회원</dt>
             <dd><?php echo toy_e(toy_community_message_account_label(
                 is_string($message['sender_display_name'] ?? null) ? $message['sender_display_name'] : null,
-                (int) $message['sender_account_id']
+                (int) $message['sender_account_id'],
+                $canViewMemberIdentifiers,
+                $config
             )); ?></dd>
             <dt>받는 회원</dt>
             <dd><?php echo toy_e(toy_community_message_account_label(
                 is_string($message['recipient_display_name'] ?? null) ? $message['recipient_display_name'] : null,
-                (int) $message['recipient_account_id']
+                (int) $message['recipient_account_id'],
+                $canViewMemberIdentifiers,
+                $config
             )); ?></dd>
             <dt>보낸 시각</dt>
             <dd><?php echo toy_e((string) $message['created_at']); ?></dd>

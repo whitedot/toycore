@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once TOY_ROOT . '/modules/admin/helpers.php';
 require_once TOY_ROOT . '/modules/community/helpers.php';
 
 $account = toy_member_require_login($pdo);
+$canViewMemberIdentifiers = toy_community_admin_can_view_member_identifiers($pdo, $account);
 $messageIdValue = toy_get_string('id', 20);
 $messageId = preg_match('/\A[1-9][0-9]*\z/', $messageIdValue) === 1 ? (int) $messageIdValue : 0;
 $message = toy_community_message_by_id_for_account($pdo, $messageId, (int) $account['id']);

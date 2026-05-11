@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once TOY_ROOT . '/modules/admin/helpers.php';
 require_once TOY_ROOT . '/modules/community/helpers.php';
 
 $postIdValue = toy_get_string('id', 20);
@@ -32,6 +33,7 @@ if (!is_array($post)) {
 }
 toy_community_increment_post_view_count($pdo, (int) $post['id']);
 $post['view_count'] = (int) $post['view_count'] + 1;
+$canViewMemberIdentifiers = toy_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
 
 $settings = toy_module_settings($pdo, 'community');
 $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));

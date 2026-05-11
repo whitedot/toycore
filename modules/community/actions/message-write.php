@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once TOY_ROOT . '/modules/admin/helpers.php';
 require_once TOY_ROOT . '/modules/community/helpers.php';
 
 $account = toy_member_require_login($pdo);
+$canViewMemberIdentifiers = toy_community_admin_can_view_member_identifiers($pdo, $account);
 $errors = [];
 $notice = '';
 $recipientAccountHash = strtolower(trim(toy_get_string('to_account', 40)));
@@ -19,7 +21,7 @@ $values = [
 ];
 $recipientPresetNotice = $values['recipient_account_hash'] !== '' ? '받는 회원이 미리 입력되었습니다.' : '';
 $recipientLabel = $values['recipient_account_hash'] !== '' && is_array($presetRecipient)
-    ? toy_community_message_account_label((string) $presetRecipient['display_name'], (int) $presetRecipient['id'])
+    ? toy_community_message_account_label((string) $presetRecipient['display_name'], (int) $presetRecipient['id'], $canViewMemberIdentifiers, $config)
     : '';
 
 if (toy_request_method() === 'POST') {
@@ -32,7 +34,7 @@ if (toy_request_method() === 'POST') {
         ? toy_member_public_account_summary_by_hash($pdo, $config, (string) $values['recipient_account_hash'])
         : null;
     if (is_array($submittedRecipient)) {
-        $recipientLabel = toy_community_message_account_label((string) $submittedRecipient['display_name'], (int) $submittedRecipient['id']);
+        $recipientLabel = toy_community_message_account_label((string) $submittedRecipient['display_name'], (int) $submittedRecipient['id'], $canViewMemberIdentifiers, $config);
     }
     if ($errors === []) {
         if (is_array($submittedRecipient)) {
@@ -47,7 +49,7 @@ if (toy_request_method() === 'POST') {
         }
     }
     if (is_array($recipient)) {
-        $recipientLabel = toy_community_message_account_label((string) $recipient['display_name'], (int) $recipient['id']);
+        $recipientLabel = toy_community_message_account_label((string) $recipient['display_name'], (int) $recipient['id'], $canViewMemberIdentifiers, $config);
     }
 
     $settings = toy_module_settings($pdo, 'community');
