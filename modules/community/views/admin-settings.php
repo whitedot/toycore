@@ -50,6 +50,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <p>
+            <label>
+                <input type="checkbox" name="level_auto_recalculate" value="1"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?>>
+                게시글/댓글 활동 후 레벨 자동 재계산
+            </label>
+        </p>
+        <p>
             <label>게시글 점수<br>
                 <input type="number" name="level_post_score" min="0" max="10000" value="<?php echo toy_e((string) $settings['level_post_score']); ?>">
             </label>
@@ -110,26 +116,39 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <?php if ($levels === []) { ?>
         <p>레벨 테이블이 없거나 정의된 레벨이 없습니다.</p>
     <?php } else { ?>
-        <table>
-            <thead>
-                <tr>
-                    <th>레벨</th>
-                    <th>이름</th>
-                    <th>최소 점수</th>
-                    <th>상태</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($levels as $level) { ?>
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/community/settings')); ?>">
+            <?php echo toy_csrf_field(); ?>
+            <input type="hidden" name="intent" value="save_level_definitions">
+            <table>
+                <thead>
                     <tr>
-                        <td><?php echo toy_e((string) $level['level_value']); ?></td>
-                        <td><?php echo toy_e((string) $level['title']); ?></td>
-                        <td><?php echo toy_e((string) $level['min_score']); ?></td>
-                        <td><?php echo toy_e((string) $level['status']); ?></td>
+                        <th>레벨</th>
+                        <th>이름</th>
+                        <th>최소 점수</th>
+                        <th>상태</th>
                     </tr>
-                <?php } ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php foreach ($levels as $level) { ?>
+                        <tr>
+                            <td><?php echo toy_e((string) $level['level_value']); ?></td>
+                            <td><?php echo toy_e((string) $level['title']); ?></td>
+                            <td>
+                                <input
+                                    type="number"
+                                    name="level_min_score[<?php echo toy_e((string) $level['id']); ?>]"
+                                    min="0"
+                                    max="1000000000"
+                                    value="<?php echo toy_e((string) $level['min_score']); ?>"
+                                >
+                            </td>
+                            <td><?php echo toy_e((string) $level['status']); ?></td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+            <button type="submit">레벨 정의 저장</button>
+        </form>
     <?php } ?>
 
     <form method="post" action="<?php echo toy_e(toy_url('/admin/community/settings')); ?>">

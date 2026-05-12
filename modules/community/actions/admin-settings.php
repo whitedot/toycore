@@ -34,6 +34,7 @@ if (toy_request_method() === 'POST') {
 
     if ($intent === 'save_settings') {
         $levelEnabled = ($_POST['level_enabled'] ?? '') === '1';
+        $levelAutoRecalculate = ($_POST['level_auto_recalculate'] ?? '') === '1';
         $levelPostScore = toy_admin_post_int_in_range('level_post_score', 0, 10000);
         $levelCommentScore = toy_admin_post_int_in_range('level_comment_score', 0, 10000);
         $accessConditionPriority = toy_community_access_condition_priority(toy_post_string('access_condition_priority', 40));
@@ -88,6 +89,7 @@ if (toy_request_method() === 'POST') {
         if ($errors === [] && is_array($communityModule ?? null)) {
             $rows = [
                 ['level_enabled', $levelEnabled ? '1' : '0', 'bool'],
+                ['level_auto_recalculate', $levelAutoRecalculate ? '1' : '0', 'bool'],
                 ['level_post_score', (string) $levelPostScore, 'int'],
                 ['level_comment_score', (string) $levelCommentScore, 'int'],
                 ['access_condition_priority', $accessConditionPriority, 'string'],
@@ -129,6 +131,7 @@ if (toy_request_method() === 'POST') {
                 'message' => 'Community settings updated.',
                 'metadata' => [
                     'level_enabled' => $levelEnabled,
+                    'level_auto_recalculate' => $levelAutoRecalculate,
                     'access_condition_priority' => $accessConditionPriority,
                     'message_write_policy' => $messageWritePolicy,
                     'message_write_min_level' => $messageWriteMinLevel,
@@ -136,6 +139,60 @@ if (toy_request_method() === 'POST') {
             ]);
 
             $notice = '커뮤니티 설정을 저장했습니다.';
+        }
+    } elseif ($intent === 'save_level_definitions') {
+        $rawMinScores = $_POST['level_min_score'] ?? [];
+        if (!is_array($rawMinScores)) {
+            $errors[] = '레벨 최소 점수 입력이 올바르지 않습니다.';
+        }
+
+        $minScoresById = [];
+        foreach ($levels as $level) {
+            $levelId = (int) ($level['id'] ?? 0);
+            if ($levelId < 1) {
+                continue;
+            }
+
+            $rawValue = is_array($rawMinScores) ? ($rawMinScores[(string) $levelId] ?? '') : '';
+            if (is_array($rawValue)) {
+                $errors[] = '레벨 최소 점수 입력이 올바르지 않습니다.';
+                continue;
+            }
+
+            $value = trim((string) $rawValue);
+            if ($value === '' || strlen($value) > 10 || preg_match('/\A\d+\z/', $value) !== 1) {
+                $errors[] = '레벨 ' . (string) $level['level_value'] . ' 최소 점수는 0 이상 1000000000 이하의 정수여야 합니다.';
+                continue;
+            }
+
+            $minScore = (int) $value;
+            if ($minScore < 0 || $minScore > 1000000000) {
+                $errors[] = '레벨 ' . (string) $level['level_value'] . ' 최소 점수는 0 이상 1000000000 이하의 정수여야 합니다.';
+                continue;
+            }
+
+            $minScoresById[$levelId] = $minScore;
+        }
+
+        if ($errors === []) {
+            try {
+                $updatedCount = toy_community_update_level_min_scores($pdo, $minScoresById);
+                toy_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.level_definitions.updated',
+                    'target_type' => 'module',
+                    'target_id' => 'community',
+                    'result' => 'success',
+                    'message' => 'Community level definitions updated.',
+                    'metadata' => [
+                        'updated_count' => $updatedCount,
+                    ],
+                ]);
+                $notice = $updatedCount > 0 ? '레벨 정의를 저장했습니다.' : '변경된 레벨 정의가 없습니다.';
+            } catch (InvalidArgumentException $exception) {
+                $errors[] = $exception->getMessage();
+            }
         }
     } elseif ($intent === 'recalculate_levels') {
         $summary = toy_community_recalculate_recent_account_levels($pdo, 200);

@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $groupEvaluationSummary = toy_member_group_evaluate_account($pdo, (int) $account['id'], [
             'source_module_key' => 'community',
         ]);
-        $levelSnapshot = toy_community_recalculate_account_level($pdo, (int) $account['id'], $settings, 'post_created');
+        $levelSnapshot = toy_community_maybe_recalculate_account_level($pdo, (int) $account['id'], $settings, 'post_created');
         $attachmentId = null;
         $attachmentIds = [];
         $attachmentResults = [];

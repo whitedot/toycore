@@ -35,7 +35,7 @@ if ($errors !== []) {
 
 $commentId = toy_community_create_comment($pdo, $postId, (int) $account['id'], $values);
 toy_community_record_comment_rate_limit($pdo, (int) $account['id'], $settings);
-$levelSnapshot = toy_community_recalculate_account_level($pdo, (int) $account['id'], $settings, 'comment_created');
+$levelSnapshot = toy_community_maybe_recalculate_account_level($pdo, (int) $account['id'], $settings, 'comment_created');
 toy_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',

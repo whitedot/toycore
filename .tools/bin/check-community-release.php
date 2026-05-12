@@ -126,8 +126,8 @@ $memberGroupRules = toy_community_release_array_file('modules/community/member-g
 $privacyExport = toy_community_release_value_file('modules/community/privacy-export.php');
 $sitemap = toy_community_release_value_file('modules/community/sitemap.php');
 
-if ((string) ($module['version'] ?? '') !== '2026.05.005') {
-    toy_community_release_error('Community module version must be 2026.05.005.');
+if ((string) ($module['version'] ?? '') !== '2026.05.007') {
+    toy_community_release_error('Community module version must be 2026.05.007.');
 }
 
 toy_community_release_file_contains('index.php', [
@@ -135,7 +135,7 @@ toy_community_release_file_contains('index.php', [
 ], 'Front controller route loading');
 toy_community_release_file_contains('core/actions/install.php', [
     "'community' => [",
-    "'version' => '2026.05.005'",
+    "'version' => '2026.05.007'",
     "'label' => '커뮤니티'",
     "'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.'",
 ], 'Install optional community module');
@@ -553,6 +553,7 @@ toy_community_release_file_contains('modules/community/actions/write.php', [
     'toy_community_post_rate_limited($pdo, (int) $account[\'id\'], $settings)',
     'toy_community_record_post_rate_limit($pdo, (int) $account[\'id\'], $settings)',
     'toy_member_group_evaluate_account($pdo, (int) $account[\'id\'], [',
+    'toy_community_maybe_recalculate_account_level($pdo, (int) $account[\'id\'], $settings, \'post_created\')',
     'toy_community_upload_post_image($pdo, $postId, (int) $account[\'id\'], $_FILES[\'image_attachment\'], $settings)',
     'toy_community_upload_post_files($pdo, $postId, (int) $account[\'id\'], $_FILES[\'file_attachments\'], $settings)',
     "'event_type' => 'community.attachment.created'",
@@ -583,6 +584,7 @@ toy_community_release_file_contains('modules/community/actions/delete.php', [
     'toy_community_account_can_delete_post($post, $account)',
     'toy_community_update_post_status($pdo, $postId, \'deleted\')',
     'toy_member_group_evaluate_account($pdo, (int) $post[\'author_account_id\'], [',
+    'toy_community_maybe_recalculate_account_level($pdo, (int) $post[\'author_account_id\'], null, \'post_deleted\')',
     'toy_community_update_post_attachments_status($pdo, $postId, \'deleted\')',
     "'event_type' => 'community.post.deleted_by_author'",
     'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)',
@@ -592,6 +594,7 @@ toy_community_release_file_contains('modules/community/actions/comment.php', [
     'toy_community_account_can_comment_post($pdo, $post, $account)',
     'toy_community_comment_rate_limited($pdo, (int) $account[\'id\'], $settings)',
     'toy_community_record_comment_rate_limit($pdo, (int) $account[\'id\'], $settings)',
+    'toy_community_maybe_recalculate_account_level($pdo, (int) $account[\'id\'], $settings, \'comment_created\')',
     "'event_type' => 'community.comment.created'",
     'toy_community_create_account_notification(',
     "(int) \$post['author_account_id'] !== (int) \$account['id']",
@@ -606,6 +609,7 @@ toy_community_release_file_contains('modules/community/actions/comment-delete.ph
     'toy_community_post_for_read($pdo, (int) $comment[\'post_id\'], $account)',
     'toy_community_account_can_delete_comment($comment, $account)',
     'toy_community_update_comment_status($pdo, $commentId, \'deleted\')',
+    'toy_community_maybe_recalculate_account_level($pdo, (int) $comment[\'author_account_id\'], null, \'comment_deleted\')',
     "'event_type' => 'community.comment.deleted_by_author'",
 ], 'Community comment delete action policy');
 toy_community_release_file_contains('modules/community/actions/report.php', [
@@ -774,10 +778,15 @@ toy_community_release_file_contains('modules/community/actions/admin-settings.ph
     'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
     'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
     'toy_require_csrf()',
+    '$levelAutoRecalculate = ($_POST[\'level_auto_recalculate\'] ?? \'\') === \'1\'',
+    '[\'level_auto_recalculate\', $levelAutoRecalculate ? \'1\' : \'0\', \'bool\']',
+    '$intent === \'save_level_definitions\'',
+    'toy_community_update_level_min_scores($pdo, $minScoresById)',
     'toy_community_access_condition_priority(toy_post_string(\'access_condition_priority\', 40))',
     'toy_community_message_write_policy(toy_post_string(\'message_write_policy\', 40))',
     'toy_community_recalculate_recent_account_levels($pdo, 200)',
     "'event_type' => 'community.settings.updated'",
+    "'event_type' => 'community.level_definitions.updated'",
     "'event_type' => 'community.levels.recalculated'",
 ], 'Community admin settings policy');
 toy_community_release_file_contains('modules/community/actions/admin-posts.php', [
@@ -786,13 +795,30 @@ toy_community_release_file_contains('modules/community/actions/admin-posts.php',
     '$allowedCommentStatuses = toy_community_comment_statuses()',
     'toy_community_update_post_status($pdo, $postId, $status)',
     'toy_member_group_evaluate_account($pdo, (int) $post[\'author_account_id\'], [',
+    'toy_community_maybe_recalculate_account_level($pdo, (int) $post[\'author_account_id\'], null, \'post_status_updated\')',
     'toy_community_update_post_attachments_status($pdo, $postId, $status)',
     'toy_community_restore_hidden_post_attachments($pdo, $postId)',
     "'event_type' => 'community.post.status_updated'",
     'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)',
     'toy_community_update_comment_status($pdo, $commentId, $status)',
+    'toy_community_maybe_recalculate_account_level($pdo, (int) $comment[\'author_account_id\'], null, \'comment_status_updated\')',
     "'event_type' => 'community.comment.status_updated'",
 ], 'Community admin post policy');
+toy_community_release_file_contains('modules/community/helpers/levels.php', [
+    "'level_auto_recalculate' => (bool) (\$settings['level_auto_recalculate'] ?? false)",
+    "function toy_community_maybe_recalculate_account_level(PDO \$pdo, int \$accountId, ?array \$settings = null, string \$reasonKey = 'activity_changed'): array",
+    "empty(\$settings['level_auto_recalculate'])",
+    'toy_community_account_level_snapshot($pdo, $accountId)',
+    'function toy_community_update_level_min_scores(PDO $pdo, array $minScoresById): int',
+    '레벨 최소 점수는 낮은 레벨부터 같거나 커야 합니다.',
+], 'Community level helper policy');
+toy_community_release_file_contains('modules/community/views/admin-settings.php', [
+    'name="level_auto_recalculate"',
+    '게시글/댓글 활동 후 레벨 자동 재계산',
+    'name="intent" value="save_level_definitions"',
+    'name="level_min_score[',
+    '레벨 정의 저장',
+], 'Community admin settings level UI');
 toy_community_release_file_contains('modules/community/actions/admin-reports.php', [
     'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
     '$allowedStatuses = toy_community_report_statuses()',

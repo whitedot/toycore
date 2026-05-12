@@ -23,7 +23,7 @@ toy_community_update_post_status($pdo, $postId, 'deleted');
 $groupEvaluationSummary = toy_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
     'source_module_key' => 'community',
 ]);
-$levelSnapshot = toy_community_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_deleted');
+$levelSnapshot = toy_community_maybe_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_deleted');
 $updatedAttachmentCount = toy_community_update_post_attachments_status($pdo, $postId, 'deleted');
 toy_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],

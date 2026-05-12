@@ -27,6 +27,7 @@ function toy_community_default_settings(): array
             ? $settings['file_allowed_extensions']
             : ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp'],
         'level_enabled' => (bool) ($settings['level_enabled'] ?? false),
+        'level_auto_recalculate' => (bool) ($settings['level_auto_recalculate'] ?? false),
         'level_post_score' => (int) ($settings['level_post_score'] ?? 10),
         'level_comment_score' => (int) ($settings['level_comment_score'] ?? 2),
         'access_condition_priority' => is_string($settings['access_condition_priority'] ?? null) ? (string) $settings['access_condition_priority'] : 'both_required',
@@ -74,6 +75,7 @@ function toy_community_normalize_settings(array $settings): array
         is_array($settings['file_allowed_extensions'] ?? null) ? $settings['file_allowed_extensions'] : (string) ($settings['file_allowed_extensions'] ?? '')
     );
     $settings['level_enabled'] = toy_community_bool_setting($settings['level_enabled'] ?? false);
+    $settings['level_auto_recalculate'] = toy_community_bool_setting($settings['level_auto_recalculate'] ?? false);
     $settings['level_post_score'] = min(10000, max(0, (int) ($settings['level_post_score'] ?? 10)));
     $settings['level_comment_score'] = min(10000, max(0, (int) ($settings['level_comment_score'] ?? 2)));
     $settings['access_condition_priority'] = toy_community_access_condition_priority((string) ($settings['access_condition_priority'] ?? ''));
@@ -357,6 +359,16 @@ function toy_community_recalculate_account_level(PDO $pdo, int $accountId, ?arra
     return toy_community_account_level_snapshot($pdo, $accountId);
 }
 
+function toy_community_maybe_recalculate_account_level(PDO $pdo, int $accountId, ?array $settings = null, string $reasonKey = 'activity_changed'): array
+{
+    $settings = is_array($settings) ? toy_community_normalize_settings($settings) : toy_community_settings($pdo);
+    if (empty($settings['level_auto_recalculate'])) {
+        return toy_community_account_level_snapshot($pdo, $accountId);
+    }
+
+    return toy_community_recalculate_account_level($pdo, $accountId, $settings, $reasonKey);
+}
+
 function toy_community_level_value_for_score(PDO $pdo, int $scoreValue): int
 {
     $levelValue = 0;
@@ -367,6 +379,53 @@ function toy_community_level_value_for_score(PDO $pdo, int $scoreValue): int
     }
 
     return $levelValue;
+}
+
+function toy_community_update_level_min_scores(PDO $pdo, array $minScoresById): int
+{
+    if (!toy_community_level_tables_exist($pdo)) {
+        return 0;
+    }
+
+    $levels = toy_community_levels($pdo);
+    $updates = [];
+    $lastMinScore = 0;
+    foreach ($levels as $level) {
+        $levelId = (int) ($level['id'] ?? 0);
+        if ($levelId < 1 || !array_key_exists($levelId, $minScoresById)) {
+            continue;
+        }
+
+        $minScore = (int) $minScoresById[$levelId];
+        if ($minScore < $lastMinScore) {
+            throw new InvalidArgumentException('레벨 최소 점수는 낮은 레벨부터 같거나 커야 합니다.');
+        }
+
+        $lastMinScore = $minScore;
+        if ($minScore !== (int) ($level['min_score'] ?? 0)) {
+            $updates[$levelId] = $minScore;
+        }
+    }
+
+    if ($updates === []) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE toy_community_levels
+         SET min_score = :min_score, updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $now = toy_now();
+    foreach ($updates as $levelId => $minScore) {
+        $stmt->execute([
+            'min_score' => $minScore,
+            'updated_at' => $now,
+            'id' => $levelId,
+        ]);
+    }
+
+    return count($updates);
 }
 
 function toy_community_log_level_change(PDO $pdo, int $accountId, array $before, array $after, string $reasonKey): void

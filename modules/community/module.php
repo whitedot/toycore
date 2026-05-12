@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Community',
-    'version' => '2026.05.006',
+    'version' => '2026.05.007',
     'type' => 'module',
     'description' => 'Board-style community module.',
     'toycore' => [
@@ -42,6 +42,7 @@ return [
         'file_attachment_max_count' => 3,
         'file_allowed_extensions' => ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp'],
         'level_enabled' => false,
+        'level_auto_recalculate' => false,
         'level_post_score' => 10,
         'level_comment_score' => 2,
         'access_condition_priority' => 'both_required',

@@ -224,6 +224,7 @@
 - member 계정 테이블이나 member 그룹 테이블을 넓히지 않고 `account_id`로 연결한다.
 - 게시판과 쪽지 접근 판단에서는 member 그룹 membership과 community 레벨 snapshot을 함께 읽는다.
 - 접근 요청에서는 레벨을 새로 계산하지 않고 저장된 snapshot만 조회한다.
+- 활동 후 레벨 자동 재계산은 기본값이 꺼져 있으며, 운영자가 설정 화면에서 켠 경우에만 실행한다.
 
 알림:
 
@@ -1617,6 +1618,7 @@ POST /admin/community/settings: owner, admin
 
 ```text
 level_enabled: 0 | 1
+level_auto_recalculate: 0 | 1
 level_post_score: int
 level_comment_score: int
 access_condition_priority: both_required | group_first | level_first
@@ -1711,13 +1713,16 @@ message_write_policy = disabled
 
 저가형 웹호스팅을 고려해 background worker를 필수로 두지 않는다.
 
-계산 시점:
+수동 계산 시점:
+
+- `/admin/community/settings`의 수동 재계산 버튼
+
+운영자가 `level_auto_recalculate`를 켠 경우의 추가 계산 시점:
 
 - 게시글 작성 성공 후
 - 댓글 작성 성공 후
 - 관리자 게시글/댓글 상태 변경 후
 - 작성자 게시글/댓글 삭제 상태 전환 후
-- `/admin/community/settings`의 수동 재계산 버튼
 
 계산 흐름:
 
@@ -1730,6 +1735,7 @@ message_write_policy = disabled
 ```
 
 접근 요청에서는 위 계산을 실행하지 않는다. 접근 helper는 `toy_community_account_levels`의 snapshot만 읽는다.
+활동 후 자동 재계산이 꺼져 있으면 작성/삭제/moderation 흐름은 기존 snapshot을 읽어 감사 로그 metadata에 남기고, 레벨 승급이나 강등은 수행하지 않는다.
 
 ### 14-1-7. 구현 영향
 
@@ -1758,6 +1764,7 @@ modules/community/views/admin-board-groups.php
 - 새 POST action은 로그인, role, CSRF 검증을 통과해야 한다.
 - 설치 SQL과 update SQL 모두 레벨 테이블을 포함해야 한다.
 - 게시판 설정 allowlist에 `*_min_level`이 포함되어야 한다.
+- 커뮤니티 설정 화면에서 `level_auto_recalculate`와 레벨별 `min_score`를 저장할 수 있어야 한다.
 - HTTP smoke에 설정 화면 접근과 비권한 POST 차단을 추가한다.
 
 개인정보 export:
@@ -2010,9 +2017,10 @@ v1 최초 버전:
 2026.05.004: 커뮤니티 기본 레벨 10단계 확장
 2026.05.005: 게시판별 주요 화면 배너/팝업레이어 선택 확장
 2026.05.006: 신고 자동 블라인드와 상세 moderation workflow
-2026.05.007: 쪽지 차단 목록과 대화형 thread UI
-2026.05.008: 스크랩 폴더와 비공개 메모
-2026.05.009: Markdown 또는 editor plugin 계약 검토
+2026.05.007: 커뮤니티 레벨 자동 재계산 설정과 레벨 최소 점수 관리
+2026.05.008: 쪽지 차단 목록과 대화형 thread UI
+2026.05.009: 스크랩 폴더와 비공개 메모
+2026.05.010: Markdown 또는 editor plugin 계약 검토
 ```
 
 ## 17. 리스크와 대응

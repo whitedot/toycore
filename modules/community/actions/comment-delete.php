@@ -25,7 +25,7 @@ if (!toy_community_account_can_delete_comment($comment, $account)) {
 }
 
 toy_community_update_comment_status($pdo, $commentId, 'deleted');
-$levelSnapshot = toy_community_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_deleted');
+$levelSnapshot = toy_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_deleted');
 toy_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',
