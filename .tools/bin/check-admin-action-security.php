@@ -581,8 +581,11 @@ if (!is_string($adminNavigationHelper)) {
     || strpos($adminNavigationHelper, "toy_enabled_module_contract_files(\$pdo, 'paths.php', ['admin'])") === false
     || strpos($adminNavigationHelper, 'toy_load_module_contract_file($moduleKey, $file)') === false
     || strpos($adminNavigationHelper, 'toy_load_module_contract_file($moduleKey, $pathsFile)') === false
+    || strpos($adminNavigationHelper, 'function toy_admin_navigation_groups(PDO $pdo): array') === false
+    || strpos($adminNavigationHelper, 'function toy_admin_builtin_menu_groups(PDO $pdo): array') === false
+    || strpos($adminNavigationHelper, "'path' => '/admin/members'") === false
 ) {
-    $errors[] = 'Admin navigation must load module paths.php through the contract file loader.';
+    $errors[] = 'Admin navigation must group builtin admin links and load module paths.php through the contract file loader.';
 }
 
 $adminModuleSourcesHelper = file_get_contents($root . '/modules/admin/helpers/module-sources.php');

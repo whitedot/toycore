@@ -5,7 +5,7 @@ $seo = [
     'title' => $adminPageTitle,
     'robots' => 'noindex, nofollow',
 ];
-$adminModuleMenuGroups = isset($pdo) && $pdo instanceof PDO ? toy_admin_module_menu_groups($pdo) : [];
+$adminNavigationGroups = isset($pdo) && $pdo instanceof PDO ? toy_admin_navigation_groups($pdo) : [];
 ?>
 <!doctype html>
 <html lang="<?php echo toy_e(toy_locale()); ?>" data-color-scheme="<?php echo toy_e(toy_color_scheme($site ?? null)); ?>">
@@ -19,23 +19,14 @@ $adminModuleMenuGroups = isset($pdo) && $pdo instanceof PDO ? toy_admin_module_m
     <header>
         <h1><?php echo toy_e($adminPageTitle); ?></h1>
         <nav>
-            <a href="<?php echo toy_e(toy_url('/admin')); ?>">대시보드</a>
-            <a href="<?php echo toy_e(toy_url('/admin/settings')); ?>">설정</a>
-            <a href="<?php echo toy_e(toy_url('/admin/modules')); ?>">모듈</a>
-            <?php foreach ($adminModuleMenuGroups as $adminModuleMenuGroup) { ?>
+            <?php foreach ($adminNavigationGroups as $adminNavigationGroup) { ?>
                 <details>
-                    <summary><?php echo toy_e((string) $adminModuleMenuGroup['label']); ?></summary>
-                    <?php foreach ($adminModuleMenuGroup['items'] as $adminModuleMenuItem) { ?>
-                        <a href="<?php echo toy_e(toy_url((string) $adminModuleMenuItem['path'])); ?>"><?php echo toy_e($adminModuleMenuItem['label']); ?></a>
+                    <summary><?php echo toy_e((string) $adminNavigationGroup['label']); ?></summary>
+                    <?php foreach ($adminNavigationGroup['items'] as $adminNavigationItem) { ?>
+                        <a href="<?php echo toy_e(toy_url((string) $adminNavigationItem['path'])); ?>"><?php echo toy_e($adminNavigationItem['label']); ?></a>
                     <?php } ?>
                 </details>
             <?php } ?>
-            <a href="<?php echo toy_e(toy_url('/admin/updates')); ?>">업데이트</a>
-            <a href="<?php echo toy_e(toy_url('/admin/members')); ?>">회원</a>
-            <a href="<?php echo toy_e(toy_url('/admin/roles')); ?>">권한</a>
-            <a href="<?php echo toy_e(toy_url('/admin/audit-logs')); ?>">관리자 작업 로그</a>
-            <a href="<?php echo toy_e(toy_url('/admin/privacy-requests')); ?>">개인정보 요청</a>
-            <a href="<?php echo toy_e(toy_url('/admin/retention')); ?>">보관 정리</a>
             <form method="post" action="<?php echo toy_e(toy_url('/logout')); ?>" style="display:inline">
                 <?php echo toy_csrf_field(); ?>
                 <button type="submit">로그아웃</button>
