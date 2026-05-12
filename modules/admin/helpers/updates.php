@@ -236,15 +236,57 @@ function toy_admin_audit_schema_update(PDO $pdo, array $account, array $update, 
     ]);
 }
 
+function toy_admin_audit_module_version_sync(PDO $pdo, array $account, array $syncedModule, string $message): void
+{
+    toy_audit_log($pdo, [
+        'actor_account_id' => (int) $account['id'],
+        'actor_type' => 'admin',
+        'event_type' => 'module.version.synced',
+        'target_type' => 'module',
+        'target_id' => (string) $syncedModule['module_key'],
+        'result' => 'success',
+        'message' => $message,
+        'metadata' => [
+            'before_version' => (string) $syncedModule['before_version'],
+            'after_version' => (string) $syncedModule['after_version'],
+        ],
+    ]);
+}
+
 function toy_admin_handle_updates_post(PDO $pdo, array $account): array
 {
     $errors = [];
     $notice = '';
     $appliedUpdates = [];
+    $intent = toy_post_string('intent', 40);
+    if ($intent === '') {
+        $intent = 'apply_updates';
+    }
+
+    if (!in_array($intent, ['apply_updates', 'sync_file_only_versions'], true)) {
+        $errors[] = '업데이트 요청이 올바르지 않습니다.';
+    }
+
     $pendingUpdates = toy_admin_pending_updates($pdo);
     $backupConfirmed = ($_POST['backup_confirmed'] ?? '') === '1';
 
-    if ($pendingUpdates !== [] && !$backupConfirmed) {
+    if ($errors === [] && $intent === 'sync_file_only_versions') {
+        $syncedModules = toy_admin_sync_file_only_module_versions(
+            $pdo,
+            toy_admin_module_pending_update_counts($pendingUpdates)
+        );
+        foreach ($syncedModules as $syncedModule) {
+            toy_admin_audit_module_version_sync($pdo, $account, $syncedModule, 'Module installed version synced from updates screen.');
+        }
+
+        return [
+            'errors' => [],
+            'notice' => $syncedModules === [] ? '반영할 파일 전용 업데이트가 없습니다.' : '파일 전용 업데이트 버전을 반영했습니다.',
+            'applied_updates' => [],
+        ];
+    }
+
+    if ($errors === [] && $pendingUpdates !== [] && !$backupConfirmed) {
         $errors[] = '업데이트 전 백업 확인이 필요합니다.';
     }
 
@@ -301,19 +343,7 @@ function toy_admin_handle_updates_post(PDO $pdo, array $account): array
             toy_admin_module_pending_update_counts(toy_admin_pending_updates($pdo))
         );
         foreach ($syncedModules as $syncedModule) {
-            toy_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'module.version.synced',
-                'target_type' => 'module',
-                'target_id' => (string) $syncedModule['module_key'],
-                'result' => 'success',
-                'message' => 'Module installed version synced after schema updates.',
-                'metadata' => [
-                    'before_version' => (string) $syncedModule['before_version'],
-                    'after_version' => (string) $syncedModule['after_version'],
-                ],
-            ]);
+            toy_admin_audit_module_version_sync($pdo, $account, $syncedModule, 'Module installed version synced after schema updates.');
         }
         if ($appliedUpdates === []) {
             $notice = $syncedModules === [] ? '적용할 업데이트가 없습니다.' : '파일 전용 업데이트 버전을 반영했습니다.';
@@ -356,4 +386,18 @@ function toy_admin_module_version_drifts(PDO $pdo, array $pendingUpdateCounts): 
     }
 
     return $moduleVersionDrifts;
+}
+
+function toy_admin_file_only_module_version_drifts(array $moduleVersionDrifts): array
+{
+    $fileOnlyDrifts = [];
+    foreach ($moduleVersionDrifts as $drift) {
+        if ((int) ($drift['pending_update_count'] ?? 0) > 0 || (string) ($drift['state'] ?? '') !== 'code_newer') {
+            continue;
+        }
+
+        $fileOnlyDrifts[] = $drift;
+    }
+
+    return $fileOnlyDrifts;
 }

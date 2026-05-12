@@ -26,5 +26,6 @@ $pendingUpdates = toy_admin_pending_updates($pdo);
 $schemaVersions = toy_admin_schema_versions($pdo);
 $pendingUpdateCounts = toy_admin_module_pending_update_counts($pendingUpdates);
 $moduleVersionDrifts = toy_admin_module_version_drifts($pdo, $pendingUpdateCounts);
+$fileOnlyModuleVersionDrifts = toy_admin_file_only_module_version_drifts($moduleVersionDrifts);
 
 include TOY_ROOT . '/modules/admin/views/updates.php';

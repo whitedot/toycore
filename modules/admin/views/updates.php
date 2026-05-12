@@ -70,6 +70,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </tbody>
         </table>
+        <?php if ($fileOnlyModuleVersionDrifts !== []) { ?>
+            <form method="post" action="<?php echo toy_e(toy_url('/admin/updates')); ?>">
+                <?php echo toy_csrf_field(); ?>
+                <input type="hidden" name="intent" value="sync_file_only_versions">
+                <p>SQL 적용 없이 설치 버전 기록만 코드 버전에 맞춥니다.</p>
+                <button type="submit">파일 전용 업데이트 반영</button>
+            </form>
+        <?php } ?>
     </section>
 <?php } ?>
 
@@ -107,6 +115,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
         <form method="post" action="<?php echo toy_e(toy_url('/admin/updates')); ?>">
             <?php echo toy_csrf_field(); ?>
+            <input type="hidden" name="intent" value="apply_updates">
             <p>
                 <label>
                     <input type="checkbox" name="backup_confirmed" value="1" required>
