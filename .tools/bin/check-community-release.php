@@ -253,10 +253,14 @@ foreach ($requiredRoutes as $route) {
 }
 
 $adminMenuPaths = [];
-foreach ($adminMenu as $entry) {
+$adminMenuItems = isset($adminMenu['items']) && is_array($adminMenu['items']) ? $adminMenu['items'] : $adminMenu;
+foreach ($adminMenuItems as $entry) {
     if (is_array($entry) && is_string($entry['path'] ?? null)) {
         $adminMenuPaths[] = (string) $entry['path'];
     }
+}
+if (($adminMenu['label'] ?? null) !== '커뮤니티') {
+    toy_community_release_error('Community admin-menu.php must use the community module group label.');
 }
 toy_community_release_require_list_values($adminMenuPaths, [
     '/admin/community/settings',
