@@ -372,6 +372,10 @@ function toy_admin_handle_modules_post(
             $errors[] = '설정 타입이 올바르지 않습니다.';
         }
 
+        foreach (toy_admin_module_setting_direct_edit_errors($moduleKey, $settingKey) as $directEditError) {
+            $errors[] = $directEditError;
+        }
+
         foreach (toy_admin_setting_value_type_errors($settingValue, $valueType) as $valueError) {
             $errors[] = $valueError;
         }
@@ -429,6 +433,10 @@ function toy_admin_handle_modules_post(
         $settingKey = toy_post_string('setting_key', 120);
         if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
             $errors[] = '설정 key 형식이 올바르지 않습니다.';
+        }
+
+        foreach (toy_admin_module_setting_direct_edit_errors($moduleKey, $settingKey) as $directEditError) {
+            $errors[] = $directEditError;
         }
 
         if ($errors === [] && toy_admin_setting_value_is_secret($settingKey)) {
@@ -594,6 +602,29 @@ function toy_admin_module_route_map(string $moduleKey): array
     }
 
     return ['routes' => $routes, 'errors' => array_values(array_unique($errors))];
+}
+
+function toy_admin_module_setting_direct_edit_errors(string $moduleKey, string $settingKey): array
+{
+    $dedicatedSettingsPaths = [
+        'member' => '/admin/member-settings',
+        'seo' => '/admin/seo/settings',
+        'community' => '/admin/community/settings',
+    ];
+
+    if (!isset($dedicatedSettingsPaths[$moduleKey])) {
+        return [];
+    }
+
+    $metadata = toy_module_metadata($moduleKey);
+    $declaredSettings = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
+    if (!array_key_exists($settingKey, $declaredSettings)) {
+        return [];
+    }
+
+    return [
+        $moduleKey . ' 모듈의 ' . $settingKey . ' 설정은 전용 설정 화면(' . $dedicatedSettingsPaths[$moduleKey] . ')에서 수정하세요.',
+    ];
 }
 
 function toy_admin_module_setting_reauth_errors(PDO $pdo, array $account, string $moduleKey, string $settingKey, string $action): array

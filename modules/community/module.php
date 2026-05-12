@@ -35,7 +35,7 @@ return [
         'report_create_limit' => 20,
         'message_create_window_seconds' => 300,
         'message_create_limit' => 20,
-        'image_upload_max_bytes' => 2097152,
+        'attachment_max_bytes' => 2097152,
         'image_uploads_enabled' => true,
         'file_uploads_enabled' => false,
         'file_attachment_max_bytes' => 5242880,

@@ -45,7 +45,7 @@ toy_community_increment_post_view_count($pdo, (int) $post['id']);
 $post['view_count'] = (int) $post['view_count'] + 1;
 $canViewMemberIdentifiers = toy_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
 
-$settings = toy_module_settings($pdo, 'community');
+$settings = toy_community_settings($pdo);
 $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
 $comments = toy_community_post_comments($pdo, (int) $post['id'], $commentsPerPage);
 $attachments = toy_community_post_attachments($pdo, (int) $post['id']);

@@ -19,7 +19,7 @@ if (!toy_community_account_can_comment_post($pdo, $post, $account)) {
     toy_render_error(403, '이 게시글에 댓글을 작성할 수 없습니다.');
 }
 
-$settings = toy_module_settings($pdo, 'community');
+$settings = toy_community_settings($pdo);
 $values = toy_community_comment_input_values();
 $errors = toy_community_validate_comment_input($values);
 

@@ -694,7 +694,7 @@ $postsPerPage = (int) toy_module_setting($pdo, 'board', 'posts_per_page', 20);
 - 저장 후 `toy_clear_module_settings_cache('{module_key}')` 호출
 - 변경 감사 로그 기록
 
-범용 `/admin/modules` key/value 설정은 비상용 또는 낮은 수준의 관리 도구로 본다.
+범용 `/admin/modules` key/value 설정은 비상용 또는 낮은 수준의 관리 도구로 본다. 전용 설정 화면이 있는 번들 모듈의 `module.php` 선언 설정은 전용 화면에서만 수정한다.
 
 ## 14. 관리자 메뉴
 

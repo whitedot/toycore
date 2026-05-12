@@ -22,7 +22,7 @@ $isAdminWriter = is_array($account) && toy_admin_has_role($pdo, (int) $account['
 $canViewMemberIdentifiers = toy_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
 $canWriteBoard = is_array($account) && toy_community_account_can_write_board($pdo, $board, $account, $isAdminWriter);
 
-$settings = toy_module_settings($pdo, 'community');
+$settings = toy_community_settings($pdo);
 $postsPerPage = max(1, min(100, (int) ($settings['posts_per_page'] ?? 20)));
 $keywordValue = toy_get_string_without_truncation('q', 100);
 $keyword = is_string($keywordValue) ? trim($keywordValue) : '';

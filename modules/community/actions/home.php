@@ -34,7 +34,7 @@ foreach ($boards as $board) {
         $ungroupedBoards[] = $board;
     }
 }
-$settings = toy_module_settings($pdo, 'community');
+$settings = toy_community_settings($pdo);
 $themeKey = toy_community_theme_key($settings);
 $themeView = toy_community_theme_view($themeKey, 'home');
 
