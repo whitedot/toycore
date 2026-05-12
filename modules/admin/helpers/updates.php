@@ -346,7 +346,7 @@ function toy_admin_handle_updates_post(PDO $pdo, array $account): array
             toy_admin_audit_module_version_sync($pdo, $account, $syncedModule, 'Module installed version synced after schema updates.');
         }
         if ($appliedUpdates === []) {
-            $notice = $syncedModules === [] ? '적용할 업데이트가 없습니다.' : '파일 전용 업데이트 버전을 반영했습니다.';
+            $notice = $syncedModules === [] ? '' : '파일 전용 업데이트 버전을 반영했습니다.';
         } else {
             $notice = $syncedModules === [] ? '업데이트를 적용했습니다.' : '업데이트를 적용하고 모듈 설치 버전을 반영했습니다.';
         }
