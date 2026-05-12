@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Member',
-    'version' => '2026.05.001',
+    'version' => '2026.05.002',
     'type' => 'module',
     'description' => 'Member account and authentication module.',
     'toycore' => [
@@ -37,6 +37,7 @@ return [
         'email_verification_throttle_ip_limit' => 20,
         'register_throttle_window_seconds' => 900,
         'register_throttle_ip_limit' => 10,
+        'member_skin_key' => 'basic',
         'profile_nickname_enabled' => true,
         'profile_phone_enabled' => true,
         'profile_birth_date_enabled' => true,

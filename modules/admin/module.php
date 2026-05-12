@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Admin',
-    'version' => '2026.04.001',
+    'version' => '2026.05.001',
     'type' => 'module',
     'description' => 'Admin dashboard module.',
     'toycore' => [
@@ -17,5 +17,8 @@ return [
         'provides' => [
             'paths.php',
         ],
+    ],
+    'settings' => [
+        'admin_skin_key' => 'basic',
     ],
 ];

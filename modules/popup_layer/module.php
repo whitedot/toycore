@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Popup Layer',
-    'version' => '2026.04.001',
+    'version' => '2026.05.001',
     'type' => 'module',
     'description' => 'Popup layer management and rendering module.',
     'toycore' => [
@@ -22,5 +22,8 @@ return [
         'consumes' => [
             'extension-points.php',
         ],
+    ],
+    'settings' => [
+        'popup_layer_skin_key' => 'basic',
     ],
 ];

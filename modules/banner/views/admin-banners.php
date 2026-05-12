@@ -129,6 +129,26 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } else { ?>
     <section>
+        <h2>배너 설정</h2>
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/banners')); ?>">
+            <?php echo toy_csrf_field(); ?>
+            <input type="hidden" name="intent" value="save_settings">
+            <p>
+                <label>배너 스킨<br>
+                    <select name="banner_skin_key">
+                        <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>
+                            <option value="<?php echo toy_e((string) $skinKey); ?>"<?php echo $bannerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
+                                <?php echo toy_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
+            </p>
+            <button type="submit">배너 설정 저장</button>
+        </form>
+    </section>
+
+    <section>
         <h2>배너 목록</h2>
         <p><a href="<?php echo toy_e(toy_url('/admin/banners/new')); ?>">새 배너 추가</a></p>
         <p>enabled 상태이고 기간 조건에 맞는 배너만 사용자 화면에 노출됩니다.</p>

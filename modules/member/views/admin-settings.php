@@ -44,6 +44,21 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section>
+        <h2>화면</h2>
+        <p>
+            <label>회원 스킨<br>
+                <select name="member_skin_key">
+                    <?php foreach (toy_member_skin_options() as $skinKey => $skinOption) { ?>
+                        <option value="<?php echo toy_e((string) $skinKey); ?>"<?php echo (string) $settings['member_skin_key'] === (string) $skinKey ? ' selected' : ''; ?>>
+                            <?php echo toy_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </label>
+        </p>
+    </section>
+
+    <section>
         <h2>선택 프로필 항목</h2>
         <?php foreach (toy_member_profile_field_setting_keys() as $key => $label) { ?>
             <p>

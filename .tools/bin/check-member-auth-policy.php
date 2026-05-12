@@ -349,6 +349,18 @@ if ($privacyExportAction !== '') {
     );
 }
 
+$memberSettingsHelper = toy_member_auth_policy_read('modules/member/helpers/settings.php');
+$memberLoginAction = toy_member_auth_policy_read('modules/member/actions/login.php');
+if ($memberSettingsHelper !== '' && $memberLoginAction !== '') {
+    toy_member_auth_policy_assert(
+        strpos($memberSettingsHelper, 'function toy_member_skin_options(): array') !== false
+            && strpos($memberSettingsHelper, "TOY_ROOT . '/modules/member/skins/basic/login.php'") !== false
+            && strpos($memberLoginAction, "toy_member_skin_view(toy_member_skin_key(\$memberSettings), 'login')") !== false
+            && is_file($root . '/modules/member/skins/basic/login.php'),
+        'Member public views should render through explicit member skin views with a basic fallback.'
+    );
+}
+
 $privacyHelper = toy_member_auth_policy_read('modules/member/helpers/privacy.php');
 if ($privacyHelper !== '') {
     toy_member_auth_policy_assert(

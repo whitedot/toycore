@@ -18,6 +18,9 @@ if (!in_array($popupLayerAdminPage, ['list', 'form'], true)) {
     $popupLayerAdminPage = 'list';
 }
 $availableTargets = toy_popup_layer_available_targets($pdo);
+$popupLayerSettings = toy_popup_layer_settings($pdo);
+$popupLayerSkinOptions = toy_popup_layer_skin_options();
+$popupLayerSkinKey = toy_popup_layer_skin_key($popupLayerSettings);
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
@@ -25,7 +28,31 @@ if (toy_request_method() === 'POST') {
     $intent = toy_post_string('intent', 40);
     $popupId = (int) toy_post_string('popup_id', 20);
 
-    if ($intent === 'delete') {
+    if ($intent === 'save_settings') {
+        $postedSkinKey = toy_post_string('popup_layer_skin_key', 40);
+        if (!isset($popupLayerSkinOptions[$postedSkinKey])) {
+            $errors[] = '팝업레이어 스킨 값이 올바르지 않습니다.';
+        }
+
+        if ($errors === []) {
+            toy_popup_layer_save_skin_key($pdo, $postedSkinKey);
+            $popupLayerSettings = toy_popup_layer_settings($pdo);
+            $popupLayerSkinKey = toy_popup_layer_skin_key($popupLayerSettings);
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'popup_layer.settings.updated',
+                'target_type' => 'module',
+                'target_id' => 'popup_layer',
+                'result' => 'success',
+                'message' => 'Popup layer settings updated.',
+                'metadata' => [
+                    'popup_layer_skin_key' => $popupLayerSkinKey,
+                ],
+            ]);
+            $notice = '팝업레이어 설정을 저장했습니다.';
+        }
+    } elseif ($intent === 'delete') {
         $stmt = $pdo->prepare('SELECT id FROM toy_popup_layers WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $popupId]);
         if (!is_array($stmt->fetch())) {

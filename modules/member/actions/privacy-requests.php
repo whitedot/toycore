@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once TOY_ROOT . '/modules/member/helpers.php';
 
 $account = toy_member_require_login($pdo);
+$memberSettings = toy_member_settings($pdo);
 $allowedTypes = ['access', 'rectification', 'erasure', 'restriction', 'portability', 'objection', 'withdrawal'];
 $errors = [];
 $notice = '';
@@ -108,4 +109,5 @@ foreach ($stmt->fetchAll() as $row) {
     $requests[] = $row;
 }
 
-include TOY_ROOT . '/modules/member/views/privacy-requests.php';
+$memberSkinView = toy_member_skin_view(toy_member_skin_key($memberSettings), 'privacy-requests');
+include $memberSkinView;

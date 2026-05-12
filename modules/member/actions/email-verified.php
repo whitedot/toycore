@@ -2,4 +2,6 @@
 
 declare(strict_types=1);
 
-include TOY_ROOT . '/modules/member/views/email-verified.php';
+$memberSettings = toy_member_settings($pdo);
+$memberSkinView = toy_member_skin_view(toy_member_skin_key($memberSettings), 'email-verified');
+include $memberSkinView;

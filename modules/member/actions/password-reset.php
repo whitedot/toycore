@@ -10,6 +10,7 @@ $method = toy_request_method();
 $resetTokenSessionSeconds = 900;
 $token = '';
 $tokenInputInvalid = false;
+$memberSettings = toy_member_settings($pdo);
 if ($method === 'GET') {
     $tokenInput = toy_get_string_without_truncation('token', 64);
     if ($tokenInput === null) {
@@ -120,4 +121,5 @@ if ($method === 'POST') {
     }
 }
 
-include TOY_ROOT . '/modules/member/views/password-reset.php';
+$memberSkinView = toy_member_skin_view(toy_member_skin_key($memberSettings), 'password-reset');
+include $memberSkinView;

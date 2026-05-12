@@ -112,6 +112,26 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } else { ?>
     <section>
+        <h2>팝업레이어 설정</h2>
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/popup-layers')); ?>">
+            <?php echo toy_csrf_field(); ?>
+            <input type="hidden" name="intent" value="save_settings">
+            <p>
+                <label>팝업레이어 스킨<br>
+                    <select name="popup_layer_skin_key">
+                        <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
+                            <option value="<?php echo toy_e((string) $skinKey); ?>"<?php echo $popupLayerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
+                                <?php echo toy_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
+            </p>
+            <button type="submit">팝업레이어 설정 저장</button>
+        </form>
+    </section>
+
+    <section>
         <h2>팝업 목록</h2>
         <p><a href="<?php echo toy_e(toy_url('/admin/popup-layers/new')); ?>">새 팝업 추가</a></p>
         <?php if ($popups === []) { ?>

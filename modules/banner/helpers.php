@@ -540,7 +540,87 @@ function toy_banner_public_banner_option_labels(PDO $pdo): array
     return $labels;
 }
 
-function toy_banner_render_item(array $banner): string
+function toy_banner_settings(PDO $pdo): array
+{
+    $metadata = toy_module_metadata('banner');
+    $defaults = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
+
+    return array_merge(['banner_skin_key' => 'basic'], $defaults, toy_module_settings($pdo, 'banner'));
+}
+
+function toy_banner_skin_options(): array
+{
+    return [
+        'basic' => [
+            'label' => '기본',
+            'views' => [
+                'item' => TOY_ROOT . '/modules/banner/skins/basic/item.php',
+            ],
+        ],
+    ];
+}
+
+function toy_banner_skin_key(array $settings): string
+{
+    $skinKey = (string) ($settings['banner_skin_key'] ?? 'basic');
+
+    return isset(toy_banner_skin_options()[$skinKey]) ? $skinKey : 'basic';
+}
+
+function toy_banner_skin_view(string $skinKey, string $viewKey): string
+{
+    $options = toy_banner_skin_options();
+    $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
+
+    return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
+}
+
+function toy_banner_save_skin_key(PDO $pdo, string $skinKey): void
+{
+    $skinKey = toy_banner_skin_key(['banner_skin_key' => $skinKey]);
+    $stmt = $pdo->prepare("SELECT id FROM toy_modules WHERE module_key = 'banner' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('배너 모듈이 등록되어 있지 않습니다.');
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $now = toy_now();
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'banner_skin_key',
+        'setting_value' => $skinKey,
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    toy_clear_module_settings_cache('banner');
+}
+
+function toy_banner_render_item(array $banner, ?string $skinKey = null): string
+{
+    $skinKey = toy_banner_skin_key(['banner_skin_key' => $skinKey ?? 'basic']);
+    $view = toy_banner_skin_view($skinKey, 'item');
+    if ($view === '') {
+        return '';
+    }
+
+    ob_start();
+    include $view;
+    return (string) ob_get_clean();
+}
+
+function toy_banner_render_basic_item(array $banner): string
 {
     $content = '';
     $imageUrl = toy_banner_clean_image_url((string) ($banner['image_url'] ?? ''));
@@ -589,7 +669,8 @@ function toy_banner_render_public_banner(PDO $pdo, int $bannerId): string
     ]);
 
     $banner = $stmt->fetch();
-    return is_array($banner) ? toy_banner_render_item($banner) : '';
+    $skinKey = toy_banner_skin_key(toy_banner_settings($pdo));
+    return is_array($banner) ? toy_banner_render_item($banner, $skinKey) : '';
 }
 
 function toy_banner_render_slot(PDO $pdo, array $context): string
@@ -624,8 +705,9 @@ function toy_banner_render_slot(PDO $pdo, array $context): string
     ]);
 
     $html = '';
+    $skinKey = toy_banner_skin_key(toy_banner_settings($pdo));
     foreach ($stmt->fetchAll() as $banner) {
-        $html .= toy_banner_render_item($banner);
+        $html .= toy_banner_render_item($banner, $skinKey);
     }
 
     return $html;

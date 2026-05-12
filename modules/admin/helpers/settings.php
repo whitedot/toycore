@@ -7,6 +7,74 @@ function toy_admin_settings_allowed_types(): array
     return ['string', 'int', 'bool', 'json'];
 }
 
+function toy_admin_settings(PDO $pdo): array
+{
+    $metadata = toy_module_metadata('admin');
+    $defaults = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
+
+    return array_merge(['admin_skin_key' => 'basic'], $defaults, toy_module_settings($pdo, 'admin'));
+}
+
+function toy_admin_skin_options(): array
+{
+    return [
+        'basic' => [
+            'label' => '기본',
+            'views' => [
+                'layout-header' => TOY_ROOT . '/modules/admin/skins/basic/layout-header.php',
+                'layout-footer' => TOY_ROOT . '/modules/admin/skins/basic/layout-footer.php',
+            ],
+        ],
+    ];
+}
+
+function toy_admin_skin_key(array $settings): string
+{
+    $skinKey = (string) ($settings['admin_skin_key'] ?? 'basic');
+
+    return isset(toy_admin_skin_options()[$skinKey]) ? $skinKey : 'basic';
+}
+
+function toy_admin_skin_view(string $skinKey, string $viewKey): string
+{
+    $options = toy_admin_skin_options();
+    $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
+
+    return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
+}
+
+function toy_admin_save_skin_key(PDO $pdo, string $skinKey): void
+{
+    $skinKey = toy_admin_skin_key(['admin_skin_key' => $skinKey]);
+    $stmt = $pdo->prepare("SELECT id FROM toy_modules WHERE module_key = 'admin' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('관리자 모듈이 등록되어 있지 않습니다.');
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $now = toy_now();
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'admin_skin_key',
+        'setting_value' => $skinKey,
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    toy_clear_module_settings_cache('admin');
+}
+
 function toy_admin_reserved_site_setting_keys(): array
 {
     return [

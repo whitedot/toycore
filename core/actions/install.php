@@ -8,13 +8,13 @@ $errors = [];
 $requiredModules = [
     'member' => [
         'name' => 'Member',
-        'version' => '2026.04.006',
+        'version' => '2026.05.002',
         'label' => '회원',
         'description' => '회원가입, 로그인, 계정 화면, 비밀번호 재설정, 이메일 인증을 제공합니다.',
     ],
     'admin' => [
         'name' => 'Admin',
-        'version' => '2026.04.001',
+        'version' => '2026.05.001',
         'label' => '관리자',
         'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리 화면을 제공합니다.',
     ],
@@ -34,13 +34,13 @@ $optionalModules = [
     ],
     'banner' => [
         'name' => 'Banner',
-        'version' => '2026.04.003',
+        'version' => '2026.05.001',
         'label' => '배너',
         'description' => '공통 출력 위치에 노출할 배너와 노출 규칙을 관리합니다.',
     ],
     'popup_layer' => [
         'name' => 'Popup Layer',
-        'version' => '2026.04.001',
+        'version' => '2026.05.001',
         'label' => '팝업레이어',
         'description' => '화면별 팝업 노출 규칙과 관리자 등록 화면을 설치합니다.',
     ],

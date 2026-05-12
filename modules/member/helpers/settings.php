@@ -27,6 +27,7 @@ function toy_member_default_settings(): array
         'email_verification_throttle_ip_limit' => (int) ($settings['email_verification_throttle_ip_limit'] ?? 20),
         'register_throttle_window_seconds' => (int) ($settings['register_throttle_window_seconds'] ?? 900),
         'register_throttle_ip_limit' => (int) ($settings['register_throttle_ip_limit'] ?? 10),
+        'member_skin_key' => is_string($settings['member_skin_key'] ?? null) ? (string) $settings['member_skin_key'] : 'basic',
         'profile_nickname_enabled' => (bool) ($settings['profile_nickname_enabled'] ?? true),
         'profile_phone_enabled' => (bool) ($settings['profile_phone_enabled'] ?? true),
         'profile_birth_date_enabled' => (bool) ($settings['profile_birth_date_enabled'] ?? true),
@@ -42,6 +43,7 @@ function toy_member_settings(PDO $pdo): array
     $settings['allow_registration'] = (bool) $settings['allow_registration'];
     $settings['email_verification_enabled'] = (bool) $settings['email_verification_enabled'];
     $settings['login_identifier'] = (string) $settings['login_identifier'] === 'login_id' ? 'login_id' : 'email';
+    $settings['member_skin_key'] = toy_member_skin_key($settings);
     foreach (toy_member_profile_field_setting_keys() as $key => $label) {
         $settings[$key] = (bool) ($settings[$key] ?? false);
     }
@@ -51,6 +53,40 @@ function toy_member_settings(PDO $pdo): array
     }
 
     return $settings;
+}
+
+function toy_member_skin_options(): array
+{
+    return [
+        'basic' => [
+            'label' => '기본',
+            'views' => [
+                'login' => TOY_ROOT . '/modules/member/skins/basic/login.php',
+                'register' => TOY_ROOT . '/modules/member/skins/basic/register.php',
+                'account' => TOY_ROOT . '/modules/member/skins/basic/account.php',
+                'password-reset-request' => TOY_ROOT . '/modules/member/skins/basic/password-reset-request.php',
+                'password-reset' => TOY_ROOT . '/modules/member/skins/basic/password-reset.php',
+                'privacy-requests' => TOY_ROOT . '/modules/member/skins/basic/privacy-requests.php',
+                'withdraw' => TOY_ROOT . '/modules/member/skins/basic/withdraw.php',
+                'email-verified' => TOY_ROOT . '/modules/member/skins/basic/email-verified.php',
+            ],
+        ],
+    ];
+}
+
+function toy_member_skin_key(array $settings): string
+{
+    $skinKey = (string) ($settings['member_skin_key'] ?? 'basic');
+
+    return isset(toy_member_skin_options()[$skinKey]) ? $skinKey : 'basic';
+}
+
+function toy_member_skin_view(string $skinKey, string $viewKey): string
+{
+    $options = toy_member_skin_options();
+    $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
+
+    return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
 }
 
 function toy_member_integer_setting_keys(): array

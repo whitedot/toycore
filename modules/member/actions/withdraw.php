@@ -6,6 +6,7 @@ require_once TOY_ROOT . '/modules/member/helpers.php';
 
 $account = toy_member_require_login($pdo);
 $errors = [];
+$memberSettings = toy_member_settings($pdo);
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
@@ -66,4 +67,5 @@ if (toy_request_method() === 'POST') {
     }
 }
 
-include TOY_ROOT . '/modules/member/views/withdraw.php';
+$memberSkinView = toy_member_skin_view(toy_member_skin_key($memberSettings), 'withdraw');
+include $memberSkinView;

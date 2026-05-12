@@ -226,4 +226,5 @@ if (is_array($submittedProfile) && $errors !== []) {
 }
 $consents = toy_member_latest_consents($pdo, (int) $account['id']);
 
-include TOY_ROOT . '/modules/member/views/account.php';
+$memberSkinView = toy_member_skin_view(toy_member_skin_key($memberSettings), 'account');
+include $memberSkinView;

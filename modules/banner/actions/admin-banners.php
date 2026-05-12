@@ -18,6 +18,9 @@ if (!in_array($bannerAdminPage, ['list', 'form'], true)) {
     $bannerAdminPage = 'list';
 }
 $availableTargets = toy_banner_available_targets($pdo);
+$bannerSettings = toy_banner_settings($pdo);
+$bannerSkinOptions = toy_banner_skin_options();
+$bannerSkinKey = toy_banner_skin_key($bannerSettings);
 $filters = [
     'status' => toy_get_string('status', 30),
     'target' => toy_get_string('target', 300),
@@ -37,7 +40,31 @@ if (toy_request_method() === 'POST') {
     $intent = toy_post_string('intent', 40);
     $bannerId = (int) toy_post_string('banner_id', 20);
 
-    if ($intent === 'delete') {
+    if ($intent === 'save_settings') {
+        $postedSkinKey = toy_post_string('banner_skin_key', 40);
+        if (!isset($bannerSkinOptions[$postedSkinKey])) {
+            $errors[] = '배너 스킨 값이 올바르지 않습니다.';
+        }
+
+        if ($errors === []) {
+            toy_banner_save_skin_key($pdo, $postedSkinKey);
+            $bannerSettings = toy_banner_settings($pdo);
+            $bannerSkinKey = toy_banner_skin_key($bannerSettings);
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'banner.settings.updated',
+                'target_type' => 'module',
+                'target_id' => 'banner',
+                'result' => 'success',
+                'message' => 'Banner settings updated.',
+                'metadata' => [
+                    'banner_skin_key' => $bannerSkinKey,
+                ],
+            ]);
+            $notice = '배너 설정을 저장했습니다.';
+        }
+    } elseif ($intent === 'delete') {
         if ($bannerId <= 0) {
             $errors[] = '삭제할 배너를 찾을 수 없습니다.';
         }

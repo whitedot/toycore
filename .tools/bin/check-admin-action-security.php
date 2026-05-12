@@ -588,6 +588,32 @@ if (!is_string($adminNavigationHelper)) {
     $errors[] = 'Admin navigation must group builtin admin links and load module paths.php through the contract file loader.';
 }
 
+$adminSettingsHelper = file_get_contents($root . '/modules/admin/helpers/settings.php');
+$adminLayoutHeader = file_get_contents($root . '/modules/admin/views/layout-header.php');
+if (!is_string($adminSettingsHelper) || !is_string($adminLayoutHeader)) {
+    $errors[] = 'Admin skin files cannot be read.';
+} elseif (
+    strpos($adminSettingsHelper, 'function toy_admin_skin_options(): array') === false
+    || strpos($adminSettingsHelper, 'function toy_admin_skin_view(string $skinKey, string $viewKey): string') === false
+    || strpos($adminLayoutHeader, "toy_admin_skin_view(toy_admin_skin_key(\$adminSettings), 'layout-header')") === false
+    || !is_file($root . '/modules/admin/skins/basic/layout-header.php')
+    || !is_file($root . '/modules/admin/skins/basic/layout-footer.php')
+) {
+    $errors[] = 'Admin layout must render through explicit admin skin views with a basic fallback.';
+}
+
+$bannerHelper = file_get_contents($root . '/modules/banner/helpers.php');
+if (!is_string($bannerHelper)) {
+    $errors[] = 'Banner helper cannot be read.';
+} elseif (
+    strpos($bannerHelper, 'function toy_banner_skin_options(): array') === false
+    || strpos($bannerHelper, 'function toy_banner_render_basic_item(array $banner): string') === false
+    || strpos($bannerHelper, 'toy_banner_render_item($banner, $skinKey)') === false
+    || !is_file($root . '/modules/banner/skins/basic/item.php')
+) {
+    $errors[] = 'Banner rendering must use explicit banner skin views with a basic fallback.';
+}
+
 $adminModuleSourcesHelper = file_get_contents($root . '/modules/admin/helpers/module-sources.php');
 if (!is_string($adminModuleSourcesHelper)) {
     $errors[] = 'Admin module sources helper cannot be read.';

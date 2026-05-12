@@ -19,6 +19,13 @@
 
 ## 현재 상태
 
+구현 상태:
+
+- 배너는 `banner_skin_key` 설정과 `modules/banner/skins/basic/item.php`를 사용한다.
+- 팝업레이어는 `popup_layer_skin_key` 설정과 `modules/popup_layer/skins/basic/layer.php`를 사용한다.
+- 회원 public 화면은 `member_skin_key` 설정과 `modules/member/skins/basic/*.php` wrapper를 사용한다.
+- 관리자 layout은 `admin_skin_key` 설정과 `modules/admin/skins/basic/layout-*.php`를 사용한다.
+
 커뮤니티:
 
 - `modules/community/helpers/themes.php`에 `theme_key`, `skin_key` helper가 있다.
@@ -28,7 +35,7 @@
 
 배너:
 
-- `toy_banner_render_item()`이 HTML을 helper 문자열로 직접 조립한다.
+- `toy_banner_render_item()`이 스킨 view를 include하고, 기본 스킨은 `toy_banner_render_basic_item()`으로 출력한다.
 - `toy_banner_render_public_banner()`와 `toy_banner_render_slot()`이 같은 item renderer를 사용한다.
 - output slot 계약은 이미 있다.
 
@@ -36,19 +43,19 @@
 
 - 렌더링 helper와 JS asset이 있다.
 - output slot 계약은 이미 있다.
-- 팝업 HTML도 helper 중심으로 생성한다.
+- 팝업 stack은 스킨 view를 include하고, 기본 스킨은 `toy_popup_layer_render_basic_stack()`으로 출력한다.
 
 회원:
 
-- 로그인, 회원가입, 계정, 비밀번호 재설정 등 public view가 `modules/member/views/*.php`에 직접 있다.
+- 로그인, 회원가입, 계정, 비밀번호 재설정 등 public action이 `modules/member/skins/basic/*.php`를 통해 view를 출력한다.
 - `extension-points.php`와 output slot은 일부 화면에 이미 있다.
-- 스킨 선택 helper는 없다.
+- 스킨 선택 helper가 있다.
 
 관리자:
 
-- `modules/admin/views/layout-header.php`, `layout-footer.php`가 관리자 공통 레이아웃이다.
+- `modules/admin/views/layout-header.php`, `layout-footer.php`는 스킨 layout wrapper다.
 - 관리자 메뉴는 관리자 기본 그룹과 모듈 그룹을 함께 묶는 구조로 정리되어 있다.
-- 관리자 스킨 선택 helper는 없다.
+- 관리자 스킨 선택 helper가 있다.
 
 ## 범위
 

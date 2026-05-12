@@ -86,6 +86,14 @@ if ($scriptOnlySlots !== []) {
     $errors[] = 'popup layer must not accept non-content slots.';
 }
 
+if (
+    !isset(toy_popup_layer_skin_options()['basic'])
+    || toy_popup_layer_skin_view('basic', 'layer') === ''
+    || !function_exists('toy_popup_layer_render_basic_stack')
+) {
+    $errors[] = 'popup layer skin helpers must provide a basic layer skin.';
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "popup layer target checks failed:\n");
     foreach ($errors as $error) {

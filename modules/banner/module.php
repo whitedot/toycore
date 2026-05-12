@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Banner',
-    'version' => '2026.04.003',
+    'version' => '2026.05.001',
     'type' => 'module',
     'description' => 'Content banner management module for public output slots.',
     'toycore' => [
@@ -22,5 +22,8 @@ return [
         'consumes' => [
             'extension-points.php',
         ],
+    ],
+    'settings' => [
+        'banner_skin_key' => 'basic',
     ],
 ];

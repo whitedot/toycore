@@ -150,12 +150,92 @@ function toy_popup_layer_public_layers(PDO $pdo): array
     return $stmt->fetchAll();
 }
 
-function toy_popup_layer_render_stack(array $popups): string
+function toy_popup_layer_settings(PDO $pdo): array
+{
+    $metadata = toy_module_metadata('popup_layer');
+    $defaults = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
+
+    return array_merge(['popup_layer_skin_key' => 'basic'], $defaults, toy_module_settings($pdo, 'popup_layer'));
+}
+
+function toy_popup_layer_skin_options(): array
+{
+    return [
+        'basic' => [
+            'label' => '기본',
+            'views' => [
+                'layer' => TOY_ROOT . '/modules/popup_layer/skins/basic/layer.php',
+            ],
+        ],
+    ];
+}
+
+function toy_popup_layer_skin_key(array $settings): string
+{
+    $skinKey = (string) ($settings['popup_layer_skin_key'] ?? 'basic');
+
+    return isset(toy_popup_layer_skin_options()[$skinKey]) ? $skinKey : 'basic';
+}
+
+function toy_popup_layer_skin_view(string $skinKey, string $viewKey): string
+{
+    $options = toy_popup_layer_skin_options();
+    $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
+
+    return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
+}
+
+function toy_popup_layer_save_skin_key(PDO $pdo, string $skinKey): void
+{
+    $skinKey = toy_popup_layer_skin_key(['popup_layer_skin_key' => $skinKey]);
+    $stmt = $pdo->prepare("SELECT id FROM toy_modules WHERE module_key = 'popup_layer' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('팝업레이어 모듈이 등록되어 있지 않습니다.');
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $now = toy_now();
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'popup_layer_skin_key',
+        'setting_value' => $skinKey,
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    toy_clear_module_settings_cache('popup_layer');
+}
+
+function toy_popup_layer_render_stack(array $popups, string $skinKey = 'basic'): string
 {
     if ($popups === []) {
         return '';
     }
 
+    $skinKey = toy_popup_layer_skin_key(['popup_layer_skin_key' => $skinKey]);
+    $view = toy_popup_layer_skin_view($skinKey, 'layer');
+    if ($view === '') {
+        return '';
+    }
+
+    ob_start();
+    include $view;
+    return (string) ob_get_clean();
+}
+
+function toy_popup_layer_render_basic_stack(array $popups): string
+{
     $html = ['<div class="toy-popup-layer-stack" data-toy-popup-layer-stack>'];
     foreach ($popups as $popup) {
         $cookieDays = max(0, min(365, (int) $popup['dismiss_cookie_days']));
@@ -167,7 +247,6 @@ function toy_popup_layer_render_stack(array $popups): string
     }
     $html[] = '</div>';
     $html[] = toy_popup_layer_close_script();
-
     return implode("\n", $html);
 }
 
@@ -208,6 +287,7 @@ function toy_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): strin
         return '';
     }
 
+    $skinKey = toy_popup_layer_skin_key(toy_popup_layer_settings($pdo));
     return toy_popup_layer_render_stack([
         [
             'id' => $id,
@@ -215,7 +295,7 @@ function toy_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): strin
             'body_text' => (string) ($row['body_text'] ?? ''),
             'dismiss_cookie_days' => (int) ($row['dismiss_cookie_days'] ?? 1),
         ],
-    ]);
+    ], $skinKey);
 }
 
 function toy_popup_layer_render(PDO $pdo, array $context): string
@@ -279,7 +359,8 @@ function toy_popup_layer_render(PDO $pdo, array $context): string
         ];
     }
 
-    return toy_popup_layer_render_stack($popups);
+    $skinKey = toy_popup_layer_skin_key(toy_popup_layer_settings($pdo));
+    return toy_popup_layer_render_stack($popups, $skinKey);
 }
 
 function toy_popup_layer_cookie_name(int $popupId): string

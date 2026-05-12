@@ -79,6 +79,26 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 </form>
 
 <section>
+    <h2>관리자 화면</h2>
+    <form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
+        <?php echo toy_csrf_field(); ?>
+        <input type="hidden" name="intent" value="admin_skin">
+        <p>
+            <label>관리자 스킨<br>
+                <select name="admin_skin_key">
+                    <?php foreach ($adminSkinOptions as $skinKey => $skinOption) { ?>
+                        <option value="<?php echo toy_e((string) $skinKey); ?>"<?php echo $adminSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
+                            <?php echo toy_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </label>
+        </p>
+        <button type="submit">관리자 화면 설정 저장</button>
+    </form>
+</section>
+
+<section>
     <h2>추가 사이트 설정 항목</h2>
     <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 owner만 실행할 수 있습니다.</p>
     <?php if ($canManageAdvancedSettings) { ?>

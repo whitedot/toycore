@@ -155,4 +155,5 @@ if (toy_request_method() === 'POST') {
     }
 }
 
-include TOY_ROOT . '/modules/member/views/login.php';
+$memberSkinView = toy_member_skin_view(toy_member_skin_key($memberSettings), 'login');
+include $memberSkinView;

@@ -18,6 +18,12 @@ if (toy_request_method() === 'POST') {
 
     $settings['allow_registration'] = ($_POST['allow_registration'] ?? '') === '1';
     $settings['email_verification_enabled'] = ($_POST['email_verification_enabled'] ?? '') === '1';
+    $memberSkinKey = toy_post_string('member_skin_key', 40);
+    if (!isset(toy_member_skin_options()[$memberSkinKey])) {
+        $errors[] = '회원 스킨 값이 올바르지 않습니다.';
+    } else {
+        $settings['member_skin_key'] = $memberSkinKey;
+    }
     $loginIdentifier = toy_post_string('login_identifier', 20);
     if (!in_array($loginIdentifier, ['email', 'login_id'], true)) {
         $errors[] = '로그인 식별자 설정이 올바르지 않습니다.';
@@ -61,6 +67,7 @@ if (toy_request_method() === 'POST') {
             ['allow_registration', $settings['allow_registration'] ? '1' : '0', 'bool'],
             ['email_verification_enabled', $settings['email_verification_enabled'] ? '1' : '0', 'bool'],
             ['login_identifier', (string) $settings['login_identifier'], 'string'],
+            ['member_skin_key', (string) $settings['member_skin_key'], 'string'],
         ];
         foreach (toy_member_profile_field_setting_keys() as $key => $label) {
             $rows[] = [$key, !empty($settings[$key]) ? '1' : '0', 'bool'];
@@ -94,6 +101,7 @@ if (toy_request_method() === 'POST') {
                 'allow_registration' => (bool) $settings['allow_registration'],
                 'email_verification_enabled' => (bool) $settings['email_verification_enabled'],
                 'login_identifier' => (string) $settings['login_identifier'],
+                'member_skin_key' => (string) $settings['member_skin_key'],
                 'profile_fields' => toy_member_profile_field_settings($settings),
             ],
         ]);
