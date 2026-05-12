@@ -500,9 +500,7 @@ function toy_banner_redirect_to_link(string $url): void
         toy_redirect($url);
     }
 
-    toy_enforce_request_contract('before_redirect');
-    header('Location: ' . $url, true, 302);
-    toy_finish_response();
+    toy_redirect_external($url);
 }
 
 function toy_banner_link_type_label(string $url): string
