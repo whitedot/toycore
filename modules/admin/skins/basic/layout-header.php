@@ -20,24 +20,18 @@ $adminNavigationGroups = isset($pdo) && $pdo instanceof PDO ? toy_admin_navigati
         <h1><?php echo toy_e($adminPageTitle); ?></h1>
         <nav>
             <?php foreach ($adminNavigationGroups as $adminNavigationGroup) { ?>
-                <details>
-                    <summary><?php echo toy_e((string) $adminNavigationGroup['label']); ?></summary>
+                <div>
+                    <strong><?php echo toy_e((string) $adminNavigationGroup['label']); ?></strong>
                     <?php $adminNavigationModuleGroups = isset($adminNavigationGroup['module_groups']) && is_array($adminNavigationGroup['module_groups']) ? $adminNavigationGroup['module_groups'] : []; ?>
-                    <?php if ($adminNavigationModuleGroups !== []) { ?>
-                        <?php foreach ($adminNavigationModuleGroups as $adminNavigationModuleGroup) { ?>
-                            <details>
-                                <summary><?php echo toy_e((string) $adminNavigationModuleGroup['label']); ?></summary>
-                                <?php foreach ($adminNavigationModuleGroup['items'] as $adminNavigationItem) { ?>
-                                    <a href="<?php echo toy_e(toy_url((string) $adminNavigationItem['path'])); ?>"><?php echo toy_e($adminNavigationItem['label']); ?></a>
-                                <?php } ?>
-                            </details>
-                        <?php } ?>
-                    <?php } else { ?>
-                        <?php foreach ($adminNavigationGroup['items'] as $adminNavigationItem) { ?>
-                            <a href="<?php echo toy_e(toy_url((string) $adminNavigationItem['path'])); ?>"><?php echo toy_e($adminNavigationItem['label']); ?></a>
-                        <?php } ?>
+                    <?php foreach ($adminNavigationModuleGroups as $adminNavigationModuleGroup) { ?>
+                        <details>
+                            <summary><?php echo toy_e((string) $adminNavigationModuleGroup['label']); ?></summary>
+                            <?php foreach ($adminNavigationModuleGroup['items'] as $adminNavigationItem) { ?>
+                                <a href="<?php echo toy_e(toy_url((string) $adminNavigationItem['path'])); ?>"><?php echo toy_e($adminNavigationItem['label']); ?></a>
+                            <?php } ?>
+                        </details>
                     <?php } ?>
-                </details>
+                </div>
             <?php } ?>
             <form method="post" action="<?php echo toy_e(toy_url('/logout')); ?>" style="display:inline">
                 <?php echo toy_csrf_field(); ?>
