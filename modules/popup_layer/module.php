@@ -5,6 +5,12 @@ return [
     'version' => '2026.05.002',
     'type' => 'module',
     'description' => '팝업레이어 관리와 출력 모듈입니다.',
+    'admin' => [
+        'category' => 'content',
+        'category_label' => '콘텐츠',
+        'category_order' => 30,
+        'menu_order' => 30,
+    ],
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

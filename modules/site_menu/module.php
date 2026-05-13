@@ -5,6 +5,12 @@ return [
     'version' => '2026.04.003',
     'type' => 'module',
     'description' => '사이트 공통 내비게이션 메뉴 관리 모듈입니다.',
+    'admin' => [
+        'category' => 'site',
+        'category_label' => '사이트',
+        'category_order' => 20,
+        'menu_order' => 10,
+    ],
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

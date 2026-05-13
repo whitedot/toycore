@@ -5,6 +5,12 @@ return [
     'version' => '2026.04.001',
     'type' => 'module',
     'description' => '회원 적립금 잔액과 거래 장부 모듈입니다.',
+    'admin' => [
+        'category' => 'asset',
+        'category_label' => '자산',
+        'category_order' => 50,
+        'menu_order' => 30,
+    ],
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

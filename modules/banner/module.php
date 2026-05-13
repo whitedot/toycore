@@ -5,6 +5,12 @@ return [
     'version' => '2026.05.003',
     'type' => 'module',
     'description' => '공개 출력 슬롯용 배너 관리 모듈입니다.',
+    'admin' => [
+        'category' => 'content',
+        'category_label' => '콘텐츠',
+        'category_order' => 30,
+        'menu_order' => 20,
+    ],
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

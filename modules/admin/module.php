@@ -5,6 +5,12 @@ return [
     'version' => '2026.05.001',
     'type' => 'module',
     'description' => '관리자 대시보드 모듈입니다.',
+    'admin' => [
+        'category' => 'system',
+        'category_label' => '시스템',
+        'category_order' => 0,
+        'menu_order' => 0,
+    ],
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

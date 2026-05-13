@@ -699,6 +699,18 @@ $postsPerPage = (int) toy_module_setting($pdo, 'board', 'posts_per_page', 20);
 ## 14. 관리자 메뉴
 
 관리자 메뉴가 필요한 모듈은 `admin-menu.php`를 둔다.
+관리자 메뉴의 자산 분류와 모듈 단위 정렬은 새 계약 파일을 만들지 않고 `module.php`의 선택적 `admin` 메타데이터로 선언한다.
+
+```php
+'admin' => [
+    'category' => 'content',
+    'category_label' => '콘텐츠',
+    'category_order' => 30,
+    'menu_order' => 10,
+],
+```
+
+`admin.category`가 없으면 관리자 모듈은 `기타` 자산으로 묶는다. `admin-menu.php`의 `order`는 모듈 안의 메뉴 항목 정렬에 사용하고, 모듈끼리의 정렬은 `admin.menu_order`를 우선 사용한다.
 
 ```php
 <?php

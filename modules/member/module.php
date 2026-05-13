@@ -5,6 +5,12 @@ return [
     'version' => '2026.05.002',
     'type' => 'module',
     'description' => '회원 계정과 인증 모듈입니다.',
+    'admin' => [
+        'category' => 'member',
+        'category_label' => '회원',
+        'category_order' => 10,
+        'menu_order' => 10,
+    ],
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],
