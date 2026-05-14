@@ -201,6 +201,18 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                             <?php } ?>
                         </select>
                     </p>
+                    <p>
+                        <label for="main_page_path">메인 페이지</label>
+                        <select id="main_page_path" name="main_page_path">
+                            <?php foreach ($mainPageOptions as $mainPageOption) { ?>
+                                <option value="<?php echo sr_e((string) $mainPageOption['path']); ?>"<?php echo $values['main_page_path'] === (string) $mainPageOption['path'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $mainPageOption['label']); ?>
+                                    <?php echo (string) $mainPageOption['path'] !== '/' ? ' (' . sr_e((string) $mainPageOption['path']) . ')' : ''; ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                        <span class="sr-install-help">커뮤니티 같은 서비스 도메인 모듈을 선택 모듈에서 함께 체크하면 메인 페이지로 사용할 수 있습니다.</span>
+                    </p>
                 </div>
             </section>
 

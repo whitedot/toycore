@@ -33,6 +33,7 @@ window.AdminShell = {
         const tabRoot = document.querySelector('[data-admin-tabs]');
         const memberRuleDefinition = document.querySelector('[data-member-rule-definition]');
         const dateQuickButtons = Array.prototype.slice.call(document.querySelectorAll('[data-datetime-target]'));
+        const dashboardSectionsRoot = document.querySelector('[data-admin-dashboard-sections]');
         let hideScrollbarTimer = null;
 
         const isMobileViewport = () => mobileQuery.matches;
@@ -438,6 +439,56 @@ window.AdminShell = {
                     }
                     target.value = toLocalDatetimeValue(date);
                     target.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            });
+        }
+
+        if (dashboardSectionsRoot) {
+            const storageKey = 'sr_admin_dashboard_section_order';
+            let draggedSection = null;
+
+            const sections = () => Array.prototype.slice.call(dashboardSectionsRoot.querySelectorAll('[data-admin-dashboard-section]'));
+            const saveSectionOrder = () => {
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify(sections().map(section => section.dataset.adminDashboardSection || '')));
+                } catch (err) {}
+            };
+
+            try {
+                const savedOrder = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                if (Array.isArray(savedOrder) && savedOrder.length > 0) {
+                    savedOrder.forEach(key => {
+                        const section = sections().find(item => (item.dataset.adminDashboardSection || '') === String(key));
+                        if (section) {
+                            dashboardSectionsRoot.appendChild(section);
+                        }
+                    });
+                }
+            } catch (err) {}
+
+            sections().forEach(section => {
+                section.addEventListener('dragstart', event => {
+                    draggedSection = section;
+                    section.classList.add('is-dragging');
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', '');
+                });
+
+                section.addEventListener('dragend', () => {
+                    section.classList.remove('is-dragging');
+                    draggedSection = null;
+                    saveSectionOrder();
+                });
+
+                section.addEventListener('dragover', event => {
+                    if (!draggedSection || draggedSection === section) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    const rect = section.getBoundingClientRect();
+                    const after = event.clientY > rect.top + rect.height / 2;
+                    dashboardSectionsRoot.insertBefore(draggedSection, after ? section.nextSibling : section);
                 });
             });
         }

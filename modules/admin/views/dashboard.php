@@ -4,9 +4,11 @@ $adminPageTitle = '관리자 대시보드';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<section class="member-table-card admin-dashboard-site-card">
+<div class="admin-dashboard-sections" data-admin-dashboard-sections>
+<section class="member-table-card admin-dashboard-site-card admin-dashboard-section" data-admin-dashboard-section="site" draggable="true">
     <div class="card-header">
         <h2 class="card-title">사이트</h2>
+        <button type="button" class="admin-dashboard-section-handle" aria-label="사이트 섹션 이동">이동</button>
     </div>
     <dl class="admin-dashboard-site-grid">
         <div>
@@ -24,9 +26,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </dl>
 </section>
 
-<section class="member-table-card admin-member-list-form">
+<section class="member-table-card admin-member-list-form admin-dashboard-section" data-admin-dashboard-section="install_protection" draggable="true">
     <div class="card-header">
         <h2 class="card-title">설치 보호</h2>
+        <button type="button" class="admin-dashboard-section-handle" aria-label="설치 보호 섹션 이동">이동</button>
     </div>
     <div class="table-wrapper">
     <table class="table">
@@ -52,9 +55,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<section class="member-table-card admin-member-list-form">
+<section class="member-table-card admin-member-list-form admin-dashboard-section" data-admin-dashboard-section="sensitive_settings" draggable="true">
     <div class="card-header">
         <h2 class="card-title">고위험 설정</h2>
+        <button type="button" class="admin-dashboard-section-handle" aria-label="고위험 설정 섹션 이동">이동</button>
     </div>
     <div class="table-wrapper">
     <table class="table">
@@ -84,9 +88,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<section class="member-table-card admin-member-list-form">
+<section class="member-table-card admin-member-list-form admin-dashboard-section" data-admin-dashboard-section="auth_runtime" draggable="true">
     <div class="card-header">
         <h2 class="card-title">인증 런타임</h2>
+        <button type="button" class="admin-dashboard-section-handle" aria-label="인증 런타임 섹션 이동">이동</button>
     </div>
     <div class="table-wrapper">
     <table class="table">
@@ -113,9 +118,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </section>
 
 <?php if ($recoveryMarkers !== [] || (int) $moduleBackupSummary['count'] > 0) { ?>
-    <section class="member-table-card admin-member-list-form">
+    <section class="member-table-card admin-member-list-form admin-dashboard-section" data-admin-dashboard-section="recovery" draggable="true">
         <div class="card-header">
             <h2 class="card-title">복구 상태</h2>
+            <button type="button" class="admin-dashboard-section-handle" aria-label="복구 상태 섹션 이동">이동</button>
         </div>
 
         <?php if ($recoveryMarkers !== []) { ?>
@@ -161,37 +167,44 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } ?>
 
-<?php if ($operationSummary !== []) { ?>
-    <section class="member-table-card admin-member-list-form">
-        <div class="card-header">
-            <h2 class="card-title">운영 모듈</h2>
-        </div>
-        <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
-                <tr>
-                    <th>항목</th>
-                    <th>주요 수치</th>
-                    <th>상세</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($operationSummary as $summary) { ?>
+<?php if (($moduleDashboardSections ?? []) !== []) { ?>
+    <?php foreach ($moduleDashboardSections as $section) { ?>
+        <section class="member-table-card admin-member-list-form admin-dashboard-section" data-admin-dashboard-section="module_<?php echo sr_e((string) $section['key']); ?>" draggable="true">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title"><?php echo sr_e((string) $section['title']); ?></h2>
+                    <p class="admin-dashboard-meta"><?php echo sr_e((string) $section['module_key']); ?> 모듈</p>
+                </div>
+                <button type="button" class="admin-dashboard-section-handle" aria-label="<?php echo sr_e((string) $section['title']); ?> 섹션 이동">이동</button>
+            </div>
+            <div class="table-wrapper">
+            <table class="table">
+                <thead class="ui-table-head">
                     <tr>
-                        <td><?php echo sr_e((string) $summary['label']); ?></td>
-                        <td><?php echo sr_e((string) $summary['value']); ?></td>
-                        <td><?php echo sr_e((string) $summary['detail']); ?></td>
+                        <th>항목</th>
+                        <th>주요 수치</th>
+                        <th>상세</th>
                     </tr>
-                <?php } ?>
-            </tbody>
-        </table>
-        </div>
-    </section>
+                </thead>
+                <tbody>
+                    <?php foreach ((array) $section['rows'] as $row) { ?>
+                        <tr>
+                            <td><?php echo sr_e((string) $row['label']); ?></td>
+                            <td><?php echo sr_e((string) $row['value']); ?></td>
+                            <td><?php echo sr_e((string) $row['detail']); ?></td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+            </div>
+        </section>
+    <?php } ?>
 <?php } ?>
 
-<section class="member-table-card admin-member-list-form">
+<section class="member-table-card admin-member-list-form admin-dashboard-section" data-admin-dashboard-section="modules" draggable="true">
     <div class="card-header">
         <h2 class="card-title">모듈</h2>
+        <button type="button" class="admin-dashboard-section-handle" aria-label="모듈 섹션 이동">이동</button>
     </div>
     <div class="table-wrapper">
     <table class="table">
@@ -216,5 +229,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
 </section>
+</div>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

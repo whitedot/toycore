@@ -115,6 +115,23 @@ function sr_install_module_definition(string $moduleKey, array $defaults): array
     return $defaults;
 }
 
+function sr_install_module_main_page_option(string $moduleKey): ?array
+{
+    $metadata = sr_module_metadata($moduleKey);
+    $serviceDomain = is_array($metadata['service_domain'] ?? null) ? $metadata['service_domain'] : [];
+    $mainPage = is_array($serviceDomain['main_page'] ?? null) ? $serviceDomain['main_page'] : [];
+    $path = (string) ($mainPage['path'] ?? '');
+    if ($path === '' || $path === '/' || !sr_is_safe_relative_url($path)) {
+        return null;
+    }
+
+    return [
+        'module_key' => $moduleKey,
+        'label' => (string) ($mainPage['label'] ?? (string) ($metadata['name'] ?? $moduleKey)),
+        'path' => $path,
+    ];
+}
+
 function sr_install_database_owner_count(PDO $pdo): int
 {
     try {
@@ -155,6 +172,7 @@ $values = [
     'base_url' => '',
     'timezone' => 'Asia/Seoul',
     'default_locale' => 'ko',
+    'main_page_path' => '/',
     'admin_login_id' => '',
     'admin_email' => '',
     'admin_display_name' => '관리자',
@@ -163,6 +181,20 @@ $values = [
 $currentBaseUrl = sr_current_base_url();
 if ($values['base_url'] === '' && sr_is_site_base_url($currentBaseUrl)) {
     $values['base_url'] = $currentBaseUrl;
+}
+
+$mainPageOptions = [
+    '/' => [
+        'module_key' => 'core',
+        'label' => '기본 홈',
+        'path' => '/',
+    ],
+];
+foreach (array_keys($requiredModules + $optionalModules) as $moduleKey) {
+    $option = sr_install_module_main_page_option((string) $moduleKey);
+    if (is_array($option)) {
+        $mainPageOptions[(string) $option['path']] = $option;
+    }
 }
 
 $previousInstallFailure = null;
@@ -269,6 +301,7 @@ if (sr_request_method() === 'POST') {
 
         $selectedOptionalModuleKeys = array_values($selectedOptionalModuleKeys);
     }
+    $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 
     foreach ($requiredModules as $moduleKey => $module) {
         $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
@@ -343,6 +376,19 @@ if (sr_request_method() === 'POST') {
 
     if ($values['base_url'] !== '' && !sr_is_site_base_url($values['base_url'])) {
         $errors[] = '공개 기준 URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.';
+    }
+
+    if (!isset($mainPageOptions[$values['main_page_path']])) {
+        $errors[] = '메인 페이지 값을 선택하세요.';
+    } else {
+        $mainPageModuleKey = (string) $mainPageOptions[$values['main_page_path']]['module_key'];
+        if (
+            $mainPageModuleKey !== 'core'
+            && !array_key_exists($mainPageModuleKey, $requiredModules)
+            && empty($selectedOptionalModuleMap[$mainPageModuleKey])
+        ) {
+            $errors[] = '메인 페이지로 사용할 모듈을 설치할 기능에서 함께 선택하세요.';
+        }
     }
 
     if ($adminPassword === null || $adminPasswordConfirm === null) {
@@ -468,6 +514,7 @@ if (sr_request_method() === 'POST') {
                 'site.default_locale' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.supported_locales' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.status' => ['value' => 'active', 'type' => 'string'],
+                'site.home_path' => ['value' => $values['main_page_path'], 'type' => 'string'],
                 'public_layout_key' => ['value' => 'basic', 'type' => 'string'],
                 'ui_color_scheme' => ['value' => 'light', 'type' => 'string'],
             ]);

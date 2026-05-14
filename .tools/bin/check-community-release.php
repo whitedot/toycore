@@ -150,6 +150,7 @@ $requiredPackageEntries = [
     'actions',
     'admin-menu.php',
     'assets',
+    'dashboard.php',
     'extension-points.php',
     'helpers',
     'helpers.php',
@@ -197,6 +198,7 @@ foreach (['actions', 'helpers', 'skins', 'themes', 'views'] as $requiredDirector
 $requiredContracts = [
     'paths.php',
     'admin-menu.php',
+    'dashboard.php',
     'menu-links.php',
     'extension-points.php',
     'privacy-export.php',

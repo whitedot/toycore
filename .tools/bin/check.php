@@ -125,6 +125,7 @@ function sr_check_module_lifecycle_metadata(): void
     $knownContractFiles = [
         'admin-menu.php' => true,
         'extension-points.php' => true,
+        'dashboard.php' => true,
         'member-group-rules.php' => true,
         'menu-links.php' => true,
         'output-slots.php' => true,
@@ -259,6 +260,7 @@ function sr_check_module_contract_files(): void
     $knownContractFiles = [
         'admin-menu.php',
         'extension-points.php',
+        'dashboard.php',
         'member-group-rules.php',
         'menu-links.php',
         'output-slots.php',

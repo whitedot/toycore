@@ -28,6 +28,13 @@ return [
             'privacy-export.php',
             'sitemap.php',
             'member-group-rules.php',
+            'dashboard.php',
+        ],
+    ],
+    'service_domain' => [
+        'main_page' => [
+            'label' => '커뮤니티 홈',
+            'path' => '/community',
         ],
     ],
     'settings' => [

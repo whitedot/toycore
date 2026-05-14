@@ -69,6 +69,85 @@ function sr_admin_dashboard_operation_summary(PDO $pdo): array
     return $operationSummary;
 }
 
+function sr_admin_dashboard_scalar(PDO $pdo, string $sql, string $column, string $default = ''): string
+{
+    $trimmed = trim($sql);
+    if ($trimmed === '' || preg_match('/\Aselect\s/i', $trimmed) !== 1 || strpos($trimmed, ';') !== false) {
+        return $default;
+    }
+
+    try {
+        $stmt = $pdo->query($trimmed);
+        $row = $stmt->fetch();
+    } catch (PDOException $exception) {
+        return $default;
+    }
+
+    if (!is_array($row) || !array_key_exists($column, $row)) {
+        return $default;
+    }
+
+    return (string) $row[$column];
+}
+
+function sr_admin_dashboard_module_sections(PDO $pdo): array
+{
+    $sections = [];
+
+    foreach (sr_enabled_module_contract_files($pdo, 'dashboard.php') as $moduleKey => $dashboardFile) {
+        $definition = sr_load_module_contract_file($moduleKey, $dashboardFile);
+        if (!is_array($definition)) {
+            continue;
+        }
+
+        foreach ($definition as $index => $section) {
+            if (!is_array($section)) {
+                continue;
+            }
+
+            $rawKey = (string) ($section['key'] ?? ((string) $moduleKey . '_' . (string) $index));
+            $sectionKey = preg_replace('/[^a-z0-9_]+/', '_', strtolower($rawKey));
+            $sectionKey = is_string($sectionKey) && $sectionKey !== '' ? trim($sectionKey, '_') : (string) $moduleKey;
+            $rows = [];
+            foreach (is_array($section['rows'] ?? null) ? $section['rows'] : [] as $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+
+                $label = trim((string) ($row['label'] ?? ''));
+                if ($label === '') {
+                    continue;
+                }
+
+                $rows[] = [
+                    'label' => $label,
+                    'value' => sr_admin_dashboard_scalar($pdo, (string) ($row['value_sql'] ?? ''), 'value', (string) ($row['value'] ?? '')),
+                    'detail' => sr_admin_dashboard_scalar($pdo, (string) ($row['detail_sql'] ?? ''), 'detail', (string) ($row['detail'] ?? '')),
+                ];
+            }
+
+            if ($rows === []) {
+                continue;
+            }
+
+            $sections[] = [
+                'key' => $sectionKey,
+                'module_key' => (string) $moduleKey,
+                'title' => trim((string) ($section['title'] ?? $moduleKey)),
+                'order' => (int) ($section['order'] ?? 100),
+                'rows' => $rows,
+            ];
+        }
+    }
+
+    usort($sections, static function (array $left, array $right): int {
+        return ((int) $left['order'] <=> (int) $right['order'])
+            ?: strcmp((string) $left['module_key'], (string) $right['module_key']);
+    });
+
+    return $sections;
+}
+
 function sr_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): array
 {
     $summary = [];

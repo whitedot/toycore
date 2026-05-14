@@ -642,6 +642,28 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     white-space: pre-wrap;
 }
 
+.admin-dashboard-sections {
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+}
+
+.admin-dashboard-section {
+    cursor: grab;
+}
+
+.admin-dashboard-section.is-dragging {
+    opacity: .62;
+}
+
+.admin-dashboard-section-handle {
+    border: 1px solid var(--color-default-300);
+    background: var(--color-card);
+    color: var(--color-default-700);
+    cursor: grab;
+    font-size: var(--text-xs);
+    padding: .35rem .6rem;
+}
+
 @media (max-width: 1023px) {
     .admin-page-member-list .member-search-fields,
     .admin-filter-fields {

@@ -9,7 +9,7 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 
 $modules = sr_admin_dashboard_modules($pdo);
-$operationSummary = sr_admin_dashboard_operation_summary($pdo);
+$moduleDashboardSections = sr_admin_dashboard_module_sections($pdo);
 $installProtectionSummary = sr_admin_dashboard_install_protection_summary($config);
 $authRuntimeSummary = sr_admin_dashboard_auth_runtime_summary($pdo, $config);
 $sensitiveSettingSummary = sr_admin_dashboard_sensitive_setting_summary($pdo, $config);

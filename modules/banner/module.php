@@ -24,6 +24,7 @@ return [
             'paths.php',
             'admin-menu.php',
             'output-slots.php',
+            'dashboard.php',
         ],
         'consumes' => [
             'extension-points.php',

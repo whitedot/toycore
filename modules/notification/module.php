@@ -25,6 +25,7 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'privacy-export.php',
+            'dashboard.php',
         ],
     ],
 ];
