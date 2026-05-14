@@ -144,6 +144,7 @@ function sr_stylesheet_tag(array $stylesheets = []): string
 {
     $tags = [
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/saanraan.css')) . '">',
+        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/public-ui.css')) . '">',
     ];
 
     foreach ($stylesheets as $stylesheet) {

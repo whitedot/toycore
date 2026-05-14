@@ -2,54 +2,115 @@
    This file is intentionally separate from admin UI so customer-facing screens can evolve independently. */
 
 .public-ui-scope {
-    --public-ui-surface: var(--color-card);
-    --public-ui-surface-soft: var(--color-default-100);
-    --public-ui-border: var(--color-default-300);
-    --public-ui-text: var(--color-default-900);
-    --public-ui-muted: var(--color-default-600);
+    --public-ui-surface: var(--sr-surface, var(--color-card));
+    --public-ui-surface-soft: var(--sr-surface-soft, var(--color-default-100));
+    --public-ui-border: var(--sr-border, var(--color-default-300));
+    --public-ui-text: var(--sr-text, var(--color-default-900));
+    --public-ui-muted: var(--sr-muted, var(--color-default-600));
+    --public-ui-primary: var(--sr-primary, var(--color-primary));
+    --public-ui-on-primary: var(--sr-on-primary, var(--color-white));
+    --public-ui-radius: 8px;
+    --public-ui-gap: 16px;
+    --public-ui-shadow: 0 8px 24px var(--sr-shadow-soft, rgba(32, 36, 42, 0.08));
 }
 
 .public-ui-scope .public-ui-actions {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: calc(var(--spacing) * 2.5);
+    gap: 10px;
 }
 
 .public-ui-scope .public-ui-card {
     background: var(--public-ui-surface);
     border: 1px solid var(--public-ui-border);
-    box-shadow: var(--shadow-sm);
+    border-radius: var(--public-ui-radius);
+    box-shadow: var(--public-ui-shadow);
     display: grid;
-    gap: calc(var(--spacing) * 4);
-    padding: calc(var(--spacing) * 5);
+    gap: var(--public-ui-gap);
+    padding: 20px;
 }
 
 .public-ui-scope .public-ui-title {
     color: var(--public-ui-text);
-    font-size: var(--text-lg);
-    font-weight: var(--font-weight-semibold);
-    line-height: var(--text-lg--line-height);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.3;
     margin: 0;
 }
 
 .public-ui-scope .public-ui-copy {
     color: var(--public-ui-muted);
-    font-size: var(--text-base);
-    line-height: var(--text-base--line-height);
+    font-size: .95rem;
+    line-height: 1.55;
     margin: 0;
 }
 
 .public-ui-scope .public-ui-form-panel {
     background: var(--public-ui-surface);
     border: 1px solid var(--public-ui-border);
+    border-radius: var(--public-ui-radius);
+    box-shadow: var(--public-ui-shadow);
     display: grid;
-    gap: calc(var(--spacing) * 4);
-    max-width: var(--container-lg);
-    padding: calc(var(--spacing) * 5);
+    gap: var(--public-ui-gap);
+    max-width: 420px;
+    padding: 22px;
 }
 
 .public-ui-scope .public-ui-content-list {
     display: grid;
-    gap: calc(var(--spacing) * 3);
+    gap: 12px;
+}
+
+.public-ui-scope .public-ui-field {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+}
+
+.public-ui-scope .public-ui-field > span {
+    color: var(--public-ui-text);
+    font-size: .92rem;
+    font-weight: 700;
+}
+
+.public-ui-scope .public-ui-input {
+    width: 100%;
+}
+
+.public-ui-scope .public-ui-button {
+    align-items: center;
+    background: var(--public-ui-primary);
+    border: 1px solid var(--public-ui-primary);
+    border-radius: 6px;
+    color: var(--public-ui-on-primary);
+    display: inline-flex;
+    font-weight: 700;
+    justify-content: center;
+    padding: 9px 14px;
+    text-decoration: none;
+}
+
+.public-ui-scope .public-ui-link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin: 16px 0 0;
+}
+
+.public-ui-scope .public-ui-feedback {
+    border: 1px solid var(--public-ui-border);
+    border-radius: 6px;
+    background: var(--public-ui-surface-soft);
+    color: var(--public-ui-muted);
+    margin: 0;
+    padding: 10px 12px;
+}
+
+.public-ui-scope .public-ui-feedback-error {
+    border-color: var(--sr-danger-border, var(--color-danger));
+    background: var(--sr-danger-bg, color-mix(in oklab, var(--color-danger) 10%, transparent));
+    color: var(--sr-danger-text, var(--color-danger));
+    margin: 0;
+    padding: 10px 12px 10px 28px;
 }

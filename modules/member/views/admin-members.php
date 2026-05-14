@@ -2,7 +2,7 @@
 
 $adminPageTitle = '회원관리';
 $adminPageSubtitle = '회원 상태를 한눈에 확인하고, 조건 검색과 빠른 관리 동선을 자연스럽게 이어가세요.';
-$adminContainerClass = 'admin-page-member-list';
+$adminContainerClass = 'admin-page-member-list admin-ui-scope';
 $statusCounts = isset($statusCounts) && is_array($statusCounts) ? $statusCounts : [];
 $totalMembers = (int) ($statusCounts['total'] ?? count($members));
 $searchFilter = isset($searchFilter) && is_array($searchFilter) ? $searchFilter : ['field' => 'all', 'keyword' => ''];
@@ -11,7 +11,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="member-summary">
+<div class="member-summary admin-ui-card">
     <div class="member-summary-links">
         <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-surface-default-soft">전체 보기</a>
     </div>
@@ -22,9 +22,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<div class="member-search-card">
+<div class="member-search-card admin-ui-card">
     <form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
-        <div class="member-search-fields">
+        <div class="member-search-fields admin-ui-filter">
             <div class="member-field">
                 <label for="member-status-filter" class="member-field-label">상태</label>
                 <select name="status" id="member-status-filter" class="form-select member-field-input">
@@ -55,7 +55,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </form>
 </div>
 
-<div class="member-table-card admin-member-list-form">
+<div class="member-table-card admin-member-list-form admin-ui-card">
     <div class="table-wrapper">
         <table class="table">
             <caption>회원관리 목록</caption>
@@ -144,7 +144,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<div class="member-notice">
+<div class="member-notice admin-ui-card">
     <span class="member-notice-icon" aria-hidden="true">i</span>
     <div class="member-notice-copy">
         <strong>회원 관리 안내</strong>
