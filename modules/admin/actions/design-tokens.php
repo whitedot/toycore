@@ -11,34 +11,6 @@ sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 $commonCssPath = SR_ROOT . '/assets/common.css';
 $commonCss = is_file($commonCssPath) ? (string) file_get_contents($commonCssPath) : '';
 
-function sr_admin_design_tokens_reference_path(): string
-{
-    $candidates = [
-        dirname(SR_ROOT) . '/ui-kit/css/common.css',
-        dirname(SR_ROOT) . '/chmedical/docs/ui-kit/css/common.css',
-        dirname(SR_ROOT) . '/chmedical.git/docs/ui-kit/css/common.css',
-        SR_ROOT . '/docs/ui-kit/css/common.css',
-    ];
-
-    foreach ($candidates as $candidate) {
-        if (is_file($candidate)) {
-            return $candidate;
-        }
-    }
-
-    return '';
-}
-
-function sr_admin_design_tokens_normalize_values(array $values): array
-{
-    $normalized = array_values(array_unique(array_map(static function ($value): string {
-        return preg_replace('/\s+/', ' ', trim((string) $value)) ?? trim((string) $value);
-    }, $values)));
-    sort($normalized, SORT_NATURAL);
-
-    return $normalized;
-}
-
 function sr_admin_design_tokens_add_value(array &$target, string $key, string $value): void
 {
     $value = trim($value);
@@ -142,10 +114,6 @@ function sr_admin_design_tokens_class_category(string $className): string
         return '모달과 오버레이';
     }
 
-    if (str_starts_with($className, 'admin-flash-message')) {
-        return '알림과 토스트';
-    }
-
     if ($className === 'container' || $className === 'container-fluid' || $className === 'app-header' || $className === 'page-content' || $className === 'footer') {
         return '간격과 레이아웃';
     }
@@ -220,7 +188,7 @@ function sr_admin_design_tokens_extract_tokens(string $css): array
 
     ksort($tokens, SORT_NATURAL);
 
-    return $tokens;
+    return array_values($tokens);
 }
 
 function sr_admin_design_tokens_extract_classes(string $css): array
@@ -231,121 +199,9 @@ function sr_admin_design_tokens_extract_classes(string $css): array
 
     $records = [];
     foreach ($classes as $className) {
-        $records[$className] = [
+        $records[] = [
             'name' => $className,
             'category' => sr_admin_design_tokens_class_category($className),
-        ];
-    }
-
-    return $records;
-}
-
-function sr_admin_design_tokens_status(array $currentValues, array $referenceValues, bool $hasReference): string
-{
-    if (!$hasReference) {
-        return 'current';
-    }
-
-    if ($currentValues === [] && $referenceValues !== []) {
-        return 'missing';
-    }
-
-    if ($currentValues !== [] && $referenceValues === []) {
-        return 'added';
-    }
-
-    if (sr_admin_design_tokens_normalize_values($currentValues) === sr_admin_design_tokens_normalize_values($referenceValues)) {
-        return 'same';
-    }
-
-    return 'changed';
-}
-
-function sr_admin_design_tokens_status_label(string $status): string
-{
-    $labels = [
-        'same' => '원본 동일',
-        'added' => 'saanraan 추가',
-        'missing' => '원본 대비 누락',
-        'changed' => '값 변경',
-        'current' => '현재 항목',
-    ];
-
-    return $labels[$status] ?? $status;
-}
-
-function sr_admin_design_tokens_merge_tokens(array $currentTokens, array $referenceTokens, bool $hasReference): array
-{
-    $names = array_values(array_unique(array_merge(array_keys($currentTokens), array_keys($referenceTokens))));
-    sort($names, SORT_NATURAL);
-
-    $records = [];
-    foreach ($names as $name) {
-        $current = $currentTokens[$name] ?? [
-            'name' => $name,
-            'category' => sr_admin_design_tokens_token_category($name),
-            'values' => [],
-            'root_values' => [],
-            'dark_values' => [],
-            'other_values' => [],
-            'property_values' => [],
-        ];
-        $reference = $referenceTokens[$name] ?? [
-            'values' => [],
-            'root_values' => [],
-            'dark_values' => [],
-            'other_values' => [],
-            'property_values' => [],
-        ];
-        $currentComparableValues = array_merge($current['values'], $current['property_values']);
-        $referenceComparableValues = array_merge($reference['values'], $reference['property_values']);
-        $status = sr_admin_design_tokens_status($currentComparableValues, $referenceComparableValues, $hasReference);
-
-        $records[] = [
-            'name' => $name,
-            'category' => (string) ($current['category'] ?? sr_admin_design_tokens_token_category($name)),
-            'values' => $current['values'],
-            'root_values' => $current['root_values'],
-            'dark_values' => $current['dark_values'],
-            'other_values' => $current['other_values'],
-            'property_values' => $current['property_values'],
-            'reference_values' => $reference['values'],
-            'reference_root_values' => $reference['root_values'],
-            'reference_dark_values' => $reference['dark_values'],
-            'reference_property_values' => $reference['property_values'],
-            'status' => $status,
-            'status_label' => sr_admin_design_tokens_status_label($status),
-        ];
-    }
-
-    return $records;
-}
-
-function sr_admin_design_tokens_merge_classes(array $currentClasses, array $referenceClasses, bool $hasReference): array
-{
-    $names = array_values(array_unique(array_merge(array_keys($currentClasses), array_keys($referenceClasses))));
-    sort($names, SORT_NATURAL);
-
-    $records = [];
-    foreach ($names as $name) {
-        $currentExists = isset($currentClasses[$name]);
-        $referenceExists = isset($referenceClasses[$name]);
-        $status = 'current';
-        if ($hasReference) {
-            if ($currentExists && $referenceExists) {
-                $status = 'same';
-            } elseif ($currentExists) {
-                $status = 'added';
-            } else {
-                $status = 'missing';
-            }
-        }
-
-        $records[] = [
-            'name' => $name,
-            'category' => $currentExists ? (string) $currentClasses[$name]['category'] : sr_admin_design_tokens_class_category($name),
-            'status' => $status,
-            'status_label' => sr_admin_design_tokens_status_label($status),
         ];
     }
 
@@ -362,31 +218,15 @@ function sr_admin_design_tokens_group_records(array $records): array
     return $groups;
 }
 
-function sr_admin_design_tokens_count_status(array $records, string $status): int
-{
-    return count(array_filter($records, static function (array $record) use ($status): bool {
-        return ($record['status'] ?? '') === $status;
-    }));
-}
-
 function sr_admin_design_tokens_filter_classes(array $records, string $category): array
 {
     return array_values(array_filter($records, static function (array $record) use ($category): bool {
-        return ($record['category'] ?? '') === $category && ($record['status'] ?? '') !== 'missing';
+        return ($record['category'] ?? '') === $category;
     }));
 }
 
-$referenceCssPath = sr_admin_design_tokens_reference_path();
-$referenceCss = $referenceCssPath !== '' ? (string) file_get_contents($referenceCssPath) : '';
-$hasDesignTokenReference = $referenceCss !== '';
-
-$currentTokenMap = sr_admin_design_tokens_extract_tokens($commonCss);
-$referenceTokenMap = $hasDesignTokenReference ? sr_admin_design_tokens_extract_tokens($referenceCss) : [];
-$currentClassMap = sr_admin_design_tokens_extract_classes($commonCss);
-$referenceClassMap = $hasDesignTokenReference ? sr_admin_design_tokens_extract_classes($referenceCss) : [];
-
-$designTokenRecords = sr_admin_design_tokens_merge_tokens($currentTokenMap, $referenceTokenMap, $hasDesignTokenReference);
-$designClassRecords = sr_admin_design_tokens_merge_classes($currentClassMap, $referenceClassMap, $hasDesignTokenReference);
+$designTokenRecords = sr_admin_design_tokens_extract_tokens($commonCss);
+$designClassRecords = sr_admin_design_tokens_extract_classes($commonCss);
 $designTokenGroups = sr_admin_design_tokens_group_records($designTokenRecords);
 $designClassGroups = sr_admin_design_tokens_group_records($designClassRecords);
 
@@ -410,23 +250,15 @@ $designClassCategoryOrder = [
     '탭과 내비게이션',
     '드롭다운',
     '모달과 오버레이',
-    '알림과 토스트',
     '간격과 레이아웃',
     '유틸리티',
     '기타',
 ];
 
 $designTokenSummary = [
-    'current_token_count' => count($currentTokenMap),
-    'current_class_count' => count($currentClassMap),
-    'reference_token_count' => count($referenceTokenMap),
-    'reference_class_count' => count($referenceClassMap),
-    'added_token_count' => sr_admin_design_tokens_count_status($designTokenRecords, 'added'),
-    'missing_token_count' => sr_admin_design_tokens_count_status($designTokenRecords, 'missing'),
-    'changed_token_count' => sr_admin_design_tokens_count_status($designTokenRecords, 'changed'),
-    'added_class_count' => sr_admin_design_tokens_count_status($designClassRecords, 'added'),
-    'missing_class_count' => sr_admin_design_tokens_count_status($designClassRecords, 'missing'),
-    'changed_class_count' => 0,
+    'token_count' => count($designTokenRecords),
+    'class_count' => count($designClassRecords),
+    'css_path' => str_replace(SR_ROOT . '/', '', $commonCssPath),
 ];
 
 $designButtonClasses = sr_admin_design_tokens_filter_classes($designClassRecords, '버튼');

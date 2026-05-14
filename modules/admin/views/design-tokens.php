@@ -1,21 +1,8 @@
 <?php
 
 $adminPageTitle = '디자인 토큰';
-$adminPageSubtitle = 'assets/common.css 전체 디자인 토큰과 UI Kit 계열 클래스를 원본 기준으로 대조합니다.';
+$adminPageSubtitle = 'assets/common.css에 정의된 토큰과 시맨틱 클래스를 한 화면에서 확인합니다.';
 $adminContainerClass = 'admin-page-design-tokens';
-
-function sr_admin_design_tokens_view_status_class(string $status): string
-{
-    $classes = [
-        'same' => 'admin-design-tokens-status-same',
-        'added' => 'admin-design-tokens-status-added',
-        'missing' => 'admin-design-tokens-status-missing',
-        'changed' => 'admin-design-tokens-status-changed',
-        'current' => 'admin-design-tokens-status-current',
-    ];
-
-    return $classes[$status] ?? 'admin-design-tokens-status-current';
-}
 
 function sr_admin_design_tokens_view_codes(array $values): void
 {
@@ -37,11 +24,7 @@ function sr_admin_design_tokens_view_class_list(array $classes): void
     }
 
     foreach ($classes as $class) {
-        $status = (string) ($class['status'] ?? 'current');
-        echo '<span class="admin-design-tokens-class-chip ' . sr_e(sr_admin_design_tokens_view_status_class($status)) . '">';
-        echo '<code>.' . sr_e((string) $class['name']) . '</code>';
-        echo '<span>' . sr_e((string) ($class['status_label'] ?? '현재 항목')) . '</span>';
-        echo '</span>';
+        echo '<code class="admin-design-tokens-class-chip">.' . sr_e((string) $class['name']) . '</code>';
     }
 }
 
@@ -52,9 +35,7 @@ function sr_admin_design_tokens_view_has_class(array $availableClassNames, strin
 
 $designAvailableClassNames = [];
 foreach ($designClassRecords as $classRecord) {
-    if (($classRecord['status'] ?? '') !== 'missing') {
-        $designAvailableClassNames[(string) $classRecord['name']] = true;
-    }
+    $designAvailableClassNames[(string) $classRecord['name']] = true;
 }
 
 $tokenGroupLabels = array_values(array_unique(array_merge($designTokenCategoryOrder, array_keys($designTokenGroups))));
@@ -74,62 +55,83 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <div class="admin-design-tokens">
     <nav class="tab-nav-bordered admin-design-tokens-nav" aria-label="디자인 토큰 미리보기 목차">
         <a class="tab-trigger-underline active" href="#ds-summary">요약</a>
-        <a class="tab-trigger-underline" href="#ds-tokens">토큰 <?php echo sr_e((string) $designTokenSummary['current_token_count']); ?></a>
-        <a class="tab-trigger-underline" href="#ds-classes">클래스 <?php echo sr_e((string) $designTokenSummary['current_class_count']); ?></a>
+        <a class="tab-trigger-underline" href="#ds-colors">색상</a>
+        <a class="tab-trigger-underline" href="#ds-type">타이포그래피</a>
+        <a class="tab-trigger-underline" href="#ds-tokens">토큰 전체</a>
         <a class="tab-trigger-underline" href="#ds-buttons">버튼</a>
-        <a class="tab-trigger-underline" href="#ds-badges">배지</a>
         <a class="tab-trigger-underline" href="#ds-forms">폼</a>
         <a class="tab-trigger-underline" href="#ds-data">카드/테이블</a>
-        <a class="tab-trigger-underline" href="#ds-tabs">탭/드롭다운</a>
-        <a class="tab-trigger-underline" href="#ds-overlays">모달/토스트</a>
+        <a class="tab-trigger-underline" href="#ds-overlays">탭/모달</a>
+        <a class="tab-trigger-underline" href="#ds-classes">클래스 전체</a>
     </nav>
 
     <section id="ds-summary" class="admin-design-tokens-panel">
         <div class="admin-design-tokens-panel-header">
-            <h2>원본 대조 요약</h2>
-            <p>현재 공통 CSS를 원본 UI Kit CSS와 대조해 디자인 토큰과 클래스의 추가, 누락, 값 변경 상태를 표시합니다.</p>
+            <h2>common.css 요약</h2>
+            <p>이 화면은 현재 로드되는 <code>assets/common.css</code>의 디자인 토큰과 클래스를 그대로 미리보기합니다.</p>
         </div>
         <div class="admin-design-tokens-summary">
             <div>
-                <span>현재 CSS</span>
-                <strong><?php echo sr_e(str_replace(SR_ROOT . '/', '', $commonCssPath)); ?></strong>
+                <span>CSS 파일</span>
+                <strong><?php echo sr_e((string) $designTokenSummary['css_path']); ?></strong>
             </div>
             <div>
-                <span>기준 CSS</span>
-                <strong><?php echo $hasDesignTokenReference ? sr_e($referenceCssPath) : '없음'; ?></strong>
+                <span>토큰</span>
+                <strong><?php echo sr_e((string) $designTokenSummary['token_count']); ?></strong>
             </div>
             <div>
-                <span>현재 토큰</span>
-                <strong><?php echo sr_e((string) $designTokenSummary['current_token_count']); ?></strong>
-            </div>
-            <div>
-                <span>현재 클래스</span>
-                <strong><?php echo sr_e((string) $designTokenSummary['current_class_count']); ?></strong>
-            </div>
-            <div>
-                <span>추가 항목</span>
-                <strong><?php echo sr_e((string) ((int) $designTokenSummary['added_token_count'] + (int) $designTokenSummary['added_class_count'])); ?></strong>
-            </div>
-            <div>
-                <span>누락 항목</span>
-                <strong><?php echo sr_e((string) ((int) $designTokenSummary['missing_token_count'] + (int) $designTokenSummary['missing_class_count'])); ?></strong>
-            </div>
-            <div>
-                <span>값 변경</span>
-                <strong><?php echo sr_e((string) $designTokenSummary['changed_token_count']); ?></strong>
+                <span>클래스</span>
+                <strong><?php echo sr_e((string) $designTokenSummary['class_count']); ?></strong>
             </div>
         </div>
-        <?php if (!$hasDesignTokenReference) { ?>
-            <div class="admin-design-tokens-row">
-                <p class="admin-design-tokens-empty">원본 UI Kit CSS 경로를 찾지 못해 현재 `assets/common.css` 기준 목록만 표시합니다.</p>
-            </div>
-        <?php } ?>
+    </section>
+
+    <section id="ds-colors" class="admin-design-tokens-panel">
+        <div class="admin-design-tokens-panel-header">
+            <h2>색상</h2>
+            <p>색상 토큰은 실제 CSS 변수 값으로 스와치를 렌더링합니다.</p>
+        </div>
+        <div class="admin-design-tokens-color-grid">
+            <?php foreach (($designTokenGroups['색상'] ?? []) as $token) { ?>
+                <div class="admin-design-tokens-swatch">
+                    <span class="admin-design-tokens-swatch-color" style="background: var(<?php echo sr_e((string) $token['name']); ?>);"></span>
+                    <strong><?php echo sr_e((string) $token['name']); ?></strong>
+                    <?php sr_admin_design_tokens_view_codes($token['root_values'] ?: $token['values']); ?>
+                    <?php if ($token['dark_values'] !== []) { ?>
+                        <span class="admin-design-tokens-muted">dark</span>
+                        <?php sr_admin_design_tokens_view_codes($token['dark_values']); ?>
+                    <?php } ?>
+                </div>
+            <?php } ?>
+        </div>
+    </section>
+
+    <section id="ds-type" class="admin-design-tokens-panel">
+        <div class="admin-design-tokens-panel-header">
+            <h2>타이포그래피</h2>
+            <p>폰트, 글자 크기, 행간, 굵기 토큰을 실제 텍스트 크기와 함께 확인합니다.</p>
+        </div>
+        <div class="admin-design-tokens-type-grid">
+            <?php foreach (($designTokenGroups['타이포그래피'] ?? []) as $token) { ?>
+                <div>
+                    <?php if (str_starts_with((string) $token['name'], '--text-') && !str_contains((string) $token['name'], 'line-height')) { ?>
+                        <p style="font-size: var(<?php echo sr_e((string) $token['name']); ?>);">Saanraan 디자인 토큰</p>
+                    <?php } elseif (str_starts_with((string) $token['name'], '--font-weight-')) { ?>
+                        <p style="font-weight: var(<?php echo sr_e((string) $token['name']); ?>);">Saanraan 디자인 토큰</p>
+                    <?php } else { ?>
+                        <p>Saanraan 디자인 토큰</p>
+                    <?php } ?>
+                    <strong><?php echo sr_e((string) $token['name']); ?></strong>
+                    <?php sr_admin_design_tokens_view_codes($token['root_values'] ?: $token['values']); ?>
+                </div>
+            <?php } ?>
+        </div>
     </section>
 
     <section id="ds-tokens" class="admin-design-tokens-panel">
         <div class="admin-design-tokens-panel-header">
-            <h2>디자인 토큰 전체</h2>
-            <p><code>assets/common.css</code>의 CSS custom property를 카테고리별로 표시합니다.</p>
+            <h2>토큰 전체</h2>
+            <p><code>assets/common.css</code>의 CSS custom property를 카테고리별로 모두 표시합니다.</p>
         </div>
         <?php foreach ($tokenGroupLabels as $groupLabel) { ?>
             <?php $tokens = $designTokenGroups[$groupLabel] ?? []; ?>
@@ -141,22 +143,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <thead>
                             <tr>
                                 <th>미리보기</th>
-                                <th>상태</th>
                                 <th>토큰</th>
                                 <th>:root</th>
                                 <th>dark</th>
                                 <th>@property</th>
-                                <th>현재 전체값</th>
-                                <?php if ($hasDesignTokenReference) { ?>
-                                    <th>원본 @property</th>
-                                    <th>원본 전체값</th>
-                                <?php } ?>
+                                <th>전체값</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($tokens as $token) { ?>
-                                <?php $status = (string) $token['status']; ?>
-                                <tr class="<?php echo sr_e(sr_admin_design_tokens_view_status_class($status)); ?>">
+                                <tr>
                                     <td class="admin-design-tokens-preview-cell">
                                         <?php if ($token['values'] !== [] && $token['category'] === '색상') { ?>
                                             <span class="admin-design-tokens-token-preview admin-design-tokens-token-preview-color" style="background: var(<?php echo sr_e((string) $token['name']); ?>);"></span>
@@ -168,16 +164,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <span class="admin-design-tokens-token-preview"></span>
                                         <?php } ?>
                                     </td>
-                                    <td><span class="badge badge-label admin-design-tokens-status <?php echo sr_e(sr_admin_design_tokens_view_status_class($status)); ?>"><?php echo sr_e((string) $token['status_label']); ?></span></td>
                                     <td><code><?php echo sr_e((string) $token['name']); ?></code></td>
                                     <td><?php sr_admin_design_tokens_view_codes($token['root_values']); ?></td>
                                     <td><?php sr_admin_design_tokens_view_codes($token['dark_values']); ?></td>
                                     <td><?php sr_admin_design_tokens_view_codes($token['property_values']); ?></td>
                                     <td><?php sr_admin_design_tokens_view_codes($token['values']); ?></td>
-                                    <?php if ($hasDesignTokenReference) { ?>
-                                        <td><?php sr_admin_design_tokens_view_codes($token['reference_property_values']); ?></td>
-                                        <td><?php sr_admin_design_tokens_view_codes($token['reference_values']); ?></td>
-                                    <?php } ?>
                                 </tr>
                             <?php } ?>
                         </tbody>
@@ -187,35 +178,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </section>
 
-    <section id="ds-classes" class="admin-design-tokens-panel">
-        <div class="admin-design-tokens-panel-header">
-            <h2>common.css 클래스 전체</h2>
-            <p><code>assets/common.css</code>에 정의된 클래스 선택자를 UI Kit 섹션 기준으로 나열합니다.</p>
-        </div>
-        <div class="admin-design-tokens-class-groups">
-            <?php foreach ($classGroupLabels as $groupLabel) { ?>
-                <?php $classes = $designClassGroups[$groupLabel] ?? []; ?>
-                <?php if ($classes === []) { continue; } ?>
-                <section class="admin-design-tokens-class-group">
-                    <h3><?php echo sr_e((string) $groupLabel); ?> <span class="badge badge-label"><?php echo sr_e((string) count($classes)); ?></span></h3>
-                    <div class="admin-design-tokens-class-list">
-                        <?php sr_admin_design_tokens_view_class_list($classes); ?>
-                    </div>
-                </section>
-            <?php } ?>
-        </div>
-    </section>
-
     <section id="ds-buttons" class="admin-design-tokens-panel">
         <div class="admin-design-tokens-panel-header">
-            <h2>버튼</h2>
-            <p>원본 UI Kit의 버튼 계열과 saanraan 추가 버튼을 실제 조합 형태로 표시합니다.</p>
-        </div>
-        <div class="admin-design-tokens-row">
-            <h3>Button Classes <span class="badge badge-label"><?php echo sr_e((string) count($designButtonClasses)); ?></span></h3>
-            <div class="admin-design-tokens-class-list">
-                <?php sr_admin_design_tokens_view_class_list($designButtonClasses); ?>
-            </div>
+            <h2>버튼과 배지</h2>
+            <p>버튼과 배지는 <code>common.css</code>에 정의된 시맨틱 클래스 조합으로 렌더링합니다.</p>
         </div>
         <?php foreach ($buttonSampleGroups as $sampleGroupLabel => $sampleClasses) { ?>
             <div class="admin-design-tokens-row">
@@ -232,38 +198,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <code>.<?php echo sr_e($sampleClass); ?></code>
                         </div>
                     <?php } ?>
-                    <?php if (sr_admin_design_tokens_view_has_class($designAvailableClassNames, 'btn-icon')) { ?>
-                        <div class="admin-design-tokens-preview-item">
-                            <button type="button" class="btn btn-icon btn-outline-primary" aria-label="아이콘 버튼">
-                                <span class="close-icon" aria-hidden="true"></span>
-                            </button>
-                            <code>.btn .btn-icon</code>
-                        </div>
-                    <?php } ?>
-                    <?php if (sr_admin_design_tokens_view_has_class($designAvailableClassNames, 'btn-pill')) { ?>
-                        <div class="admin-design-tokens-preview-item">
-                            <button type="button" class="btn btn-pill btn-outline-primary">btn-pill</button>
-                            <code>.btn .btn-pill</code>
-                        </div>
-                    <?php } ?>
                 </div>
             </div>
         <?php } ?>
-    </section>
-
-    <section id="ds-badges" class="admin-design-tokens-panel">
-        <div class="admin-design-tokens-panel-header">
-            <h2>배지</h2>
-            <p>배지 계열 클래스와 실제 라벨 형태를 표시합니다.</p>
+        <div class="admin-design-tokens-row">
+            <h3>Size / Shape</h3>
+            <div class="admin-design-tokens-preview-grid">
+                <div class="admin-design-tokens-preview-item"><button type="button" class="btn btn-sm btn-outline-primary">btn-sm</button><code>.btn .btn-sm</code></div>
+                <div class="admin-design-tokens-preview-item"><button type="button" class="btn btn-lg btn-outline-primary">btn-lg</button><code>.btn .btn-lg</code></div>
+                <div class="admin-design-tokens-preview-item"><button type="button" class="btn btn-pill btn-outline-primary">btn-pill</button><code>.btn .btn-pill</code></div>
+                <div class="admin-design-tokens-preview-item"><button type="button" class="btn btn-icon btn-outline-primary" aria-label="아이콘"><span class="close-icon" aria-hidden="true"></span></button><code>.btn .btn-icon</code></div>
+            </div>
         </div>
         <div class="admin-design-tokens-row">
-            <h3>Badge Classes <span class="badge badge-label"><?php echo sr_e((string) count($designBadgeClasses)); ?></span></h3>
-            <div class="admin-design-tokens-class-list">
-                <?php sr_admin_design_tokens_view_class_list($designBadgeClasses); ?>
-            </div>
+            <h3>Badges</h3>
             <div class="admin-design-tokens-inline">
                 <span class="badge">badge</span>
                 <span class="badge badge-label">badge-label</span>
+            </div>
+            <div class="admin-design-tokens-class-list">
+                <?php sr_admin_design_tokens_view_class_list($designButtonClasses); ?>
+                <?php sr_admin_design_tokens_view_class_list($designBadgeClasses); ?>
             </div>
         </div>
     </section>
@@ -272,12 +227,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-design-tokens-panel-header">
             <h2>폼 컨트롤</h2>
             <p>입력, 선택, 체크, 라디오, 스위치, 범위, 파일 입력 계열을 표시합니다.</p>
-        </div>
-        <div class="admin-design-tokens-row">
-            <h3>Form Classes <span class="badge badge-label"><?php echo sr_e((string) count($designFormClasses)); ?></span></h3>
-            <div class="admin-design-tokens-class-list">
-                <?php sr_admin_design_tokens_view_class_list($designFormClasses); ?>
-            </div>
         </div>
         <div class="admin-design-tokens-form-grid">
             <label>
@@ -315,33 +264,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="range" class="form-range" value="60" aria-label="form-range">
         </div>
         <div class="admin-design-tokens-row">
-            <h3>Input Group</h3>
-            <div class="input-group">
-                <span class="input-group-text">https://</span>
-                <input type="text" class="form-input" value="saanraan.test">
-                <button type="button" class="btn btn-surface-default-soft input-group-trigger">확인</button>
-            </div>
-        </div>
-    </section>
-
-    <section id="ds-feedback" class="admin-design-tokens-panel ui-form-theme">
-        <div class="admin-design-tokens-panel-header">
-            <h2>유효성 및 피드백</h2>
-            <p>입력 보조 문구, 유효성 아이콘, 관리자 토스트 메시지 계열을 확인합니다.</p>
-        </div>
-        <div class="admin-design-tokens-row">
-            <h3>Feedback Classes <span class="badge badge-label"><?php echo sr_e((string) count($designFeedbackClasses)); ?></span></h3>
+            <h3>Form Classes <span class="badge badge-label"><?php echo sr_e((string) count($designFormClasses)); ?></span></h3>
             <div class="admin-design-tokens-class-list">
+                <?php sr_admin_design_tokens_view_class_list($designFormClasses); ?>
                 <?php sr_admin_design_tokens_view_class_list($designFeedbackClasses); ?>
             </div>
-            <label>
-                <span class="form-label">검증 예시</span>
-                <span class="input-icon-group has-end-icon">
-                    <input type="text" class="form-input" value="확인된 값">
-                    <span class="input-icon validation-icon" aria-hidden="true">✓</span>
-                </span>
-                <span class="hint-text">hint-text</span>
-            </label>
         </div>
     </section>
 
@@ -349,20 +276,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-design-tokens-panel-header">
             <h2>카드와 테이블</h2>
             <p>카드, 테이블, 페이지네이션 계열을 실제 구조로 표시합니다.</p>
-        </div>
-        <div class="admin-design-tokens-grid">
-            <div>
-                <h3>Card Classes <span class="badge badge-label"><?php echo sr_e((string) count($designCardClasses)); ?></span></h3>
-                <div class="admin-design-tokens-class-list">
-                    <?php sr_admin_design_tokens_view_class_list($designCardClasses); ?>
-                </div>
-            </div>
-            <div>
-                <h3>Table/Page Classes <span class="badge badge-label"><?php echo sr_e((string) count($designTableClasses)); ?></span></h3>
-                <div class="admin-design-tokens-class-list">
-                    <?php sr_admin_design_tokens_view_class_list($designTableClasses); ?>
-                </div>
-            </div>
         </div>
         <div class="admin-design-tokens-grid">
             <div class="card">
@@ -407,26 +320,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </ul>
             </div>
         </div>
+        <div class="admin-design-tokens-row">
+            <h3>Data Classes</h3>
+            <div class="admin-design-tokens-class-list">
+                <?php sr_admin_design_tokens_view_class_list($designCardClasses); ?>
+                <?php sr_admin_design_tokens_view_class_list($designTableClasses); ?>
+            </div>
+        </div>
     </section>
 
-    <section id="ds-tabs" class="admin-design-tokens-panel">
+    <section id="ds-overlays" class="admin-design-tokens-panel">
         <div class="admin-design-tokens-panel-header">
-            <h2>탭과 드롭다운</h2>
-            <p>탭, 내비게이션, 드롭다운 계열을 원본 구조에 맞춰 표시합니다.</p>
-        </div>
-        <div class="admin-design-tokens-grid">
-            <div>
-                <h3>Tab/Nav Classes <span class="badge badge-label"><?php echo sr_e((string) count($designTabClasses)); ?></span></h3>
-                <div class="admin-design-tokens-class-list">
-                    <?php sr_admin_design_tokens_view_class_list($designTabClasses); ?>
-                </div>
-            </div>
-            <div>
-                <h3>Dropdown Classes <span class="badge badge-label"><?php echo sr_e((string) count($designDropdownClasses)); ?></span></h3>
-                <div class="admin-design-tokens-class-list">
-                    <?php sr_admin_design_tokens_view_class_list($designDropdownClasses); ?>
-                </div>
-            </div>
+            <h2>탭, 드롭다운, 모달</h2>
+            <p>내비게이션과 오버레이 계열을 실제 구조로 표시합니다.</p>
         </div>
         <div class="admin-design-tokens-grid">
             <div>
@@ -444,35 +350,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     옵션 선택 <span class="dropdown-caret" aria-hidden="true">⌄</span>
                 </button>
                 <div class="hs-dropdown-menu admin-design-tokens-dropdown-menu-sample" role="menu" aria-orientation="vertical">
-                    <a class="dropdown-item" href="#ds-tabs">프로필 설정</a>
-                    <a class="dropdown-item" href="#ds-tabs">알림</a>
+                    <a class="dropdown-item" href="#ds-overlays">프로필 설정</a>
+                    <a class="dropdown-item" href="#ds-overlays">알림</a>
                     <span class="dropdown-divider"></span>
-                    <a class="dropdown-item" href="#ds-tabs">로그아웃</a>
+                    <a class="dropdown-item" href="#ds-overlays">로그아웃</a>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <section id="ds-overlays" class="admin-design-tokens-panel">
-        <div class="admin-design-tokens-panel-header">
-            <h2>모달과 토스트</h2>
-            <p>오버레이, 모달, 관리자 피드백 토스트 구조를 확인합니다.</p>
-        </div>
-        <div class="admin-design-tokens-grid">
-            <div>
-                <h3>Modal/Overlay Classes <span class="badge badge-label"><?php echo sr_e((string) count($designModalClasses)); ?></span></h3>
-                <div class="admin-design-tokens-class-list">
-                    <?php sr_admin_design_tokens_view_class_list($designModalClasses); ?>
-                </div>
-            </div>
-            <div>
-                <h3>Utility Classes <span class="badge badge-label"><?php echo sr_e((string) count($designUtilityClasses)); ?></span></h3>
-                <div class="admin-design-tokens-class-list">
-                    <?php sr_admin_design_tokens_view_class_list($designUtilityClasses); ?>
-                </div>
-            </div>
-        </div>
-        <div class="admin-design-tokens-grid">
             <div class="modal-content admin-design-tokens-modal-sample">
                 <div class="modal-header">
                     <strong class="modal-title">modal-title</strong>
@@ -500,6 +383,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <button type="button" class="btn btn-sm btn-icon" data-admin-toast-close aria-label="닫기"><span class="close-icon" aria-hidden="true"></span></button>
                 </div>
             </div>
+        </div>
+        <div class="admin-design-tokens-row">
+            <h3>Navigation / Overlay Classes</h3>
+            <div class="admin-design-tokens-class-list">
+                <?php sr_admin_design_tokens_view_class_list($designTabClasses); ?>
+                <?php sr_admin_design_tokens_view_class_list($designDropdownClasses); ?>
+                <?php sr_admin_design_tokens_view_class_list($designModalClasses); ?>
+            </div>
+        </div>
+    </section>
+
+    <section id="ds-classes" class="admin-design-tokens-panel">
+        <div class="admin-design-tokens-panel-header">
+            <h2>클래스 전체</h2>
+            <p><code>assets/common.css</code>에 정의된 클래스 선택자를 그룹별로 모두 나열합니다.</p>
+        </div>
+        <div class="admin-design-tokens-class-groups">
+            <?php foreach ($classGroupLabels as $groupLabel) { ?>
+                <?php $classes = $designClassGroups[$groupLabel] ?? []; ?>
+                <?php if ($classes === []) { continue; } ?>
+                <section class="admin-design-tokens-class-group">
+                    <h3><?php echo sr_e((string) $groupLabel); ?> <span class="badge badge-label"><?php echo sr_e((string) count($classes)); ?></span></h3>
+                    <div class="admin-design-tokens-class-list">
+                        <?php sr_admin_design_tokens_view_class_list($classes); ?>
+                    </div>
+                </section>
+            <?php } ?>
         </div>
     </section>
 </div>
