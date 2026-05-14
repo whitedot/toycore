@@ -99,7 +99,7 @@
 @supports (color:color-mix(in lab, red, red)){.admin-flash-message-error{border-color:color-mix(in oklab, var(--color-danger) 30%, transparent)}}
 .admin-flash-message-error{color:var(--color-danger-hover);background:#feecef}
 @supports (color:color-mix(in lab, red, red)){.admin-flash-message-error{background:color-mix(in oklab, var(--color-danger) 10%, white)}}
-.admin-toast-stack{position:fixed;right:1.25rem;top:calc(var(--admin-shell-bar-height) + 1rem);z-index:80;width:min(24rem,calc(100vw - 2rem))}
+.admin-toast-stack{position:fixed;left:50%;top:calc(var(--admin-shell-bar-height) + 1rem);z-index:80;width:min(24rem,calc(100vw - 2rem));transform:translateX(-50%)}
 .toast[data-admin-toast]{animation:admin-toast-in .18s ease-out}
 .toast[data-admin-toast].is-hiding{opacity:0;transform:translateY(-.25rem);transition:opacity .16s,transform .16s}
 @keyframes admin-toast-in{from{opacity:0;transform:translateY(-.35rem)}to{opacity:1;transform:translateY(0)}}
