@@ -10,14 +10,14 @@ function sr_community_theme_key(array $settings): string
 
 function sr_community_theme_options(): array
 {
-    return [
+    return sr_filter_view_options([
         'basic' => [
             'label' => '기본',
             'views' => [
                 'home' => SR_ROOT . '/modules/community/themes/basic/home.php',
             ],
         ],
-    ];
+    ], ['home'], 'community theme');
 }
 
 function sr_community_theme_view(string $themeKey, string $viewKey): string
@@ -25,7 +25,16 @@ function sr_community_theme_view(string $themeKey, string $viewKey): string
     $options = sr_community_theme_options();
     $view = (string) ($options[$themeKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
 
-    return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
+    if (is_file($view)) {
+        return $view;
+    }
+
+    $fallback = (string) ($options['basic']['views'][$viewKey] ?? '');
+    if (is_file($fallback)) {
+        return $fallback;
+    }
+
+    throw new RuntimeException('기본 커뮤니티 테마 view 파일이 누락되었습니다.');
 }
 
 function sr_community_skin_key(array $boardSettings = []): string

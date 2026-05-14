@@ -612,7 +612,7 @@ function sr_banner_settings(PDO $pdo): array
 
 function sr_banner_skin_options(): array
 {
-    return [
+    return sr_filter_view_options([
         'basic' => [
             'label' => '기본',
             'supports' => ['public', 'inline'],
@@ -620,7 +620,7 @@ function sr_banner_skin_options(): array
                 'item' => SR_ROOT . '/modules/banner/skins/basic/item.php',
             ],
         ],
-    ];
+    ], ['item'], 'banner skin');
 }
 
 function sr_banner_skin_key(array $settings): string
@@ -635,7 +635,16 @@ function sr_banner_skin_view(string $skinKey, string $viewKey): string
     $options = sr_banner_skin_options();
     $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
 
-    return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
+    if (is_file($view)) {
+        return $view;
+    }
+
+    $fallback = (string) ($options['basic']['views'][$viewKey] ?? '');
+    if (is_file($fallback)) {
+        return $fallback;
+    }
+
+    throw new RuntimeException('기본 배너 스킨 view 파일이 누락되었습니다.');
 }
 
 function sr_banner_skin_supports(string $skinKey, string $placementKind): bool

@@ -57,9 +57,11 @@ $targets = [
         'files' => ['modules/admin/skins/basic/layout-header.php', 'modules/admin/skins/basic/layout-footer.php'],
         'helper_needles' => [
             'function sr_admin_skin_options(): array',
+            'sr_filter_view_options([',
             "'layout-header' => SR_ROOT . '/modules/admin/skins/basic/layout-header.php'",
             "'layout-footer' => SR_ROOT . '/modules/admin/skins/basic/layout-footer.php'",
-            'return is_file($view) ? $view',
+            "], ['layout-header', 'layout-footer'], 'admin skin')",
+            '기본 관리자 스킨 view 파일이 누락되었습니다.',
         ],
         'action_needles' => [
             '$adminSkinOptions = sr_admin_skin_options()',
@@ -87,12 +89,14 @@ $targets = [
         'files' => ['modules/banner/skins/basic/item.php'],
         'helper_needles' => [
             'function sr_banner_skin_options(): array',
+            'sr_filter_view_options([',
             "'supports' => ['public', 'inline']",
             "'item' => SR_ROOT . '/modules/banner/skins/basic/item.php'",
+            "], ['item'], 'banner skin')",
             'function sr_banner_skin_supports(string $skinKey, string $placementKind): bool',
             'function sr_banner_skin_key_for_placement(string $skinKey, string $placementKind): ?string',
             'function sr_banner_target_placement_kind(?array $target, bool $isPublicBanner = false): string',
-            'return is_file($view) ? $view',
+            '기본 배너 스킨 view 파일이 누락되었습니다.',
             'function sr_banner_save_skin_key(PDO $pdo, string $skinKey): void',
         ],
         'action_needles' => [
@@ -127,8 +131,10 @@ $targets = [
         'files' => ['modules/popup_layer/skins/basic/layer.php'],
         'helper_needles' => [
             'function sr_popup_layer_skin_options(): array',
+            'sr_filter_view_options([',
             "'layer' => SR_ROOT . '/modules/popup_layer/skins/basic/layer.php'",
-            'return is_file($view) ? $view',
+            "], ['layer'], 'popup layer skin')",
+            '기본 팝업레이어 스킨 view 파일이 누락되었습니다.',
             'function sr_popup_layer_save_skin_key(PDO $pdo, string $skinKey): void',
         ],
         'action_needles' => [
@@ -179,8 +185,11 @@ $targets = [
         ],
         'helper_needles' => [
             'function sr_member_skin_options(): array',
+            'sr_filter_view_options([',
             "'login' => SR_ROOT . '/modules/member/skins/basic/login.php'",
-            'return is_file($view) ? $view',
+            'sr_member_required_skin_view_keys()',
+            'function sr_member_required_skin_view_keys(): array',
+            '기본 회원 스킨 view 파일이 누락되었습니다.',
         ],
         'action_needles' => [
             "sr_post_string('member_skin_key', 40)",
@@ -205,8 +214,10 @@ $targets = [
         'files' => ['modules/community/themes/basic/home.php'],
         'helper_needles' => [
             'function sr_community_theme_options(): array',
+            'sr_filter_view_options([',
             "'home' => SR_ROOT . '/modules/community/themes/basic/home.php'",
-            'return is_file($view) ? $view',
+            "], ['home'], 'community theme')",
+            '기본 커뮤니티 테마 view 파일이 누락되었습니다.',
         ],
         'action_needles' => [
             '$communityThemeOptions = sr_community_theme_options()',
@@ -321,6 +332,12 @@ sr_skin_theme_check_contains('modules/admin/views/settings.php', [
     '<select name="public_layout_key">',
     'foreach (sr_public_layout_options() as $layoutKey => $layoutOption)',
 ], 'Public layout setting UI');
+
+sr_skin_theme_check_contains('core/helpers/output.php', [
+    'function sr_filter_view_options(array $options, array $requiredViewKeys, string $label): array',
+    'function sr_view_option_has_required_views(array $option, array $requiredViewKeys): bool',
+    '기본 공개 레이아웃 파일이 누락되었습니다.',
+], 'Shared view option validation');
 
 if ($errors !== []) {
     fwrite(STDERR, "skin/theme UI checks failed:\n");

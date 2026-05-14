@@ -57,7 +57,7 @@ function sr_member_settings(PDO $pdo): array
 
 function sr_member_skin_options(): array
 {
-    return [
+    return sr_filter_view_options([
         'basic' => [
             'label' => '기본',
             'views' => [
@@ -71,6 +71,20 @@ function sr_member_skin_options(): array
                 'email-verified' => SR_ROOT . '/modules/member/skins/basic/email-verified.php',
             ],
         ],
+    ], sr_member_required_skin_view_keys(), 'member skin');
+}
+
+function sr_member_required_skin_view_keys(): array
+{
+    return [
+        'login',
+        'register',
+        'account',
+        'password-reset-request',
+        'password-reset',
+        'privacy-requests',
+        'withdraw',
+        'email-verified',
     ];
 }
 
@@ -86,7 +100,16 @@ function sr_member_skin_view(string $skinKey, string $viewKey): string
     $options = sr_member_skin_options();
     $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
 
-    return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
+    if (is_file($view)) {
+        return $view;
+    }
+
+    $fallback = (string) ($options['basic']['views'][$viewKey] ?? '');
+    if (is_file($fallback)) {
+        return $fallback;
+    }
+
+    throw new RuntimeException('기본 회원 스킨 view 파일이 누락되었습니다.');
 }
 
 function sr_member_integer_setting_keys(): array

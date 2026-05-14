@@ -189,12 +189,14 @@ function sr_color_scheme(?array $site = null): string
 
 function sr_public_layout_options(): array
 {
-    return [
+    return sr_filter_view_options([
         'basic' => [
             'label' => '기본 레이아웃',
-            'file' => SR_ROOT . '/layouts/public/basic/layout.php',
+            'views' => [
+                'layout' => SR_ROOT . '/layouts/public/basic/layout.php',
+            ],
         ],
-    ];
+    ], ['layout'], 'public layout');
 }
 
 function sr_public_layout_key(?array $site = null): string
@@ -210,12 +212,48 @@ function sr_public_layout_file(string $layoutKey): string
         $layoutKey = 'basic';
     }
 
-    $layoutFile = (string) ($options[$layoutKey]['file'] ?? '');
+    $layoutFile = (string) ($options[$layoutKey]['views']['layout'] ?? '');
     if ($layoutFile === '' || !is_file($layoutFile)) {
-        $layoutFile = (string) $options['basic']['file'];
+        $layoutFile = (string) ($options['basic']['views']['layout'] ?? '');
+    }
+
+    if ($layoutFile === '' || !is_file($layoutFile)) {
+        throw new RuntimeException('기본 공개 레이아웃 파일이 누락되었습니다.');
     }
 
     return $layoutFile;
+}
+
+function sr_filter_view_options(array $options, array $requiredViewKeys, string $label): array
+{
+    $validOptions = [];
+    foreach ($options as $optionKey => $option) {
+        if (!is_string($optionKey) || !is_array($option)) {
+            continue;
+        }
+
+        if (!sr_view_option_has_required_views($option, $requiredViewKeys)) {
+            error_log('[saanraan] ' . $label . ' required view is missing: key=' . $optionKey);
+            continue;
+        }
+
+        $validOptions[$optionKey] = $option;
+    }
+
+    return $validOptions;
+}
+
+function sr_view_option_has_required_views(array $option, array $requiredViewKeys): bool
+{
+    $views = isset($option['views']) && is_array($option['views']) ? $option['views'] : [];
+    foreach ($requiredViewKeys as $viewKey) {
+        $view = (string) ($views[(string) $viewKey] ?? '');
+        if ($view === '' || !is_file($view)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 function sr_public_layout_begin(?PDO $pdo, ?array $site, array $seo = [], array $layoutContext = []): void

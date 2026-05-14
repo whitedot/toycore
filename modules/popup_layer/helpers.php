@@ -160,14 +160,14 @@ function sr_popup_layer_settings(PDO $pdo): array
 
 function sr_popup_layer_skin_options(): array
 {
-    return [
+    return sr_filter_view_options([
         'basic' => [
             'label' => '기본',
             'views' => [
                 'layer' => SR_ROOT . '/modules/popup_layer/skins/basic/layer.php',
             ],
         ],
-    ];
+    ], ['layer'], 'popup layer skin');
 }
 
 function sr_popup_layer_skin_key(array $settings): string
@@ -182,7 +182,16 @@ function sr_popup_layer_skin_view(string $skinKey, string $viewKey): string
     $options = sr_popup_layer_skin_options();
     $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
 
-    return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
+    if (is_file($view)) {
+        return $view;
+    }
+
+    $fallback = (string) ($options['basic']['views'][$viewKey] ?? '');
+    if (is_file($fallback)) {
+        return $fallback;
+    }
+
+    throw new RuntimeException('기본 팝업레이어 스킨 view 파일이 누락되었습니다.');
 }
 
 function sr_popup_layer_save_skin_key(PDO $pdo, string $skinKey): void

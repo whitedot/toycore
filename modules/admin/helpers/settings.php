@@ -305,7 +305,7 @@ function sr_admin_settings(PDO $pdo): array
 
 function sr_admin_skin_options(): array
 {
-    return [
+    return sr_filter_view_options([
         'basic' => [
             'label' => '기본',
             'views' => [
@@ -313,7 +313,7 @@ function sr_admin_skin_options(): array
                 'layout-footer' => SR_ROOT . '/modules/admin/skins/basic/layout-footer.php',
             ],
         ],
-    ];
+    ], ['layout-header', 'layout-footer'], 'admin skin');
 }
 
 function sr_admin_skin_key(array $settings): string
@@ -328,7 +328,16 @@ function sr_admin_skin_view(string $skinKey, string $viewKey): string
     $options = sr_admin_skin_options();
     $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
 
-    return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
+    if (is_file($view)) {
+        return $view;
+    }
+
+    $fallback = (string) ($options['basic']['views'][$viewKey] ?? '');
+    if (is_file($fallback)) {
+        return $fallback;
+    }
+
+    throw new RuntimeException('기본 관리자 스킨 view 파일이 누락되었습니다.');
 }
 
 function sr_admin_save_skin_key(PDO $pdo, string $skinKey): void
