@@ -4,7 +4,7 @@ $adminPageTitle = '관리자 작업 로그';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter-form ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter-form admin-audit-filter-form ui-form-theme">
     <div class="admin-filter-heading">
         <strong>로그 검색</strong>
         <a href="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="btn btn-sm btn-surface-default-soft">초기화</a>
@@ -46,7 +46,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div class="member-table-card admin-member-list-form">
 <div class="table-wrapper">
-<table class="table">
+<table class="table admin-audit-log-table">
     <thead class="ui-table-head">
         <tr>
             <th>ID</th>
@@ -75,8 +75,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo sr_e(sr_admin_code_label((string) $log['target_type'], 'target_type') . ':' . (string) $log['target_id']); ?></td>
                 <td><?php echo sr_e(sr_admin_code_label((string) $log['result'], 'result')); ?></td>
                 <td><?php echo sr_e((string) $log['ip_address']); ?></td>
-                <td><?php echo sr_e(sr_admin_audit_log_display_message($log)); ?></td>
-                <td><?php echo sr_e(sr_admin_audit_log_display_metadata($log)); ?></td>
+                <td class="admin-audit-message"><?php echo sr_e(sr_admin_audit_log_display_message($log)); ?></td>
+                <td class="admin-audit-metadata">
+                    <?php $metadata = sr_admin_audit_log_display_metadata($log); ?>
+                    <?php if ($metadata === '') { ?>
+                        -
+                    <?php } else { ?>
+                        <details>
+                            <summary>보기</summary>
+                            <code><?php echo sr_e($metadata); ?></code>
+                        </details>
+                    <?php } ?>
+                </td>
             </tr>
         <?php } ?>
     </tbody>

@@ -198,6 +198,8 @@
 .member-table-card>.card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px dashed var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
 .member-table-card>.card-header>.card-title{margin:calc(var(--spacing) * 0);font-size:var(--text-md);line-height:var(--leading-normal);font-weight:var(--font-weight-medium);color:var(--color-body-color)}
 .member-table-card .table-wrapper{min-width:0;width:100%;overflow:auto}
+.member-table-card .table-wrapper:focus-within{outline:2px solid color-mix(in oklab, var(--color-primary) 28%, transparent);outline-offset:-2px}
+.member-table-card .table-wrapper::after{content:"";display:block;height:1px}
 .admin-member-list-form .member-cell-fixed,.admin-member-list-form .member-cell-manage{white-space:nowrap}
 .admin-member-list-form .member-cell-manage{min-width:9.75rem}
 .admin-member-list-form .member-cell-email{white-space:normal;word-break:break-all}
@@ -334,7 +336,11 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     }
 
     .admin-form-sticky-actions{
+        position:static;
         padding-inline:calc(var(--spacing) * 4);
+        background:var(--color-default-100);
+        -webkit-backdrop-filter:none;
+        backdrop-filter:none;
     }
 
     .admin-form-actions-split{
@@ -413,8 +419,8 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     align-items: end;
     display: grid;
     gap: calc(var(--spacing) * 3);
-    grid-template-columns: repeat(auto-fit, minmax(12rem, max-content)) auto;
-    justify-content: start;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    justify-content: stretch;
 }
 
 .admin-filter-fields-compact {
@@ -434,8 +440,17 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 
 .admin-filter-submit {
+    align-self: end;
     min-height: 2.5rem;
     min-width: 5rem;
+}
+
+.admin-audit-filter-form .admin-filter-fields {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.admin-audit-filter-form .admin-filter-submit {
+    justify-content: center;
 }
 
 .admin-page-member-list .member-search-fields {
@@ -454,6 +469,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 .admin-member-list-form .table {
     border-collapse: collapse;
     border-radius: 0 !important;
+    min-width: max-content;
     width: 100%;
 }
 
@@ -477,6 +493,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     padding-block: calc(var(--spacing) * 3);
     padding-inline: calc(var(--spacing) * 2.5);
     vertical-align: middle;
+    white-space: nowrap;
 }
 
 .admin-member-list-form .table tbody tr:last-child td {
@@ -505,6 +522,47 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 .admin-member-list-form .member-cell-email {
     white-space: normal;
     word-break: break-all;
+}
+
+.admin-member-list-form .table td :is(input, select, textarea) {
+    max-width: 18rem;
+}
+
+.admin-member-list-form .table td ul {
+    margin-block: calc(var(--spacing) * 1) 0;
+    padding-left: calc(var(--spacing) * 4);
+    white-space: normal;
+}
+
+.admin-audit-log-table {
+    table-layout: auto;
+}
+
+.admin-audit-log-table .admin-audit-message {
+    max-width: 17rem;
+    white-space: normal;
+}
+
+.admin-audit-log-table .admin-audit-metadata {
+    max-width: 12rem;
+}
+
+.admin-audit-log-table .admin-audit-metadata details {
+    position: relative;
+}
+
+.admin-audit-log-table .admin-audit-metadata summary {
+    color: var(--color-primary);
+    cursor: pointer;
+    font-weight: var(--font-weight-semibold);
+}
+
+.admin-audit-log-table .admin-audit-metadata code {
+    display: block;
+    margin-top: calc(var(--spacing) * 1.5);
+    max-width: 28rem;
+    overflow-wrap: anywhere;
+    white-space: normal;
 }
 
 .admin-member-list-form .member-status {
@@ -665,7 +723,8 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
 @media (max-width: 1023px) {
     .admin-page-member-list .member-search-fields,
-    .admin-filter-fields {
+    .admin-filter-fields,
+    .admin-audit-filter-form .admin-filter-fields {
         grid-template-columns: 1fr;
     }
 
