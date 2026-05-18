@@ -58,6 +58,7 @@ Apache 배포에서는 루트 `.htaccess`가 함께 올라가야 한다. `.tools
 확인 기준:
 
 - zip 압축 해제 시 `{module_key}/module.php` 구조가 나오는가
+- 같은 모듈 key를 유지하는 단독 배포물이라면 `{module_key}/` 밖의 본체/다른 모듈/문서 파일을 포함하지 않았는가
 - `module.php` version이 배포하려는 버전과 맞는가
 - `module.php`의 `saanraan.min_version`과 `saanraan.module_contract`가 배포 대상 본체와 맞는가
 - `install.sql`과 필요한 `updates/` 파일이 포함되어 있는가

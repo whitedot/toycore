@@ -40,6 +40,10 @@ banner-2026.05.001.zip
    - views/
 ```
 
+모듈을 단독 배포할 때 산란 런타임이 읽는 범위는 최종 배치된 `modules/{module_key}` 폴더다. 따라서 같은 모듈 key를 유지하는 교체 배포물은 해당 모듈 폴더 안의 런타임 파일, 계약 파일, asset, `install.sql`, `updates/`만 포함하면 된다. 초기 설치 화면의 선택 모듈 목록, 관리자 공통 라벨, 저장소 문서, 점검 스크립트처럼 모듈 폴더 밖에 있는 파일은 본체 릴리스와 함께 관리한다.
+
+예를 들어 `community` 모듈을 같은 key로 새 구현으로 교체한다면 배포 zip은 `community/module.php`, `community/install.sql`, `community/paths.php`, 필요한 `community/actions/`, `community/views/`, `community/helpers/`, 계약 파일, `community/updates/`를 포함한다. `/community`와 `/admin/community/...` URL을 유지하려면 `paths.php`에서 새 action 파일로 다시 매핑한다. 모듈 key나 관리자 설정 경로를 바꾸는 경우에는 본체/관리자 문서와 일부 공통 안내도 함께 갱신해야 한다.
+
 프로젝트 폴더가 `module/` 하위에 런타임 파일을 두는 구조라면 zip 업로드 시 module key를 입력해 `modules/{module_key}`로 반영할 수 있다. 다만 산란 안에 들어온 뒤의 기준은 항상 `modules/{module_key}`다.
 
 Git을 사용할 수 있는 운영자는 전체 브랜치를 병합하지 않고 특정 릴리스 태그나 원격 브랜치에서 필요한 모듈 폴더만 갱신할 수 있다. 예를 들어 포인트 모듈만 태그 기준으로 갱신하려면 다음처럼 `modules/point` 경로만 작업 트리에 반영한다.
