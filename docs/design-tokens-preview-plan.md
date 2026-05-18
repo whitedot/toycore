@@ -28,7 +28,7 @@
 
 UI-KIT의 자산 구분과 항목은 원본 구조를 유지한다.
 
-- `UI Components`: Buttons, Cards, Alerts, Badges, Modals, Dropdowns, Tabs, Sidebar
+- `UI Components`: Buttons, Cards, Alerts, Badges, Modals, Dropdowns, Tabs
 - `Forms`: Elements, Validation
 - `Tables`: Static Tables
 - `Icons`: Tabler Icons, Lucide Icons
@@ -52,7 +52,6 @@ UI-KIT의 자산 구분과 항목은 원본 구조를 유지한다.
 - `ui-modals.html`
 - `ui-dropdowns.html`
 - `ui-tabs.html`
-- `ui-sidebar.html`
 - `form-elements.html`
 - `form-validation.html`
 - `tables-static.html`
