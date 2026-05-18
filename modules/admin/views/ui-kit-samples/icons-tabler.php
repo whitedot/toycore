@@ -1,224 +1,74 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UI Guide - UI-KIT</title>
-    <script>
-        (function () {
-            var storageKey = 'g5aif-ui-theme';
-            var savedTheme = null;
-
-            try {
-                savedTheme = localStorage.getItem(storageKey);
-            } catch (error) {
-                savedTheme = null;
-            }
-
-            var isDark =
-                savedTheme === 'dark' ||
-                (!savedTheme &&
-                    window.matchMedia &&
-                    window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-        })();
-    </script>
-    <link rel="stylesheet" href="../common.css?v=1779112889">
-    <link rel="stylesheet" href="../admin-ui.css?v=1779110524">
-    <link rel="stylesheet" href="../public-ui.css?v=1779073641">
-    <!-- UI Guide Custom CSS -->
-    <link rel="stylesheet" href="css/ui-guide.css?v=1779115295">
-    <!-- Iconify -->
-    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
-</head>
-<body class="ui-bg-subtle ui-page-no-sidebar">
-    <div class="ui-layout-wrapper">
-<aside class="ui-sidebar" id="ui-sidebar">
-    <div class="ui-sidebar-logo">
-        <span class="ui-text-2xl ui-font-bold ui-guide-title">UI-KIT</span>
-    </div>
-    
-    <nav class="ui-mt-4">
-        <!-- GENERAL -->
-        <div class="ui-nav-section-title">General</div>
-        <a href="index.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:smart-home"></i>
-            Dashboard
-        </a>
-
-        <!-- UI COMPONENTS -->
-        <div class="ui-nav-section-title">UI Components</div>
-        <a href="ui-buttons.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:click"></i>
-            Buttons
-        </a>
-        <a href="ui-cards.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:id"></i>
-            Cards
-        </a>
-        <a href="ui-alerts.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:alert-circle"></i>
-            Alerts
-        </a>
-        <a href="ui-badges.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:label"></i>
-            Badges
-        </a>
-        <a href="ui-modals.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:window-maximize"></i>
-            Modals
-        </a>
-        <a href="ui-dropdowns.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:chevron-down"></i>
-            Dropdowns
-        </a>
-        <a href="ui-tabs.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:layout-navbar"></i>
-            Tabs
-        </a>
-        <!-- FORMS -->
-        <div class="ui-nav-section-title">Forms</div>
-        <a href="form-elements.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:forms"></i>
-            Elements
-        </a>
-        <a href="form-validation.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:shield-check"></i>
-            Validation
-        </a>
-
-        <!-- TABLES -->
-        <div class="ui-nav-section-title">Tables</div>
-        <a href="tables-static.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:table"></i>
-            Static Tables
-        </a>
-
-        <!-- ICONS -->
-        <div class="ui-nav-section-title">Icons</div>
-        <a href="icons-tabler.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:sparkles"></i>
-            Tabler Icons
-        </a>
-        <a href="icons-lucide.html" class="ui-nav-link active">
-            <i class="iconify ui-nav-icon" data-icon="tabler:bolt"></i>
-            Lucide Icons
-        </a>
-    </nav>
-</aside>
-<div class="ui-sidebar-backdrop" id="ui-sidebar-backdrop"></div>
-
-<main class="ui-main-content">
-    <header class="ui-top-navbar">
-        <div class="ui-flex ui-items-center">
-            <button
-                id="ui-sidebar-toggle"
-                type="button"
-                class="ui-sidebar-toggle"
-                aria-label="사이드바 열기"
-                aria-controls="ui-sidebar"
-                aria-expanded="false">
-                <i class="iconify ui-text-xl" data-icon="tabler:menu-2"></i>
-            </button>
-            <h2 class="ui-text-lg ui-font-semibold ui-guide-title">UI Guide Dashboard</h2>
-        </div>
-        <div class="ui-flex ui-items-center ui-gap-2">
-            <button
-                id="theme-toggle"
-                type="button"
-                class="btn btn-sm btn-solid-light ui-text-default-700 ui-theme-toggle"
-                aria-label="다크 모드로 전환"
-                title="다크 모드로 전환"
-                aria-pressed="false">
-                <i id="theme-toggle-icon" class="iconify ui-text-base" data-icon="tabler:moon"></i>
-                <span id="theme-toggle-label">다크모드</span>
-            </button>
-        </div>
-    </header>
-    <div class="ui-content-body">
-
+<div class="ui-kit-sample-section" data-ui-kit-sample="icons-tabler">
 <div class="container-fluid">
                     <div class="card">
                         <div class="card-header ui-block">
                             <h4 class="card-title ui-mb-1-25">개요 (Overview)</h4>
-                            <p class="ui-text-default-400">Lucide는 웹 및 앱 개발을 위한 깨끗하고 확장 가능한 SVG 아이콘의 오픈 소스 라이브러리로, 쉬운 통합과
-                                맞춤 설정을 제공합니다.</p>
+                            <p class="ui-text-default-400">웹사이트나 앱을 매력적이고 시각적으로 일관되며 아름답게 만들기 위해 디자인된 무료 오픈 소스 아이콘입니다.</p>
                         </div>
                         <!-- end card-header-->
 
                         <div class="card-body">
                             <h4 class="ui-mb-2 ui-text-sm">사용법 (Usage)</h4>
-                            <code>&lt;i class="iconify lucide--xxx"&gt;&lt;/i&gt;</code>
+                            <code>&lt;i class=&quot;iconify tabler--xxxx&quot;&gt;&lt;/i&gt;</code>
 
                             <div class="ui-mt-3 ui-flex ui-items-center ui-gap-3">
-                                <i data-icon="lucide:camera" class="iconify lucide--camera ui-text-2xl"></i>
-                                <i data-icon="lucide:heart" class="iconify lucide--heart ui-text-2xl"></i>
-                                <i data-icon="lucide:star" class="iconify lucide--star ui-text-2xl"></i>
-                                <i data-icon="lucide:check" class="iconify lucide--check ui-text-2xl"></i>
-                                <i data-icon="lucide:bell" class="iconify lucide--bell ui-text-2xl"></i>
-                                <i data-icon="lucide:cloud" class="iconify lucide--cloud ui-text-2xl"></i>
-                                <i data-icon="lucide:user" class="iconify lucide--user ui-text-2xl"></i>
+                                <i data-icon="tabler:phone" class="iconify tabler--phone ui-text-2xl"></i>
+                                <i data-icon="tabler:ad-2" class="iconify tabler--ad-2 ui-text-2xl"></i>
+                                <i data-icon="tabler:device-desktop" class="iconify tabler--device-desktop ui-text-2xl"></i>
+                                <i data-icon="tabler:device-tablet" class="iconify tabler--device-tablet ui-text-2xl"></i>
+                                <i data-icon="tabler:device-gamepad" class="iconify tabler--device-gamepad ui-text-2xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-2xl"></i>
                             </div>
                         </div>
                         <!-- end card-body-->
                         <div class="card-body ui-border-default-300 ui-border-t ui-border-dashed">
                             <h4 class="ui-mb-2 ui-text-sm">색상 (Colors)</h4>
-                            <code>&lt;i class="iconify lucide--xxx ui-text-xx"&gt;&lt;/i&gt;</code>
+                            <code>&lt;i class=&quot;iconify tabler--xxxx text-xxxx&quot;&gt;&lt;/i&gt;</code>
 
                             <div class="ui-mt-3 ui-flex ui-items-center ui-gap-3">
-                                <i data-icon="lucide:house" class="iconify lucide--house ui-text-primary ui-text-2xl"></i>
-                                <i data-icon="lucide:settings" class="iconify lucide--settings ui-text-secondary ui-text-2xl"></i>
-                                <i data-icon="lucide:calendar" class="iconify lucide--calendar ui-text-success ui-text-2xl"></i>
-                                <i data-icon="lucide:message-circle" class="iconify lucide--message-circle ui-text-info ui-text-2xl"></i>
-                                <i data-icon="lucide:flag" class="iconify lucide--flag ui-text-warning ui-text-2xl"></i>
-                                <i data-icon="lucide:folder" class="iconify lucide--folder ui-text-danger ui-text-2xl"></i>
-                                <i data-icon="lucide:globe" class="iconify lucide--globe ui-text-light ui-text-2xl"></i>
-                                <i data-icon="lucide:key" class="iconify lucide--key ui-text-dark ui-text-2xl"></i>
-                                <i data-icon="lucide:layers" class="iconify lucide--layers ui-text-purple ui-text-2xl"></i>
-                            </div>
-                        </div>
-
-                        <div class="card-body ui-border-default-300 ui-border-t ui-border-dashed">
-                            <h4 class="ui-mb-2 ui-text-sm">채우기 색상 (Fill Colors)</h4>
-                            <code>&lt;i data-lucide="xxx" class="ui-text-xx ui-fill-xx"&gt;&lt;/i&gt;</code>
-                            <div class="ui-mt-3 ui-flex ui-items-center ui-gap-3">
-                                <i data-lucide="star" class="ui-text-primary ui-fill-primary-soft ui-text-2xl"></i>
-                                <i data-lucide="user" class="ui-text-secondary ui-fill-secondary-soft ui-text-2xl"></i>
-                                <i data-lucide="check-circle" class="ui-text-success ui-fill-success-soft ui-text-2xl"></i>
-                                <i data-lucide="bell" class="ui-text-info ui-fill-info-soft ui-text-2xl"></i>
-                                <i data-lucide="alert-triangle" class="ui-text-warning ui-fill-warning-soft ui-text-2xl"></i>
-                                <i data-lucide="file-text" class="ui-text-danger ui-fill-danger-soft ui-text-2xl"></i>
-                                <i data-lucide="airplay" class="ui-text-light ui-fill-light-soft ui-text-2xl"></i>
-                                <i data-lucide="lock" class="ui-text-dark ui-fill-dark-soft ui-text-2xl"></i>
-                                <i data-lucide="database" class="ui-text-purple ui-fill-purple-soft ui-text-2xl"></i>
+                                <i data-icon="tabler:camera" class="iconify tabler--camera ui-text-primary ui-text-2xl"></i>
+                                <i data-icon="tabler:chart-pie-2" class="iconify tabler--chart-pie-2 ui-text-secondary ui-text-2xl"></i>
+                                <i data-icon="tabler:bell" class="iconify tabler--bell ui-text-success ui-text-2xl"></i>
+                                <i data-icon="tabler:credit-card" class="iconify tabler--credit-card ui-text-info ui-text-2xl"></i>
+                                <i data-icon="tabler:cloud" class="iconify tabler--cloud ui-text-warning ui-text-2xl"></i>
+                                <i data-icon="tabler:mail" class="iconify tabler--mail ui-text-danger ui-text-2xl"></i>
+                                <i data-icon="tabler:lock" class="iconify tabler--lock ui-text-dark ui-text-2xl"></i>
+                                <i data-icon="tabler:user" class="iconify tabler--user ui-text-purple ui-text-2xl"></i>
+                                <i data-icon="tabler:star" class="iconify tabler--star ui-text-light ui-text-2xl"></i>
                             </div>
                         </div>
 
                         <div class="card-body ui-border-default-300 ui-border-t ui-border-dashed">
                             <h4 class="ui-mb-2 ui-text-sm">크기 (Sizes)</h4>
-                            <code>&lt;i class="iconify lucide--xxxx ui-text-xx"&gt;&lt;/i&gt;</code>
+                            <code>&lt;i class=&quot;iconify tabler--xxxx text-xxxx&quot;&gt;&lt;/i&gt;</code>
 
                             <div class="ui-mt-3 ui-flex ui-items-center ui-gap-3">
-                                <i data-icon="lucide:phone" class="iconify lucide--phone ui-size-8-75"></i>
-                                <i data-icon="lucide:badge-dollar-sign" class="iconify lucide--badge-dollar-sign ui-size-7-5"></i>
-                                <i data-icon="lucide:monitor" class="iconify lucide--monitor ui-size-6"></i>
-                                <i data-icon="lucide:tablet" class="iconify lucide--tablet ui-size-4-25"></i>
-                                <i data-icon="lucide:gamepad-2" class="iconify lucide--gamepad-2 ui-size-3-5"></i>
-                                <i data-icon="lucide:watch" class="iconify lucide--watch ui-size-2-75"></i>
+                                <i data-icon="tabler:phone" class="iconify tabler--phone ui-text-xs"></i>
+                                <i data-icon="tabler:ad-2" class="iconify tabler--ad-2 ui-text-sm"></i>
+                                <i data-icon="tabler:device-desktop" class="iconify tabler--device-desktop ui-text-base"></i>
+                                <i data-icon="tabler:device-tablet" class="iconify tabler--device-tablet ui-text-lg"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-2xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-3xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-4xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-5xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-6xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-7xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-8xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-9xl"></i>
                             </div>
 
                             <div class="ui-mt-3 ui-flex ui-items-center ui-gap-3">
-                                <i data-icon="lucide:watch" class="iconify lucide--watch ui-size-3"></i>
-                                <i data-icon="lucide:watch" class="iconify lucide--watch ui-size-3-25"></i>
-                                <i data-icon="lucide:watch" class="iconify lucide--watch ui-size-4"></i>
-                                <i data-icon="lucide:watch" class="iconify lucide--watch ui-size-4-5"></i>
-                                <i data-icon="lucide:watch" class="iconify lucide--watch ui-size-5"></i>
-                                <i data-icon="lucide:watch" class="iconify lucide--watch ui-size-6"></i>
-                                <i data-icon="lucide:watch" class="iconify lucide--watch ui-size-8"></i>
-                                <i data-icon="lucide:watch" class="iconify lucide--watch ui-size-9"></i>
-                                <i data-icon="lucide:watch" class="iconify lucide--watch ui-size-10-5"></i>
-                                <i data-icon="lucide:watch" class="iconify lucide--watch ui-size-15"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-size-3-25"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-size-3-75"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-base"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-lg"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-size-6"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-size-8"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-size-9"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-size-10-5"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-size-15"></i>
                             </div>
                         </div>
                         <!-- end card-body-->
@@ -229,265 +79,265 @@
                             <div class="ui-items-center ui-flex ui-flex-wrap ui-gap-3 ui-text-center">
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:phone" class="iconify lucide--phone ui-text-xl"></i>
+                                    <i data-icon="tabler:phone" class="iconify tabler--phone ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">전화 (Phone)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:badge-percent" class="iconify lucide--badge-percent ui-text-xl"></i>
+                                    <i data-icon="tabler:ad-2" class="iconify tabler--ad-2 ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">광고 2 (Ad 2)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:headphones" class="iconify lucide--headphones ui-text-xl"></i>
+                                    <i data-icon="tabler:headphones" class="iconify tabler--headphones ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">헤드폰
                                         (Headphones)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:camera" class="iconify lucide--camera ui-text-xl"></i>
+                                    <i data-icon="tabler:camera" class="iconify tabler--camera ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">카메라 (Camera)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:watch" class="iconify lucide--watch ui-text-xl"></i>
+                                    <i data-icon="tabler:device-watch" class="iconify tabler--device-watch ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">시계 (Watch)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:mic" class="iconify lucide--mic ui-text-xl"></i>
+                                    <i data-icon="tabler:microphone" class="iconify tabler--microphone ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">마이크
                                         (Microphone)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:headset" class="iconify lucide--headset ui-text-xl"></i>
+                                    <i data-icon="tabler:headset" class="iconify tabler--headset ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">헤드셋 (Headset)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:tablet" class="iconify lucide--tablet ui-text-xl"></i>
+                                    <i data-icon="tabler:device-tablet" class="iconify tabler--device-tablet ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">태블릿 (Tablet)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:gamepad-2" class="iconify lucide--gamepad-2 ui-text-xl"></i>
+                                    <i data-icon="tabler:device-gamepad" class="iconify tabler--device-gamepad ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">게임패드 (Gamepad)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:printer" class="iconify lucide--printer ui-text-xl"></i>
+                                    <i data-icon="tabler:printer" class="iconify tabler--printer ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">프린터 (Printer)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:speaker" class="iconify lucide--speaker ui-text-xl"></i>
+                                    <i data-icon="tabler:device-speaker" class="iconify tabler--device-speaker ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">스피커 (Speaker)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:database" class="iconify lucide--database ui-text-xl"></i>
+                                    <i data-icon="tabler:database" class="iconify tabler--database ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">데이터베이스
                                         (Database)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:cloud" class="iconify lucide--cloud ui-text-xl"></i>
+                                    <i data-icon="tabler:cloud" class="iconify tabler--cloud ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">클라우드 (Cloud)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:wifi" class="iconify lucide--wifi ui-text-xl"></i>
+                                    <i data-icon="tabler:wifi" class="iconify tabler--wifi ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">와이파이 (Wi-Fi)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:bluetooth" class="iconify lucide--bluetooth ui-text-xl"></i>
+                                    <i data-icon="tabler:bluetooth" class="iconify tabler--bluetooth ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">블루투스
                                         (Bluetooth)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:usb" class="iconify lucide--usb ui-text-xl"></i>
+                                    <i data-icon="tabler:usb" class="iconify tabler--usb ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">USB</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:folder" class="iconify lucide--folder ui-text-xl"></i>
+                                    <i data-icon="tabler:folder" class="iconify tabler--folder ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">폴더 (Folder)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:lock" class="iconify lucide--lock ui-text-xl"></i>
+                                    <i data-icon="tabler:lock" class="iconify tabler--lock ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">잠금 (Lock)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:key" class="iconify lucide--key ui-text-xl"></i>
+                                    <i data-icon="tabler:key" class="iconify tabler--key ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">열쇠 (Key)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:shield" class="iconify lucide--shield ui-text-xl"></i>
+                                    <i data-icon="tabler:shield" class="iconify tabler--shield ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">방패 (Shield)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:paperclip" class="iconify lucide--paperclip ui-text-xl"></i>
+                                    <i data-icon="tabler:paperclip" class="iconify tabler--paperclip ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">클립 (Paperclip)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:bell" class="iconify lucide--bell ui-text-xl"></i>
-                                    <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">종 (Bell)</span>
+                                    <i data-icon="tabler:bell" class="iconify tabler--bell ui-text-2xl"></i>
+                                    <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">알림 (Bell)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:search" class="iconify lucide--search ui-text-xl"></i>
+                                    <i data-icon="tabler:search" class="iconify tabler--search ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">검색 (Search)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:briefcase" class="iconify lucide--briefcase ui-text-xl"></i>
+                                    <i data-icon="tabler:briefcase" class="iconify tabler--briefcase ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">서류가방
                                         (Briefcase)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:package" class="iconify lucide--package ui-text-xl"></i>
+                                    <i data-icon="tabler:package" class="iconify tabler--package ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">패키지 (Package)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:file" class="iconify lucide--file ui-text-xl"></i>
+                                    <i data-icon="tabler:file" class="iconify tabler--file ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">파일 (File)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:book" class="iconify lucide--book ui-text-xl"></i>
+                                    <i data-icon="tabler:book" class="iconify tabler--book ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">책 (Book)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:mail" class="iconify lucide--mail ui-text-xl"></i>
+                                    <i data-icon="tabler:mail" class="iconify tabler--mail ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">메일 (Mail)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:user" class="iconify lucide--user ui-text-xl"></i>
+                                    <i data-icon="tabler:user" class="iconify tabler--user ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">사용자 (User)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:circle-user" class="iconify lucide--circle-user ui-text-xl"></i>
+                                    <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">사용자 원형 (User
                                         Circle)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:phone" class="iconify lucide--phone ui-text-xl"></i>
+                                    <i data-icon="tabler:phone-call" class="iconify tabler--phone-call ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">전화 걸기 (Phone
                                         Call)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:music" class="iconify lucide--music ui-text-xl"></i>
+                                    <i data-icon="tabler:music" class="iconify tabler--music ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">음악 (Music)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:film" class="iconify lucide--film ui-text-xl"></i>
+                                    <i data-icon="tabler:movie" class="iconify tabler--movie ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">영화 (Movie)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:upload" class="iconify lucide--upload ui-text-xl"></i>
+                                    <i data-icon="tabler:file-upload" class="iconify tabler--file-upload ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">업로드 (Upload)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:cloud-upload" class="iconify lucide--cloud-upload ui-text-xl"></i>
+                                    <i data-icon="tabler:cloud-upload" class="iconify tabler--cloud-upload ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">클라우드 업로드 (Cloud
                                         Upload)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:share" class="iconify lucide--share ui-text-xl"></i>
+                                    <i data-icon="tabler:share" class="iconify tabler--share ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">상단 공유 (Share)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:arrow-right" class="iconify lucide--arrow-right ui-text-xl"></i>
+                                    <i data-icon="tabler:arrow-right" class="iconify tabler--arrow-right ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">오른쪽 화살표 (Arrow
                                         Right)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:arrow-left" class="iconify lucide--arrow-left ui-text-xl"></i>
+                                    <i data-icon="tabler:arrow-left" class="iconify tabler--arrow-left ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">왼쪽 화살표 (Arrow
                                         Left)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:arrow-up" class="iconify lucide--arrow-up ui-text-xl"></i>
+                                    <i data-icon="tabler:arrow-up" class="iconify tabler--arrow-up ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">위쪽 화살표 (Arrow
                                         Up)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:arrow-down" class="iconify lucide--arrow-down ui-text-xl"></i>
+                                    <i data-icon="tabler:arrow-down" class="iconify tabler--arrow-down ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">아래쪽 화살표 (Arrow
                                         Down)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:search" class="iconify lucide--search ui-text-xl"></i>
+                                    <i data-icon="tabler:search" class="iconify tabler--search ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">검색 (Search)</span>
                                 </div>
 
                                 <div
                                     class="ui-border-default-300 ui-flex ui-size-20 ui-flex-col ui-items-center ui-justify-center ui-gap-3 ui-truncate ui-rounded ui-border ui-border-dashed">
-                                    <i data-icon="lucide:refresh-ccw" class="iconify lucide--refresh-ccw ui-text-xl"></i>
+                                    <i data-icon="tabler:refresh" class="iconify tabler--refresh ui-text-2xl"></i>
                                     <span class="ui-block ui-w-full ui-truncate ui-text-center ui-font-semibold">새로고침 (Refresh)</span>
                                 </div>
                             </div>
@@ -501,15 +351,5 @@
                         <!-- end card-body-->
                     </div>
                     <!-- end card-->
-                </div>
-
-    </div> <!-- End ui-content-body -->
-</main> <!-- End ui-main-content -->
-</div> <!-- End ui-layout-wrapper -->
-
-<!-- Scripts -->
-<script src="../common-ui.js?v=1779112124"></script>
-<script src="js/ui-kit/ui-theme-toggle.js"></script>
-<script src="js/ui-kit/ui-sidebar-toggle.js"></script>
-</body>
-</html>
+</div>
+</div>

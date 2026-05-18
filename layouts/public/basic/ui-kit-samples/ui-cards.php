@@ -1,143 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UI Guide - UI-KIT</title>
-    <script>
-        (function () {
-            var storageKey = 'g5aif-ui-theme';
-            var savedTheme = null;
-
-            try {
-                savedTheme = localStorage.getItem(storageKey);
-            } catch (error) {
-                savedTheme = null;
-            }
-
-            var isDark =
-                savedTheme === 'dark' ||
-                (!savedTheme &&
-                    window.matchMedia &&
-                    window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-        })();
-    </script>
-    <link rel="stylesheet" href="../common.css?v=1779112889">
-    <link rel="stylesheet" href="../admin-ui.css?v=1779110524">
-    <link rel="stylesheet" href="../public-ui.css?v=1779073641">
-    <!-- UI Guide Custom CSS -->
-    <link rel="stylesheet" href="css/ui-guide.css?v=1779115295">
-    <!-- Iconify -->
-    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
-</head>
-<body class="ui-bg-subtle">
-    <div class="ui-layout-wrapper">
-<aside class="ui-sidebar" id="ui-sidebar">
-    <div class="ui-sidebar-logo">
-        <span class="ui-text-2xl ui-font-bold ui-guide-title">UI-KIT</span>
-    </div>
-    
-    <nav class="ui-mt-4">
-        <!-- GENERAL -->
-        <div class="ui-nav-section-title">General</div>
-        <a href="index.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:smart-home"></i>
-            Dashboard
-        </a>
-
-        <!-- UI COMPONENTS -->
-        <div class="ui-nav-section-title">UI Components</div>
-        <a href="ui-buttons.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:click"></i>
-            Buttons
-        </a>
-        <a href="ui-cards.html" class="ui-nav-link active">
-            <i class="iconify ui-nav-icon" data-icon="tabler:id"></i>
-            Cards
-        </a>
-        <a href="ui-alerts.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:alert-circle"></i>
-            Alerts
-        </a>
-        <a href="ui-badges.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:label"></i>
-            Badges
-        </a>
-        <a href="ui-modals.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:window-maximize"></i>
-            Modals
-        </a>
-        <a href="ui-dropdowns.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:chevron-down"></i>
-            Dropdowns
-        </a>
-        <a href="ui-tabs.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:layout-navbar"></i>
-            Tabs
-        </a>
-        <!-- FORMS -->
-        <div class="ui-nav-section-title">Forms</div>
-        <a href="form-elements.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:forms"></i>
-            Elements
-        </a>
-        <a href="form-validation.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:shield-check"></i>
-            Validation
-        </a>
-
-        <!-- TABLES -->
-        <div class="ui-nav-section-title">Tables</div>
-        <a href="tables-static.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:table"></i>
-            Static Tables
-        </a>
-
-        <!-- ICONS -->
-        <div class="ui-nav-section-title">Icons</div>
-        <a href="icons-tabler.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:sparkles"></i>
-            Tabler Icons
-        </a>
-        <a href="icons-lucide.html" class="ui-nav-link">
-            <i class="iconify ui-nav-icon" data-icon="tabler:bolt"></i>
-            Lucide Icons
-        </a>
-    </nav>
-</aside>
-<div class="ui-sidebar-backdrop" id="ui-sidebar-backdrop"></div>
-
-<main class="ui-main-content">
-    <header class="ui-top-navbar">
-        <div class="ui-flex ui-items-center">
-            <button
-                id="ui-sidebar-toggle"
-                type="button"
-                class="ui-sidebar-toggle"
-                aria-label="사이드바 열기"
-                aria-controls="ui-sidebar"
-                aria-expanded="false">
-                <i class="iconify ui-text-xl" data-icon="tabler:menu-2"></i>
-            </button>
-            <h2 class="ui-text-lg ui-font-semibold ui-guide-title">UI Guide Dashboard</h2>
-        </div>
-        <div class="ui-flex ui-items-center ui-gap-2">
-            <button
-                id="theme-toggle"
-                type="button"
-                class="btn btn-sm btn-solid-light ui-text-default-700 ui-theme-toggle"
-                aria-label="다크 모드로 전환"
-                title="다크 모드로 전환"
-                aria-pressed="false">
-                <i id="theme-toggle-icon" class="iconify ui-text-base" data-icon="tabler:moon"></i>
-                <span id="theme-toggle-label">다크모드</span>
-            </button>
-        </div>
-    </header>
-    <div class="ui-content-body">
-
+<div class="ui-kit-sample-section" data-ui-kit-sample="ui-cards">
 <div class="container-fluid">
                     <div class="ui-grid ui-grid-cols-1 ui-grid-cols-md-2 ui-grid-cols-xl-4 ui-gap-base ui-mb-base">
                         <!-- 기본 카드 -->
@@ -385,7 +246,7 @@
                         <div class="card">
                             <div class="ui-grid ui-grid-cols-1 ui-items-center ui-grid-cols-md-3">
                                 <div>
-                                    <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="ui-rounded-s-sm" alt="검 든 여우 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
+                                    <img src="<?php echo sr_e(sr_url('/assets/ui-sample-card.jpg')); ?>" class="ui-rounded-s-sm" alt="검 든 여우 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
                                 </div>
 
                                 <div class="ui-col-2">
@@ -415,7 +276,7 @@
                                 </div>
 
                                 <div>
-                                    <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="ui-rounded-e-sm" alt="검 든 여우 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
+                                    <img src="<?php echo sr_e(sr_url('/assets/ui-sample-card.jpg')); ?>" class="ui-rounded-e-sm" alt="검 든 여우 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
                                 </div>
                             </div>
                         </div>
@@ -425,7 +286,7 @@
                     <div class="ui-grid ui-grid-cols-1 ui-grid-cols-md-2 ui-grid-cols-xl-4 ui-gap-base ui-mb-base">
                         <div class="card ui-group">
                             <a href="#">
-                                <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="ui-rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-sample-card.jpg')); ?>" class="ui-rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                                 <div class="card-body">
                                     <h5 class="card-title ui-mb-2-5">확장 링크가 있는 카드</h5>
                                     <a href="#"
@@ -436,7 +297,7 @@
 
                         <div class="card">
                             <a href="#">
-                                <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="ui-rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-sample-card.jpg')); ?>" class="ui-rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                                 <div class="card-body">
                                     <h5 class="card-title ui-text-primary ui-mb-3">확장 링크가 있는 카드</h5>
                                     <p>카드 제목을 기반으로 내용을 구성하는 간단한 예시 텍스트입니다.
@@ -447,7 +308,7 @@
 
                         <div class="card ui-group">
                             <a href="#">
-                                <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="ui-rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-sample-card.jpg')); ?>" class="ui-rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                                 <div class="card-body">
                                     <h5 class="card-title ui-mb-2-5">확장 링크가 있는 카드</h5>
                                     <a href="#"
@@ -458,7 +319,7 @@
 
                         <div class="card">
                             <a href="#">
-                                <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="ui-rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-sample-card.jpg')); ?>" class="ui-rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                                 <div class="card-body">
                                     <h5 class="card-title ui-text-primary ui-mb-3">확장 링크가 있는 카드</h5>
                                     <p>카드 제목을 기반으로 내용을 구성하는 간단한 예시 텍스트입니다.
@@ -472,7 +333,7 @@
 
                     <div class="ui-grid ui-grid-cols-1 ui-gap-3 ui-grid-cols-md-3 ui-gap-md-0 ui-mb-base">
                         <div class="card ui-h-full ui-rounded-md-s-sm ui-rounded-md-e-none">
-                            <img class="card-img-top" src="images/WChwGxuZl7SE6RiHti5x.jpg" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-sample-card.jpg')); ?>" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
                                 <h5 class="card-title ui-mb-2-5">카드 제목</h5>
                                 <p class="ui-mb-4">이 카드는 아래 보조 텍스트가 추가 콘텐츠로 자연스럽게 이어지는 더 넓은 카드입니다.
@@ -484,7 +345,7 @@
                         </div>
 
                         <div class="card ui-h-full ui-rounded-md-none">
-                            <img class="card-img-top" src="images/WChwGxuZl7SE6RiHti5x.jpg" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-sample-card.jpg')); ?>" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
                                 <h5 class="card-title ui-mb-2-5">카드 제목</h5>
                                 <p class="ui-mb-4">이 카드는 추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트를 포함하고 있습니다.</p>
@@ -495,7 +356,7 @@
                         </div>
 
                         <div class="card ui-h-full ui-rounded-md-s-none ui-rounded-md-e-sm">
-                            <img class="card-img-top" src="images/WChwGxuZl7SE6RiHti5x.jpg" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-sample-card.jpg')); ?>" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
                                 <h5 class="card-title ui-mb-2-5">카드 제목</h5>
                                 <p class="ui-mb-4">이것은 자연스럽게 추가 콘텐츠로 이어지는 보조 텍스트가 있는 더 넓은 카드입니다. 이 카드는 동일한 높이 동작을 보여주기 위해 첫
@@ -595,15 +456,5 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-    </div> <!-- End ui-content-body -->
-</main> <!-- End ui-main-content -->
-</div> <!-- End ui-layout-wrapper -->
-
-<!-- Scripts -->
-<script src="../common-ui.js?v=1779112124"></script>
-<script src="js/ui-kit/ui-theme-toggle.js"></script>
-<script src="js/ui-kit/ui-sidebar-toggle.js"></script>
-</body>
-</html>
+</div>
+</div>

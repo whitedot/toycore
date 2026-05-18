@@ -1,6 +1,7 @@
 /*
  * Saanraan admin module layer.
- * Loaded after assets/common.css and assets/admin-ui.css by the admin shell.
+ * Loaded after assets/common/tokens.css, primitives.css, utilities.css,
+ * and assets/admin-ui.css by the admin shell.
  * Owns admin shell chrome, admin content layout, and concrete admin module screen structures.
  * Do not define site-wide tokens or reusable UI kit primitives here.
  */
@@ -342,7 +343,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 @media (min-width:1024px){body.admin-sidebar-condensed #btn_gnb_mobile{display:inline-flex}}
 @media (max-width:1023px){.admin-account-search-grid,.community-search-fields-wide,.community-search-fields-compact{grid-template-columns:1fr}.admin-filter-submit{justify-content:center;width:100%}#hd{width:var(--admin-sidebar-width)}body:not(.admin-sidebar-open) #hd{pointer-events:none}body.admin-sidebar-open #hd{pointer-events:auto}#gnb{width:var(--admin-sidebar-width);z-index:50;pointer-events:auto;box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 20px 25px -5px #0000001a, 0 8px 10px -6px #0000001a;position:fixed;inset:0 auto 0 0;transform:translate(-100%)}body.admin-sidebar-open #gnb{transform:translate(0)}#wrapper,body.admin-sidebar-condensed #wrapper{padding-left:0}#gnb .gnb_scrollbar{display:none}}
 @media (max-width:767px){.admin-dashboard-site-grid{grid-template-columns:1fr}.admin-dashboard-site-grid>div{border-right-width:0;border-bottom:1px solid var(--color-default-200)}.admin-dashboard-site-grid>div:last-child{border-bottom-width:0}.admin-local-nav-wrap{align-items:flex-start}.admin-local-nav{display:grid;grid-template-columns:1fr;width:100%}.admin-local-nav .btn{min-width:0}.admin-list-card>.card-header{align-items:stretch;flex-direction:column}.admin-list-card>.card-header>.btn{justify-content:center;width:100%}.admin-notice{grid-template-columns:1fr}.admin-form-actions,.admin-list-actions{flex-direction:column;align-items:stretch}.admin-form-actions>*,.admin-list-actions>*{width:100%}.admin-form-actions .btn,.admin-list-actions .btn{justify-content:center}}
-/* Saanraan admin adapters: keep common.css as the ui-kit and define Saanraan-specific admin structures here. */
+/* Saanraan admin adapters: define Saanraan-specific admin structures here. */
 
 @media (max-width:767px){
     .admin-anchor-tabs{

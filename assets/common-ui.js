@@ -1,7 +1,7 @@
 /*
  * Saanraan common UI interactions.
- * Shared by project screens and UI-KIT previews.
- * Owns dropdown, overlay/modal, and tablist behavior without UI-KIT shell dependencies.
+ * Shared by project screens and runtime UI-KIT preview pages.
+ * Owns dropdown, overlay/modal, and tablist behavior without preview shell dependencies.
  */
 
 (function () {

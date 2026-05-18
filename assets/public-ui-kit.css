@@ -1,137 +1,24 @@
-/* UI 가이드 전용 스타일시트 */
+/*
+ * Public UI-KIT development preview layer.
+ * Starts from the same common token/primitive/utility stack that admin uses,
+ * then keeps the migrated sample layout helpers local to this preview route.
+ */
+@import url("common/tokens.css");
+@import url("common/primitives.css");
+@import url("common/utilities.css");
 
-:root {
-    --ui-side-nav-width: 260px;
-    --ui-side-nav-bg: #f8f9fa;
-    --ui-side-nav-active-bg: #ffffff;
-    --ui-side-nav-active-color: #4f46e5;
-    --ui-border-color: #e5e7eb;
-    --ui-body-bg: #ffffff;
-    --ui-body-color: #1a1a1a;
-    --ui-content-bg: #f9fafb;
-    --ui-top-nav-bg: #ffffff;
-    --ui-nav-title-color: #6b7280;
-    --ui-nav-link-color: #4b5563;
-    --ui-nav-link-hover-bg: #f3f4f6;
-    --ui-nav-link-hover-color: #111827;
-    --ui-top-nav-height: 64px;
-}
-
-[data-theme='dark'] {
-    --ui-side-nav-bg: #1b1e27;
-    --ui-side-nav-active-bg: #242938;
-    --ui-side-nav-active-color: #8ea1ff;
-    --ui-border-color: #2f3645;
-    --ui-body-bg: #17181e;
-    --ui-body-color: #d5d9e4;
-    --ui-content-bg: #111827;
-    --ui-top-nav-bg: #1b1e27;
-    --ui-nav-title-color: #8b97a8;
-    --ui-nav-link-color: #c4ccda;
-    --ui-nav-link-hover-bg: #232734;
-    --ui-nav-link-hover-color: #f3f6fc;
-}
-
-body {
-    background-color: var(--ui-body-bg);
-    color: var(--ui-body-color);
-}
-
-.ui-layout-wrapper {
-    display: flex;
-    min-height: 100vh;
-}
-
-/* 사이드바 스타일 */
-.ui-sidebar {
-    width: var(--ui-side-nav-width);
-    background-color: var(--ui-side-nav-bg);
-    border-right: 1px solid var(--ui-border-color);
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    overflow-y: auto;
-    z-index: 100;
-}
-
-.ui-sidebar-logo {
-    height: var(--ui-top-nav-height);
-    display: flex;
-    align-items: center;
-    padding: 0 1.5rem;
-    border-bottom: 1px solid var(--ui-border-color);
-}
-
-.ui-nav-section-title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--ui-nav-title-color);
-    padding: 1.5rem 1.5rem 0.5rem;
-}
-
-.ui-nav-link {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    color: var(--ui-nav-link-color);
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    border-left: 3px solid transparent;
-}
-
-.ui-nav-link:hover {
-    background-color: var(--ui-nav-link-hover-bg);
-    color: var(--ui-nav-link-hover-color);
-}
-
-.ui-nav-link.active {
-    background-color: var(--ui-side-nav-active-bg);
-    color: var(--ui-side-nav-active-color);
-    border-left-color: var(--ui-side-nav-active-color);
-}
-
-.ui-nav-icon {
-    font-size: 1.25rem;
-    margin-right: 0.75rem;
-}
-
-/* 메인 콘텐츠 영역 */
-.ui-main-content {
-    margin-left: var(--ui-side-nav-width);
-    flex: 1;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.ui-top-navbar {
-    height: var(--ui-top-nav-height);
-    background-color: var(--ui-top-nav-bg);
-    border-bottom: 1px solid var(--ui-border-color);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 2rem;
-    position: sticky;
-    top: 0;
-    z-index: 50;
-}
-
-.ui-top-navbar h2 {
-    color: var(--ui-body-color);
-}
-
-.ui-guide-title {
-    color: #000000;
-}
-
-.ui-content-body {
+.public-ui-kit {
+    display: grid;
+    gap: 1.5rem;
+    margin-inline: auto;
+    max-width: 1180px;
     padding: 2rem;
-    flex: 1;
-    background-color: var(--ui-content-bg);
+}
+
+.public-ui-kit-samples {
+    display: grid;
+    gap: 1.5rem;
+    padding: 0;
 }
 
 .ui-preview-frame {
@@ -693,7 +580,7 @@ body {
     color: #94a3b8;
 }
 
-[data-theme='dark'] .ui-guide-title {
+[data-theme='dark'] .ui-kit-title {
     color: #ffffff;
 }
 

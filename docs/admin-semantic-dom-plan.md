@@ -2,7 +2,7 @@
 
 ## 목적
 
-관리자 화면의 HTML 구조와 CSS class 이름을 `assets/ui-kit`의 컴포넌트 원형에 맞춰 정리한다. 목표는 화면별로 우연히 맞아 보이는 스타일을 줄이고, 카드, 폼, 필터, 표, 탭, 액션 영역이 같은 DOM 패턴으로 반복되게 만드는 것이다.
+관리자 화면의 HTML 구조와 CSS class 이름을 관리자 런타임 UI-KIT의 컴포넌트 원형에 맞춰 정리한다. 목표는 화면별로 우연히 맞아 보이는 스타일을 줄이고, 카드, 폼, 필터, 표, 탭, 액션 영역이 같은 DOM 패턴으로 반복되게 만드는 것이다.
 
 이 계획은 새 라우팅 방식이나 자동 class 주입을 만들지 않는다. 각 관리자 view가 의미 있는 DOM을 직접 출력하고, CSS는 그 의미 구조를 안정적으로 꾸미는 역할만 맡는다.
 
@@ -14,11 +14,12 @@
 
 ## 참고 기준
 
-- `assets/ui-kit/index.html`: Base/Admin/Public/Skin 맥락 구분
-- `assets/ui-kit/ui-cards.html`: `card`, `card-header`, `card-title`, `card-body`
-- `assets/ui-kit/form-elements.html`: `ui-form-theme`, `form-label`, `form-input`, `form-select`, `form-textarea`, `form-checkbox`
-- `assets/ui-kit/tables-static.html`: `table-wrapper`, `table`, `thead`, `tbody`
-- `assets/ui-kit/ui-tabs.html`: `tab-nav`, `tab-nav-bordered`, `tab-trigger-underline`
+- `/admin/ui-kit`: 관리자 런타임 기준 UI-KIT 조회 화면
+- `/admin/ui-kit-public`: public layout 기준 UI-KIT 조회 화면
+- `modules/admin/views/ui-kit-samples/ui-cards.php`: `card`, `card-header`, `card-title`, `card-body`
+- `modules/admin/views/ui-kit-samples/form-elements.php`: `ui-form-theme`, `form-label`, `form-input`, `form-select`, `form-textarea`, `form-checkbox`
+- `modules/admin/views/ui-kit-samples/tables-static.php`: `table-wrapper`, `table`, `thead`, `tbody`
+- `modules/admin/views/ui-kit-samples/ui-tabs.php`: `tab-nav`, `tab-nav-bordered`, `tab-trigger-underline`
 - `docs/admin-ui-guide.md`: 관리자 UI 작성 기준
 - `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css`: 사이트 공통 디자인 토큰, 공통 UI 원형, 재사용 유틸리티
 
@@ -279,7 +280,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 작업:
 
 - 공통 토큰은 `assets/common/tokens.css`, 공통 원형은 `assets/common/primitives.css`, 공통 유틸은 `assets/common/utilities.css`에 둔다.
-- `assets/common.css`는 정적 UI-KIT 조회용 manifest로 유지한다.
 - 관리자 런타임은 `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css` 순서로 호출한다.
 - `admin-card`, `admin-list-card`, `admin-table`, `admin-row-actions`, `admin-form`, `admin-form-row`, `admin-filter` 계열 class를 추가한다.
 - `admin-*` 원형 class가 직접 스타일을 받도록 CSS를 둔다.

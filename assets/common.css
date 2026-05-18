@@ -1,8 +1,0 @@
-/*
- * Saanraan common CSS manifest.
- * Static UI-KIT previews load this file so they see the same common layers
- * that admin runtime loads as split files with filemtime cache busting.
- */
-@import url("common/tokens.css");
-@import url("common/primitives.css");
-@import url("common/utilities.css");

@@ -13,6 +13,8 @@ return [
     'GET /admin/roles' => 'actions/roles.php',
     'POST /admin/roles' => 'actions/roles.php',
     'GET /admin/audit-logs' => 'actions/audit-logs.php',
+    'GET /admin/ui-kit' => 'actions/ui-kit.php',
+    'GET /admin/ui-kit-public' => 'actions/ui-kit-public.php',
     'GET /admin/retention' => 'actions/retention.php',
     'POST /admin/retention' => 'actions/retention.php',
 ];
