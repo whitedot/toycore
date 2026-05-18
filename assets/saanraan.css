@@ -117,13 +117,13 @@
 html,
 body {
     color: var(--sr-text);
+    font-size: 16px;
 }
 
 body {
     margin: 0;
     background: var(--sr-bg);
     font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-    font-size: 16px;
     line-height: 1.55;
 }
 

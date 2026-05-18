@@ -9,6 +9,7 @@
 html,
 body {
   color: var(--color-body-color);
+  font-size: var(--text-body);
 }
 
 .hint-text,
