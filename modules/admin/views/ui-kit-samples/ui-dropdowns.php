@@ -466,7 +466,7 @@
                                     <div class="dropdown-split">
                                         <div class="dropdown" data-dropdown-placement="left-start">
                                             <button type="button"
-                                                class="dropdown-toggle btn ui-kit-ink-sky-700 btn-solid-secondary-muted ui-kit-radius-e-none ui-kit-inline-pad-2">
+                                                class="dropdown-toggle btn btn-solid-secondary-muted ui-kit-radius-e-none ui-kit-inline-pad-2">
                                                 <i data-icon="tabler:chevron-left" class="iconify dropdown-icon"></i>
                                             </button>
 
