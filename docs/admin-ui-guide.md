@@ -2,13 +2,12 @@
 
 관리자 화면은 G5 Codex 계열의 공통 UI 톤을 기준으로 맞춘다. 관리자 런타임의 원스타일 출처는 `modules/admin/assets/admin.css`로 둔다.
 
-- `assets/common/tokens.css`: 사이트 전반에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다.
-- `assets/common/primitives.css`: 관리자 런타임에서 호출하지 않는다. 과거 중앙 UI-KIT/공용 미리보기 산출물이며, 관리자 컴포넌트의 스타일 출처로 쓰지 않는다.
-- `assets/common/utilities.css`: 관리자 런타임에서 호출하지 않는다. 공용 보조 스타일이 필요하더라도 관리자 화면의 실제 클래스는 `admin.css`에 둔다.
+- `assets/tokens.css`: 사이트 전반에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다.
+- 삭제한 common primitive/utility 산출물: 과거 중앙 UI-KIT/공용 미리보기 산출물이어서 삭제했다. 공용 보조 스타일이 필요하더라도 관리자 화면의 실제 클래스는 `admin.css`에 둔다.
 - `assets/admin-ui.css`: `.admin-ui-scope` 안의 반복 가능한 관리자 작업 조합만 둔다.
 - `modules/admin/assets/admin.css`: 관리자 runtime reset/base, `btn`, `card`, `table`, `badge`, `form-*` 같은 의미 클래스, shell, 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 admin 모듈의 실제 화면 구조를 둔다.
 
-공개 화면 런타임은 `assets/saanraan.css`와 `assets/public-ui.css`를 호출한다. 현재 공개 화면은 저비용 호스팅과 기본 스킨 호환성을 위해 관리자 공통 reset/원형 전체를 전역으로 호출하지 않는다. `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡고, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. Public UI-KIT 조회 화면은 아직 public 컴포넌트 원형이 부족한 항목을 확인하기 위해 `assets/public-ui-kit.css`에서 관리자 공통 원형의 출발점을 복사해 사용한다.
+공개 화면 런타임은 `assets/saanraan.css`와 `assets/public-ui.css`를 호출한다. 현재 공개 화면은 저비용 호스팅과 기본 스킨 호환성을 위해 관리자 공통 reset/원형 전체를 전역으로 호출하지 않는다. `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡고, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. Public UI-KIT 조회 화면은 아직 public 컴포넌트 원형이 부족한 항목을 확인하기 위해 `assets/tokens.css`, `modules/admin/assets/admin.css`, `assets/public-ui-kit.css`를 명시적으로 호출한다. 이는 조회 화면 전용이며 일반 공개 런타임은 관리자 CSS를 호출하지 않는다.
 
 관리자/공개 런타임 CSS 호출은 PHP helper가 실제 파일의 `filemtime()` 값을 `?v=` query string으로 붙여 캐시를 갱신한다.
 

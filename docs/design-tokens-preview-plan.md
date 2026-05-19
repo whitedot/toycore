@@ -6,7 +6,7 @@
 
 ## 목표
 
-- 개발자가 `assets/common/tokens.css`의 현재 토큰과 런타임별 CSS의 reset/base, UI 원형을 실제 public/admin 화면 컨텍스트에서 확인할 수 있게 한다.
+- 개발자가 `assets/tokens.css`의 현재 토큰과 런타임별 CSS의 reset/base, UI 원형을 실제 public/admin 화면 컨텍스트에서 확인할 수 있게 한다.
 - `assets/admin-ui.css`, `assets/public-ui.css`, `assets/saanraan.css`, `modules/admin/assets/admin.css`처럼 실제 화면에서 쓰는 레이어 CSS를 해당 런타임의 원래 호출 방식으로 확인한다. 단, public 컴포넌트 스타일은 아직 충분히 분리되어 있지 않으므로 초기 public UI-KIT은 관리자에서 사용하는 공통 원형과 스타일을 복사해 출발점으로 삼는다.
 - UI-KIT 전용 CSS가 프로젝트 토큰이나 컴포넌트 원형을 덮어쓰지 않게 하기 위해 중앙 shell CSS를 제거한다.
 - 드롭다운, 모달, 탭처럼 JS 동작이 있어야 원형을 확인할 수 있는 항목은 프로젝트에서도 같은 JS를 사용할 수 있게 공용 자산으로 관리한다.
@@ -35,7 +35,7 @@
 
 기존 중앙 UI-KIT의 `index.html`, `ui-buttons.html`, `ui-cards.html`, `ui-alerts.html`, `ui-badges.html`, `ui-modals.html`, `ui-dropdowns.html`, `ui-tabs.html`, `form-elements.html`, `form-validation.html`, `tables-static.html`, `icons-tabler.html`, `icons-lucide.html`에 있는 예시는 일부만 선별하지 않는다. 모든 예시를 public/admin 중 적합한 런타임 조회 페이지로 전량 이관한다. 양쪽에서 모두 확인할 가치가 있는 원형은 양쪽에 중복 배치해 실제 결과 차이를 볼 수 있게 한다.
 
-`modules/admin/assets/admin.css`는 모듈 소유 CSS로 유지한다. 공용 승격 대상은 여러 런타임에서 실제로 공유하는 토큰, primitive, utility, 공용 JS 동작에 한정한다.
+`modules/admin/assets/admin.css`는 모듈 소유 CSS로 유지한다. 공용 승격 대상은 여러 런타임에서 실제로 공유하는 토큰과 공용 JS 동작에 한정한다.
 
 ## CSS 호출 계획
 
@@ -45,7 +45,7 @@ Admin 조회 화면:
 
 - `modules/admin/views/layout-header.php`와 `layout-footer.php`를 통과한다.
 - `sr_admin_stylesheet_tag()`가 출력하는 `tokens.css`, `admin-ui.css`, `modules/admin/assets/admin.css`를 그대로 사용한다.
-- 관리자 런타임의 reset/base와 `btn`, `card`, `table`, `badge`, `form-*` 의미 클래스는 `modules/admin/assets/admin.css`가 직접 소유한다. `assets/common/primitives.css`와 `assets/common/utilities.css`는 관리자 UI-KIT의 스타일 출처로 쓰지 않는다.
+- 관리자 런타임의 reset/base와 `btn`, `card`, `table`, `badge`, `form-*` 의미 클래스는 `modules/admin/assets/admin.css`가 직접 소유한다. 삭제한 common primitive/utility 산출물은 관리자 UI-KIT의 스타일 출처가 아니다.
 - 관리자 조회 페이지는 `modules/admin/views/ui-kit.php` 또는 `modules/admin/views/dev-ui-kit.php`로 둔다.
 
 Public 조회 화면:
@@ -55,10 +55,10 @@ Public 조회 화면:
 - public 조회 페이지는 public layout이나 개발자용 public view 안에 둔다.
 - 현재 public 전용 컴포넌트 스타일시트가 충분하지 않으므로, public UI-KIT 구축 시 관리자 조회 화면의 공통 원형 마크업과 필요한 스타일 규칙을 public 레이어로 복사해 시작한다.
 - 복사 대상은 버튼, 카드, 폼, validation, 테이블, 알림, 배지, 드롭다운, 모달, 탭처럼 public에서도 필요한 공통 원형이다.
-- 복사한 스타일은 `modules/admin/assets/admin.css`를 public에서 직접 호출하지 않고, public이 소유하는 stylesheet로 둔다. 후보 위치는 `assets/public-ui.css` 또는 public layout 전용 stylesheet다.
+- 일반 public 런타임은 `modules/admin/assets/admin.css`를 직접 호출하지 않는다. 단, `/admin/ui-kit-public` 조회 화면은 public 원형 이관 전 확인용으로 관리자 컴포넌트 레이어를 명시적으로 호출할 수 있다.
 - public에 복사한 뒤에는 public 런타임에서 실제로 쓰는 class와 토큰 기준으로 이름과 범위를 정리한다. 관리자 모듈 전용 selector나 admin domain 구조는 public으로 가져오지 않는다.
 
-`assets/common.css`는 중앙 UI-KIT manifest 용도만 남아 있었으므로 중앙 UI-KIT 제거와 함께 삭제한다. 관리자 화면의 실제 편집 기준은 `assets/common/tokens.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`다.
+`assets/common.css`는 중앙 UI-KIT manifest 용도만 남아 있었으므로 중앙 UI-KIT 제거와 함께 삭제한다. 관리자 화면의 실제 편집 기준은 `assets/tokens.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`다.
 
 `assets/ui-kit/css/preview-utilities.css`와 `assets/ui-kit/css/ui-guide.css`는 중앙 shell 전용 파일이므로 제거한다. 샘플 배치에 필요한 최소 표현 class는 런타임별 조회용 CSS인 `modules/admin/assets/ui-kit.css`와 `assets/public-ui-kit.css`에 `ui-kit-*` 접두어로만 둔다. 이 class는 UI-KIT 샘플의 배치와 예시 상태 표시를 위한 것이며, 실제 프로젝트 컴포넌트 원형으로 승격하지 않는다.
 
@@ -197,7 +197,7 @@ assets/common-ui.js
 
 ## 프로젝트 영향 방지
 
-- `assets/common/tokens.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`, `assets/saanraan.css`, `assets/public-ui.css`에는 UI-KIT 조회 화면 전용 스타일을 넣지 않는다.
+- `assets/tokens.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`, `assets/saanraan.css`, `assets/public-ui.css`에는 UI-KIT 조회 화면 전용 스타일을 넣지 않는다.
 - 중앙 `assets/ui-kit/css/ui-guide.css`는 최종 제거한다.
 - 중앙 `assets/ui-kit/js/*` 중 shell 전용 JS는 최종 제거한다.
 - `assets/ui-kit/js/common.js`는 프로젝트 공용 JS로 승격하지 않고 제거한다.
@@ -219,8 +219,8 @@ assets/common-ui.js
 4. 기존 중앙 UI-KIT의 모든 예시를 public/admin 런타임별 조회 화면으로 전량 이관한다. 일부만 선별하거나 삭제하지 않는다.
 5. Admin 조회 화면을 `modules/admin/views/ui-kit.php`로 추가하고 실제 관리자 layout header/footer를 사용한다.
 6. Public 조회 화면을 `modules/admin/views/ui-kit-public.php`로 추가하고 `sr_public_layout_begin()` / `sr_public_layout_end()`를 사용한다.
-7. Public 쪽에 대응 스타일이 없는 공통 원형은 admin 조회 화면/관리자 스타일을 기준으로 `assets/public-ui-kit.css`에 복사해 초기 public 기준을 만든다.
-8. 복사 과정에서 `modules/admin/assets/admin.css`를 public이 직접 호출하지 않게 하고, admin domain selector는 public 범위에 맞게 정리한다.
+7. Public 쪽에 대응 스타일이 없는 공통 원형은 admin 조회 화면/관리자 스타일을 기준으로 확인하고, public 런타임에 정식 반영할 때 public 소유 stylesheet로 이관한다.
+8. 일반 public 런타임은 `modules/admin/assets/admin.css`를 직접 호출하지 않게 하고, admin domain selector는 public 범위에 맞게 정리한다. `/admin/ui-kit-public`은 이관 전 조회용 예외로 둔다.
 9. 드롭다운/오버레이/탭처럼 상호작용이 필요한 예시는 양쪽 조회 화면에서 `assets/common-ui.js` 동작을 검증한다.
 10. 토큰 값 표시가 필요하면 public/admin 조회 화면 각각에서 현재 런타임의 computed CSS custom property 값을 표시한다.
 11. 전량 이관이 끝난 뒤 `assets/ui-kit` 디렉터리를 삭제한다.
@@ -240,7 +240,7 @@ assets/common-ui.js
 - 기존 중앙 UI-KIT의 모든 카테고리와 예시가 public/admin 조회 화면 중 하나 이상으로 이관되어 있다.
 - 중앙 `assets/ui-kit` 디렉터리가 제거되어 있다.
 - UI-KIT 전용 CSS가 프로젝트 원형 클래스를 재정의하지 않는다.
-- `assets/common/tokens.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css` 수정 결과가 관리자 UI-KIT 샘플에 바로 반영된다.
+- `assets/tokens.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css` 수정 결과가 관리자 UI-KIT 샘플에 바로 반영된다.
 - 드롭다운 옵션은 새 마크업에서 `data-dropdown-*` 속성으로 표현된다.
 - 드롭다운, 모달, 탭은 public/admin 조회 화면과 실제 프로젝트 화면에서 같은 공용 JS로 동작한다.
 - 프로젝트 런타임은 중앙 UI-KIT shell CSS/JS를 호출하지 않는다.

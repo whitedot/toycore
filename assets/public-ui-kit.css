@@ -1,11 +1,8 @@
 /*
  * Public UI-KIT development preview layer.
- * Starts from the same common token/primitive/utility stack that admin uses,
- * then keeps the migrated sample layout helpers local to this preview route.
+ * Uses assets/tokens.css and the admin component layer loaded by the preview route.
+ * Keeps only migrated sample layout helpers local to this preview stylesheet.
  */
-@import url("common/tokens.css");
-@import url("common/primitives.css");
-@import url("common/utilities.css");
 
 .public-ui-kit {
     display: grid;

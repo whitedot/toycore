@@ -22,7 +22,11 @@ $seo = [
 ];
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
-    'stylesheets' => ['/assets/public-ui-kit.css'],
+    'stylesheets' => [
+        '/assets/tokens.css',
+        '/modules/admin/assets/admin.css',
+        '/assets/public-ui-kit.css',
+    ],
 ]);
 ?>
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js" defer></script>
