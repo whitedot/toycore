@@ -33,7 +33,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <section>
     <h2>회원 조회</h2>
     <form method="get" action="<?php echo sr_e(sr_url($depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : ($depositAdminPage === 'adjust' ? '/admin/deposits/adjust' : '/admin/deposits/balances'))); ?>" class="admin-filter ui-form-theme">
-        <div class="admin-filter-grid community-search-fields-compact">
+        <div class="admin-filter-grid admin-filter-grid-compact">
             <label class="admin-filter-field">
                 <span class="admin-filter-label">회원 공개 해시</span>
                 <input type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80">

@@ -41,7 +41,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($seo, $site ?? null); ?>
-    <?php echo sr_admin_stylesheet_tag(); ?>
+    <?php echo sr_admin_stylesheet_tag($pdo ?? null); ?>
 </head>
 <body>
     <div id="to_content" class="admin-skip-link"><a href="#container">본문 바로가기</a></div>

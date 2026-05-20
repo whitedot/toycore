@@ -260,6 +260,14 @@ return [
     'version' => '2026.05.001',
     'type' => 'module',
     'description' => 'Simple board module.',
+    'admin' => [
+        'category' => 'community',
+        'category_label' => '커뮤니티',
+        'category_order' => 35,
+        'menu_order' => 10,
+        'icon' => ['type' => 'symbol', 'name' => 'message-circle'],
+        'stylesheets' => ['assets/admin.css'],
+    ],
     'saanraan' => [
         'min_version' => '0.2.0',
         'tested_with' => ['0.2.0'],
@@ -303,6 +311,7 @@ return [
 - `requires.contracts`: 활성화 전에 필요한 계약 파일. 대상 모듈이 enabled여도 현재 코어와 메타데이터/계약이 맞지 않으면 요구사항을 만족하지 않은 것으로 본다.
 - `contracts.provides`: 이 모듈이 제공하는 계약 파일. `paths.php`, `admin-menu.php`, `output-slots.php` 같은 계약 파일이 실제로 있으면 반드시 선언하고, 선언한 파일은 실제로 있어야 한다.
 - `contracts.consumes`: 이 모듈이 읽는 계약 파일
+- `admin`: 관리자 메뉴 분류, 아이콘, 관리자 전용 stylesheet 같은 선택 메타데이터
 - `settings`: 모듈 기본 설정 후보
 
 `module.php`에서 하지 않는다:
@@ -781,12 +790,15 @@ $postsPerPage = (int) sr_module_setting($pdo, 'board', 'posts_per_page', 20);
     'category_order' => 30,
     'menu_order' => 10,
     'icon' => ['type' => 'symbol', 'name' => 'menu-list'],
+    'stylesheets' => ['assets/admin.css'],
 ],
 ```
 
 `admin.category`가 없으면 관리자 모듈은 `기타` 분류로 묶는다. SEO, 사이트 메뉴, 배너, 팝업레이어처럼 사이트 공통 노출과 연결되는 번들 모듈은 `system_asset` 카테고리로 묶어 `운영`보다 위에 표시한다. 포인트, 예치금, 적립금처럼 회원 계정 없이는 성립하지 않는 번들 모듈은 `member` 카테고리로 묶어 사이드바에 `회원` 라벨 아래 표시한다. `admin-menu.php`의 `order`는 모듈 안의 메뉴 항목 정렬에 사용하고, 모듈끼리의 정렬은 `admin.menu_order`를 우선 사용한다.
 
 `admin.icon`은 모듈 메뉴 그룹의 아이콘 표현을 맡는다. 관리자 shell이 제공하는 허용 심볼을 쓸 때는 `['type' => 'symbol', 'name' => 'users']`처럼 선언한다. 허용 심볼과 SVG sprite는 admin 모듈의 공통 아이콘 계약이 소유하며, admin skin은 이 계약을 렌더링한다. 모듈 고유 이미지가 필요하면 `['type' => 'asset', 'path' => 'assets/admin-menu-icon.svg', 'alt' => '배너']`처럼 자기 모듈의 `assets/` 아래 파일을 선언한다. 자산 아이콘은 `svg`, `png`, `webp`만 허용하며 외부 URL이나 `..` 경로는 무시된다. 선언이 없거나 유효하지 않으면 카테고리 기본 아이콘으로 표시한다.
+
+`admin.stylesheets`는 모듈 관리자 본문에만 필요한 CSS 파일 목록이다. 파일은 자기 모듈의 `assets/` 아래 `.css` 파일만 선언한다. admin skin은 공용 UI kit과 공통 관리자 CSS 뒤에 활성 모듈의 stylesheet를 출력하므로, 모듈 CSS는 공통 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 재정의하지 않고 자기 모듈 class 또는 필요한 관리자 본문 class 아래로 범위를 좁힌다.
 
 허용 심볼 이름은 다음과 같다. `settings`, `admin-mode`, `users`, `user`, `content`, `stats`, `home`, `folder`, `image`, `layers`, `search`, `menu-list`, `bell`, `shield`, `coins`, `wallet`, `gift`, `message-circle`.
 

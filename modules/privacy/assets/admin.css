@@ -1,0 +1,9 @@
+.privacy-request-edit-form .admin-form-check{align-items:center;display:flex;gap:.45rem;font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-normal)}
+.privacy-request-edit-form .admin-form-check input{width:1rem;min-height:1rem}
+.admin-list-form .privacy-request-manage,
+.admin-list-form .privacy-request-manage form{align-items:stretch;flex-direction:column;white-space:normal}
+.admin-list-form .privacy-request-manage{min-width:18rem}
+.admin-list-form .privacy-request-manage .form-input,
+.admin-list-form .privacy-request-manage .form-select,
+.admin-list-form .privacy-request-manage .form-textarea{width:100%}
+.admin-list-form .privacy-request-manage .admin-form-check{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1.5);margin:0}

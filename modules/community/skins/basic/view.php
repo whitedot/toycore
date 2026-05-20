@@ -18,7 +18,9 @@ if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'stylesheets' => sr_community_skin_stylesheets($skinKey ?? 'basic'),
+]);
 ?>
     <main>
         <?php if (function_exists('sr_popup_layer_render_public_layer') && sr_module_enabled($pdo, 'popup_layer')) { ?>

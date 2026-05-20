@@ -1,6 +1,6 @@
 /*
  * Admin-only public runtime preview layer.
- * Uses assets/tokens.css and the admin component layer loaded by the preview route.
+ * Uses assets/tokens.css, assets/ui-kit.css, and public runtime styles loaded by sr_stylesheet_tag().
  * Keeps only migrated sample layout helpers local to this preview stylesheet.
  */
 

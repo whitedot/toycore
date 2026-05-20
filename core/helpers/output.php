@@ -143,6 +143,8 @@ function sr_e(?string $value): string
 function sr_stylesheet_tag(array $stylesheets = []): string
 {
     $tags = [
+        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/tokens.css')) . '">',
+        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/ui-kit.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/saanraan.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/public-ui.css')) . '">',
     ];

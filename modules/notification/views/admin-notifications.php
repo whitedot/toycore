@@ -109,7 +109,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">발송 대기열</h2>
         </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-filter ui-form-theme">
-            <div class="admin-filter-grid admin-account-search-grid community-search-fields-compact">
+            <div class="admin-filter-grid admin-account-search-grid admin-filter-grid-compact">
                 <div class="admin-filter-field">
                     <label for="delivery_channel" class="admin-filter-label">발송 채널</label>
                     <select name="delivery_channel" id="delivery_channel" class="form-select admin-filter-input">

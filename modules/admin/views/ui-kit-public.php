@@ -23,8 +23,6 @@ $seo = [
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     'stylesheets' => [
-        '/assets/tokens.css',
-        '/modules/admin/assets/admin.css',
         '/assets/public-ui-kit.css',
     ],
 ]);

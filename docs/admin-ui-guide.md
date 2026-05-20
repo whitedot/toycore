@@ -1,15 +1,18 @@
 # 관리자 UI 작성 기준
 
-관리자 화면은 G5 Codex 계열의 공통 UI 톤을 기준으로 맞춘다. 관리자 런타임의 원스타일 출처는 `modules/admin/assets/admin.css`로 둔다.
+관리자 화면은 G5 Codex 계열의 공통 UI 톤을 기준으로 맞춘다. public/admin 양쪽에서 반복되는 기본 UI 원형은 `assets/ui-kit.css`를 공용 출처로 두고, 관리자 shell과 관리자 전용 배치는 `modules/admin/assets/admin.css`로 제한한다. 모듈 도메인 고유 보정은 각 모듈의 `admin.stylesheets`로 분리한다.
 
 - `assets/tokens.css`: 사이트 전반에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다.
-- 삭제한 common primitive/utility 산출물: 과거 중앙 UI-KIT/공용 미리보기 산출물이어서 삭제했다. 공용 보조 스타일이 필요하더라도 관리자 화면의 실제 클래스는 `admin.css`에 둔다.
+- `assets/ui-kit.css`: public/admin이 함께 쓰는 reset/base와 `btn`, `card`, `table`, `badge`, `form-*`, `dropdown-*`, `modal-*`, `tab-*`, icon sizing 같은 반복 UI 원형을 둔다.
 - `assets/admin-ui.css`: `.admin-ui-scope` 안의 반복 가능한 관리자 작업 조합만 둔다.
-- `modules/admin/assets/admin.css`: 관리자 runtime reset/base, `btn`, `card`, `table`, `badge`, `form-*` 같은 의미 클래스, shell, 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 admin 모듈의 실제 화면 구조를 둔다.
+- `modules/admin/assets/admin.css`: 관리자 shell, 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 admin 모듈의 실제 화면 구조를 둔다. 공용 UI 원형이나 모듈 도메인 class를 이 파일에 다시 넣지 않는다.
+- `modules/{module_key}/assets/*.css`: 모듈 관리자 본문에서만 쓰는 도메인 고유 스타일을 둔다. 모듈은 `module.php`의 `admin.stylesheets`에 자기 `assets/` 아래 CSS만 선언하고, admin shell은 활성 모듈의 선언을 검증해 공통 관리자 CSS 뒤에 출력한다.
 
-공개 화면 런타임은 `assets/saanraan.css`와 `assets/public-ui.css`를 호출한다. 현재 공개 화면은 저비용 호스팅과 기본 스킨 호환성을 위해 관리자 공통 reset/원형 전체를 전역으로 호출하지 않는다. `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡고, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. `/admin/ui-kit-public`은 관리자 권한 안에서 public layout 결과를 확인하는 런타임 미리보기이며, 아직 public 컴포넌트 원형이 부족한 항목을 확인하기 위해 `assets/tokens.css`, `modules/admin/assets/admin.css`, `assets/public-ui-kit.css`를 명시적으로 호출한다. 이는 미리보기 전용이며 일반 공개 런타임은 관리자 CSS를 호출하지 않는다.
+공개 화면 런타임은 `assets/tokens.css`, `assets/ui-kit.css`, `assets/saanraan.css`, `assets/public-ui.css`를 호출한다. `assets/ui-kit.css`가 공용 원형을 맡고, `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡으며, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. 일반 공개 런타임과 `/admin/ui-kit-public` 미리보기 모두 `modules/admin/assets/admin.css`를 직접 호출하지 않는다.
 
 관리자/공개 런타임 CSS 호출은 PHP helper가 실제 파일의 `filemtime()` 값을 `?v=` query string으로 붙여 캐시를 갱신한다.
+
+관리자 런타임 CSS 호출 순서는 `Pretendard`, `assets/tokens.css`, `assets/ui-kit.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`, 활성 모듈의 `admin.stylesheets` 선언 순서다. 활성 모듈 stylesheet는 `/modules/{module_key}/assets/*.css` 안쪽 파일만 허용하고 외부 URL, `..` 경로, 모듈 폴더 밖 파일은 무시한다.
 
 드롭다운, 오버레이/모달, 탭처럼 관리자와 공개 화면에서 함께 쓸 수 있는 기본 상호작용은 `assets/common-ui.js`에 둔다. 관리자 UI-KIT과 public 런타임 미리보기도 이 파일을 호출해 같은 동작 원형을 확인한다.
 
@@ -21,17 +24,17 @@
 
 CSS class는 범위를 드러내는 접두어를 사용한다.
 
-- 반복 가능한 관리자 UI는 `btn`, `card`, `table`, `badge`, `form-*`처럼 `modules/admin/assets/admin.css`에 직접 둔다.
+- 반복 가능한 공용 UI는 `btn`, `card`, `table`, `badge`, `form-*`처럼 `assets/ui-kit.css`에 직접 둔다.
 - 관리자 shell과 관리자 전용 배치는 `admin-*` 접두어를 사용하고 `modules/admin/assets/admin.css`에 둔다.
-- 모듈별 관리자 본문에서 도메인 고유 스타일이 필요하면 `{module_key}-admin-*` 또는 `sr-{module_key}-admin-*` 형식을 사용한다.
+- 모듈별 관리자 본문에서 도메인 고유 스타일이 필요하면 `{module_key}-admin-*` 또는 `sr-{module_key}-admin-*` 형식을 사용하고, 해당 CSS는 모듈의 `assets/` 아래 stylesheet에서 소유한다.
 - 관리자 view는 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않는다.
 - 탭처럼 공통 CSS에 이미 정의된 반복 UI는 `tab-nav-*`, `tab-trigger-*` 같은 기존 시맨틱 클래스를 먼저 사용한다. 토스트는 기존 관리자 메시지 클래스인 `admin-flash-message-*`에 `data-admin-toast` 동작 속성만 더해 사용하고, 위치와 닫기 버튼 배치는 `data-admin-toast-*` 속성 선택자로 처리한다.
 - UI-KIT 조회 화면의 배치와 예시 상태 표시처럼 실제 컴포넌트 원형이 아닌 표현은 `ui-kit-*` 접두어로만 둔다. `ui-bg-*`, `ui-text-*`, `ui-grid`, `ui-flex`, `ui-gap-*` 같은 Tailwind식 범용 utility 표현은 관리자/공개 UI-KIT 샘플에 사용하지 않는다.
 - 공통 UI를 변경하거나 새 관리자 화면에서 UI 조합을 확인할 때는 `/admin/ui-kit` 관리자 조회 화면과 `/admin/ui-kit-public` public 런타임 미리보기에서 런타임별 결과를 확인한다.
 
-버튼, 배지, 탭, 드롭다운, 모달처럼 UI-KIT 샘플과 실제 관리자 화면이 함께 쓰는 컴포넌트는 기본, hover, focus-visible, disabled 상태를 `modules/admin/assets/admin.css`에서 직접 소유한다. `btn-solid-*`, `btn-outline-*`, `btn-soft-*`, `btn-ghost-*`, `btn-gradient-*`, `btn-icon`, `badge`, `tab-trigger-*`, `dropdown-*`, `modal-*` 계열을 새로 쓰면 `/admin/ui-kit`에서 상태별 표현과 아이콘 렌더링을 함께 확인한다.
+버튼, 배지, 탭, 드롭다운, 모달처럼 UI-KIT 샘플과 실제 화면이 함께 쓰는 컴포넌트는 기본, hover, focus-visible, disabled 상태를 `assets/ui-kit.css`에서 직접 소유한다. `btn-solid-*`, `btn-outline-*`, `btn-soft-*`, `btn-ghost-*`, `btn-gradient-*`, `btn-icon`, `badge`, `tab-trigger-*`, `dropdown-*`, `modal-*` 계열을 새로 쓰면 `/admin/ui-kit`과 `/admin/ui-kit-public`에서 상태별 표현과 아이콘 렌더링을 함께 확인한다.
 
-UI-KIT의 Tabler/Lucide 예시는 Iconify 런타임을 사용한다. 아이콘은 `span.iconify[data-icon]` 형태로 출력하되, 버튼, 탭, 드롭다운, 모달 닫기 버튼 안에서도 크기와 정렬이 깨지지 않도록 공통 icon sizing을 관리자 CSS에 둔다.
+UI-KIT의 Tabler/Lucide 예시는 Iconify 런타임을 사용한다. 아이콘은 `span.iconify[data-icon]` 형태로 출력하되, 버튼, 탭, 드롭다운, 모달 닫기 버튼 안에서도 크기와 정렬이 깨지지 않도록 공통 icon sizing을 `assets/ui-kit.css`에 둔다.
 
 ## 화면 내 이동 링크
 

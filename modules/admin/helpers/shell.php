@@ -208,14 +208,71 @@ function sr_admin_shell_class_attr(string $class): string
     return implode(' ', $tokens);
 }
 
-function sr_admin_stylesheet_tag(): string
+function sr_admin_stylesheet_tag(?PDO $pdo = null): string
 {
-    return '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>' . PHP_EOL
-        . '<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>' . PHP_EOL
-        . '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>' . PHP_EOL
-        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/tokens.css')) . '">' . PHP_EOL
-        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/admin-ui.css')) . '">' . PHP_EOL
-        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/admin.css')) . '">';
+    $tags = [
+        '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>',
+        '<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
+        '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
+        '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/tokens.css')) . '">',
+        '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/ui-kit.css')) . '">',
+        '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/admin-ui.css')) . '">',
+        '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/admin.css')) . '">',
+    ];
+
+    if ($pdo instanceof PDO) {
+        foreach (sr_admin_module_stylesheet_paths($pdo) as $stylesheet) {
+            $tags[] = '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url($stylesheet)) . '">';
+        }
+    }
+
+    return implode(PHP_EOL, $tags);
+}
+
+function sr_admin_module_stylesheet_paths(PDO $pdo): array
+{
+    $stylesheets = [];
+    foreach (sr_enabled_module_keys($pdo) as $moduleKey) {
+        $admin = sr_admin_module_admin_metadata($moduleKey);
+        $declared = $admin['stylesheets'] ?? [];
+        if (!is_array($declared)) {
+            continue;
+        }
+
+        foreach ($declared as $stylesheet) {
+            $path = sr_admin_module_stylesheet_path($moduleKey, $stylesheet);
+            if ($path !== '') {
+                $stylesheets[$path] = $path;
+            }
+        }
+    }
+
+    return array_values($stylesheets);
+}
+
+function sr_admin_module_stylesheet_path(string $moduleKey, mixed $stylesheet): string
+{
+    if (!sr_is_safe_module_key($moduleKey) || !is_string($stylesheet)) {
+        return '';
+    }
+
+    $path = str_replace('\\', '/', trim($stylesheet));
+    if (preg_match('/\Aassets\/[a-zA-Z0-9_\/.-]+\.css\z/', $path) !== 1 || strpos($path, '..') !== false) {
+        return '';
+    }
+
+    $assetDir = realpath(SR_ROOT . '/modules/' . $moduleKey . '/assets');
+    $file = realpath(SR_ROOT . '/modules/' . $moduleKey . '/' . $path);
+    if ($assetDir === false || $file === false || !is_file($file)) {
+        return '';
+    }
+
+    $assetPrefix = rtrim($assetDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    if (!str_starts_with($file, $assetPrefix)) {
+        return '';
+    }
+
+    return '/modules/' . $moduleKey . '/' . $path;
 }
 
 function sr_admin_shell_script_tag(): string

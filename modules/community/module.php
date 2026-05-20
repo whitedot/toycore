@@ -11,6 +11,7 @@ return [
         'category_order' => 35,
         'menu_order' => 10,
         'icon' => ['type' => 'symbol', 'name' => 'message-circle'],
+        'stylesheets' => ['assets/community-admin.css'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',

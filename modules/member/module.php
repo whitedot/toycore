@@ -2,7 +2,7 @@
 
 return [
     'name' => '회원',
-    'version' => '2026.05.003',
+    'version' => '2026.05.004',
     'type' => 'module',
     'description' => '회원 계정과 인증 모듈입니다.',
     'admin' => [
@@ -11,6 +11,7 @@ return [
         'category_order' => 10,
         'menu_order' => 10,
         'icon' => ['type' => 'symbol', 'name' => 'users'],
+        'stylesheets' => ['assets/admin.css'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',
