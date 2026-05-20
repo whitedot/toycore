@@ -141,7 +141,7 @@ $targets = [
         ],
         'view_needles' => [
             '<span class="form-label">관리자 스킨</span>',
-            '<select name="admin_skin_key">',
+            '<select name="admin_skin_key" class="form-select">',
             'foreach ($adminSkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [
@@ -181,8 +181,8 @@ $targets = [
         ],
         'view_needles' => [
             '<span class="form-label">배너 스킨</span>',
-            '<select name="banner_skin_key">',
-            '<select name="skin_key">',
+            '<select name="banner_skin_key" class="form-select">',
+            '<select name="skin_key" class="form-select">',
             'foreach ($bannerSkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [
@@ -218,9 +218,9 @@ $targets = [
         ],
         'view_needles' => [
             '<span class="form-label">팝업레이어 스킨</span>',
-            '<select name="popup_layer_skin_key">',
+            '<select name="popup_layer_skin_key" class="form-select">',
             '<span class="form-label">팝업 스킨</span>',
-            '<select name="skin_key">',
+            '<select name="skin_key" class="form-select">',
             'foreach ($popupLayerSkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [
@@ -267,7 +267,7 @@ $targets = [
         ],
         'view_needles' => [
             '<span class="form-label">회원 스킨</span>',
-            '<select name="member_skin_key">',
+            '<select name="member_skin_key" class="form-select">',
             'foreach (sr_member_skin_options() as $skinKey => $skinOption)',
         ],
         'render_needles' => [
@@ -393,7 +393,7 @@ foreach (['modules', 'core'] as $viewRoot) {
 }
 
 sr_skin_theme_check_contains('modules/admin/views/settings.php', [
-    '<select name="public_layout_key">',
+    '<select name="public_layout_key" class="form-select">',
     'foreach (sr_public_layout_options() as $layoutKey => $layoutOption)',
 ], 'Public layout setting UI');
 
@@ -442,10 +442,9 @@ sr_skin_theme_check_not_contains('modules/admin/skins/basic/layout-header.php', 
 sr_skin_theme_check_admin_skin_icon_sprites();
 sr_skin_theme_check_admin_icon_contract_docs();
 
-sr_skin_theme_check_contains('assets/common/utilities.css', [
-    '.form-checkbox::after',
+sr_skin_theme_check_contains('assets/ui-kit.css', [
     '.form-checkbox:checked',
-    'background-image: url("data:image/svg+xml',
+    'background-image:url("data:image/svg+xml',
 ], 'Checkbox checked indicator');
 
 if ($errors !== []) {
