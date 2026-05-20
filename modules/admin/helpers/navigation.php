@@ -575,8 +575,18 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
 {
     $overrides = sr_admin_menu_overrides($pdo);
     $rows = [];
+    $sourceGroups = sr_admin_navigation_source_groups($pdo);
 
-    foreach (sr_admin_navigation_source_groups($pdo) as $group) {
+    usort($sourceGroups, function (array $left, array $right) use ($overrides): int {
+        $leftKey = (string) ($left['category'] ?? '');
+        $rightKey = (string) ($right['category'] ?? '');
+        $leftOrder = (int) ($overrides['category'][$leftKey]['sort_order'] ?? $left['order'] ?? 1000);
+        $rightOrder = (int) ($overrides['category'][$rightKey]['sort_order'] ?? $right['order'] ?? 1000);
+
+        return [$leftOrder, (string) ($left['label'] ?? $leftKey)] <=> [$rightOrder, (string) ($right['label'] ?? $rightKey)];
+    });
+
+    foreach ($sourceGroups as $group) {
         if (!is_array($group)) {
             continue;
         }
@@ -590,10 +600,24 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
             '',
             (string) ($group['label'] ?? $categoryKey),
             $categoryOrder,
-            $categoryOverride
+            $categoryOverride,
+            [
+                'depth' => 0,
+                'context' => '',
+            ]
         );
 
-        foreach ((array) ($group['module_groups'] ?? []) as $moduleGroup) {
+        $moduleGroups = array_values((array) ($group['module_groups'] ?? []));
+        usort($moduleGroups, function (array $left, array $right) use ($overrides): int {
+            $leftKey = (string) ($left['module_key'] ?? '');
+            $rightKey = (string) ($right['module_key'] ?? '');
+            $leftOrder = (int) ($overrides['group'][$leftKey]['sort_order'] ?? $left['order'] ?? 1000);
+            $rightOrder = (int) ($overrides['group'][$rightKey]['sort_order'] ?? $right['order'] ?? 1000);
+
+            return [$leftOrder, (string) ($left['label'] ?? $leftKey), $leftKey] <=> [$rightOrder, (string) ($right['label'] ?? $rightKey), $rightKey];
+        });
+
+        foreach ($moduleGroups as $moduleGroup) {
             if (!is_array($moduleGroup)) {
                 continue;
             }
@@ -605,12 +629,28 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
                 'group',
                 $moduleKey,
                 $categoryKey,
-                (string) ($group['label'] ?? $categoryKey) . ' / ' . (string) ($moduleGroup['label'] ?? $moduleKey),
+                (string) ($moduleGroup['label'] ?? $moduleKey),
                 $groupOrder,
-                $groupOverride
+                $groupOverride,
+                [
+                    'depth' => 1,
+                    'context' => (string) ($group['label'] ?? $categoryKey),
+                ]
             );
 
-            foreach ((array) ($moduleGroup['items'] ?? []) as $item) {
+            $moduleItems = array_values((array) ($moduleGroup['items'] ?? []));
+            usort($moduleItems, function (array $left, array $right) use ($overrides, $moduleKey): int {
+                $leftPath = (string) ($left['path'] ?? '');
+                $rightPath = (string) ($right['path'] ?? '');
+                $leftKey = sr_admin_menu_item_target_key($moduleKey, $leftPath);
+                $rightKey = sr_admin_menu_item_target_key($moduleKey, $rightPath);
+                $leftOrder = (int) ($overrides['item'][$leftKey]['sort_order'] ?? $left['order'] ?? 1000);
+                $rightOrder = (int) ($overrides['item'][$rightKey]['sort_order'] ?? $right['order'] ?? 1000);
+
+                return [$leftOrder, (string) ($left['label'] ?? $leftPath), $leftPath] <=> [$rightOrder, (string) ($right['label'] ?? $rightPath), $rightPath];
+            });
+
+            foreach ($moduleItems as $item) {
                 if (!is_array($item)) {
                     continue;
                 }
@@ -623,9 +663,14 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
                     'item',
                     $targetKey,
                     $moduleKey,
-                    (string) ($group['label'] ?? $categoryKey) . ' / ' . (string) ($moduleGroup['label'] ?? $moduleKey) . ' / ' . (string) ($item['label'] ?? $path),
+                    (string) ($item['label'] ?? $path),
                     $itemOrder,
-                    $itemOverride
+                    $itemOverride,
+                    [
+                        'depth' => 2,
+                        'context' => (string) ($group['label'] ?? $categoryKey) . ' / ' . (string) ($moduleGroup['label'] ?? $moduleKey),
+                        'path' => $path,
+                    ]
                 );
             }
         }
@@ -634,7 +679,7 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
     return $rows;
 }
 
-function sr_admin_menu_override_form_row(string $scope, string $targetKey, string $parentKey, string $label, int $defaultOrder, array $override): array
+function sr_admin_menu_override_form_row(string $scope, string $targetKey, string $parentKey, string $label, int $defaultOrder, array $override, array $display = []): array
 {
     $sortOrder = array_key_exists('sort_order', $override) ? (int) $override['sort_order'] : $defaultOrder;
 
@@ -647,6 +692,9 @@ function sr_admin_menu_override_form_row(string $scope, string $targetKey, strin
         'default_order' => $defaultOrder,
         'sort_order' => $sortOrder,
         'is_hidden' => !empty($override['is_hidden']),
+        'depth' => max(0, min(2, (int) ($display['depth'] ?? 0))),
+        'context' => (string) ($display['context'] ?? ''),
+        'path' => (string) ($display['path'] ?? ''),
     ];
 }
 

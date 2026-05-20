@@ -6,7 +6,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>" class="admin-card admin-list-card card admin-list-form">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>" class="admin-card admin-list-card card admin-list-form admin-menu-form">
     <?php echo sr_csrf_field(); ?>
     <div class="card-header">
         <h2 class="card-title">관리자 메뉴 표시 설정</h2>
@@ -25,10 +25,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </thead>
         <tbody>
             <?php foreach ($menuRows as $row) { ?>
-                <tr draggable="true" data-admin-sortable-row data-sort-scope="<?php echo sr_e((string) $row['scope']); ?>" data-sort-parent="<?php echo sr_e((string) $row['parent_key']); ?>">
-                    <td><span class="admin-drag-handle" aria-label="드래그해서 순서 변경">↕</span></td>
-                    <td><?php echo sr_e(sr_admin_code_label((string) $row['scope'], 'admin_menu_scope')); ?></td>
-                    <td><?php echo sr_e((string) $row['label']); ?></td>
+                <?php
+                $rowDepth = max(0, min(2, (int) ($row['depth'] ?? 0)));
+                $rowContext = (string) ($row['context'] ?? '');
+                $rowPath = (string) ($row['path'] ?? '');
+                ?>
+                <tr class="admin-menu-row admin-menu-row-depth-<?php echo sr_e((string) $rowDepth); ?>" data-admin-sortable-row data-sort-scope="<?php echo sr_e((string) $row['scope']); ?>" data-sort-parent="<?php echo sr_e((string) $row['parent_key']); ?>" data-sort-key="<?php echo sr_e((string) $row['target_key']); ?>" data-sort-depth="<?php echo sr_e((string) $rowDepth); ?>">
+                    <td><span class="admin-drag-handle" draggable="true" aria-label="드래그해서 순서 변경"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span></td>
+                    <td>
+                        <span class="admin-menu-scope-badge admin-menu-scope-<?php echo sr_e((string) $row['scope']); ?>">
+                            <?php echo sr_e(sr_admin_code_label((string) $row['scope'], 'admin_menu_scope')); ?>
+                        </span>
+                    </td>
+                    <td class="admin-menu-target-cell">
+                        <div class="admin-menu-target admin-menu-target-depth-<?php echo sr_e((string) $rowDepth); ?>">
+                            <?php if ($rowDepth > 0) { ?>
+                                <span class="admin-menu-tree-branch" aria-hidden="true"></span>
+                            <?php } ?>
+                            <span class="admin-menu-target-copy">
+                                <span class="admin-menu-target-label"><?php echo sr_e((string) $row['label']); ?></span>
+                                <?php if ($rowContext !== '' || $rowPath !== '') { ?>
+                                    <span class="admin-menu-target-context">
+                                        <?php echo sr_e($rowContext); ?><?php echo $rowContext !== '' && $rowPath !== '' ? ' · ' : ''; ?><?php echo sr_e($rowPath); ?>
+                                    </span>
+                                <?php } ?>
+                            </span>
+                        </div>
+                    </td>
                     <td><?php echo sr_e((string) $row['default_order']); ?></td>
                     <td>
                         <input
@@ -57,9 +80,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
     </div>
-    <div class="admin-form-actions admin-form-sticky-actions">
-        <button type="submit" name="intent" value="save_menu_overrides" class="btn btn-solid-primary">메뉴 표시 설정 저장</button>
+    <div class="admin-form-actions admin-form-sticky-actions admin-menu-form-actions">
         <button type="submit" name="intent" value="reset_menu_overrides" class="btn btn-outline-danger">기본값으로 초기화</button>
+        <button type="submit" name="intent" value="save_menu_overrides" class="btn btn-solid-primary">메뉴 표시 설정 저장</button>
     </div>
 </form>
 

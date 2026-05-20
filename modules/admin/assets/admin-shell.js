@@ -427,9 +427,14 @@ window.AdminShell = {
 
         if (sortableRows.length > 0) {
             let draggedRow = null;
+            let draggedRows = [];
+            let dropTargetRow = null;
+            let dropAfterTarget = false;
 
-            const renumberRows = scope => {
-                const rows = Array.prototype.slice.call(document.querySelectorAll(`[data-admin-sortable-row][data-sort-scope="${scope}"]`));
+            const renumberRows = (scope, parent) => {
+                const rows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]')).filter(row => {
+                    return row.dataset.sortScope === scope && row.dataset.sortParent === parent;
+                });
                 rows.forEach((row, index) => {
                     const input = row.querySelector('[data-admin-sort-order]');
                     if (input) {
@@ -438,36 +443,112 @@ window.AdminShell = {
                 });
             };
 
+            const clearSortableDropLine = () => {
+                if (dropTargetRow) {
+                    dropTargetRow.classList.remove('is-drop-before', 'is-drop-after');
+                }
+                dropTargetRow = null;
+                dropAfterTarget = false;
+            };
+
+            const rowDepth = row => {
+                const depth = Number.parseInt(row.dataset.sortDepth || '0', 10);
+                return Number.isFinite(depth) ? depth : 0;
+            };
+
+            const sortableRowBlock = row => {
+                const rows = [row];
+                const depth = rowDepth(row);
+                let next = row.nextElementSibling;
+                while (next && next.matches('[data-admin-sortable-row]') && rowDepth(next) > depth) {
+                    rows.push(next);
+                    next = next.nextElementSibling;
+                }
+
+                return rows;
+            };
+
+            const targetInsertionReference = row => {
+                let reference = row;
+                const depth = rowDepth(row);
+                let next = row.nextElementSibling;
+                while (next && next.matches('[data-admin-sortable-row]') && rowDepth(next) > depth) {
+                    reference = next;
+                    next = next.nextElementSibling;
+                }
+
+                return reference.nextSibling;
+            };
+
+            const canDropSortableRow = row => {
+                return draggedRow
+                    && draggedRow !== row
+                    && !draggedRows.includes(row)
+                    && draggedRow.dataset.sortScope === row.dataset.sortScope
+                    && draggedRow.dataset.sortParent === row.dataset.sortParent;
+            };
+
+            const showSortableDropLine = (row, after) => {
+                if (dropTargetRow && (dropTargetRow !== row || dropAfterTarget !== after)) {
+                    dropTargetRow.classList.remove('is-drop-before', 'is-drop-after');
+                }
+
+                dropTargetRow = row;
+                dropAfterTarget = after;
+                row.classList.toggle('is-drop-before', !after);
+                row.classList.toggle('is-drop-after', after);
+            };
+
             sortableRows.forEach(row => {
-                row.addEventListener('dragstart', event => {
+                const handle = row.querySelector('.admin-drag-handle');
+                if (!handle) {
+                    return;
+                }
+
+                handle.addEventListener('dragstart', event => {
                     draggedRow = row;
-                    row.classList.add('is-dragging');
+                    draggedRows = sortableRowBlock(row);
+                    draggedRows.forEach(blockRow => blockRow.classList.add('is-dragging'));
                     event.dataTransfer.effectAllowed = 'move';
                     event.dataTransfer.setData('text/plain', '');
                 });
 
-                row.addEventListener('dragend', () => {
-                    row.classList.remove('is-dragging');
+                handle.addEventListener('dragend', () => {
+                    draggedRows.forEach(blockRow => blockRow.classList.remove('is-dragging'));
+                    const movedScope = draggedRow ? draggedRow.dataset.sortScope || '' : row.dataset.sortScope || '';
+                    const movedParent = draggedRow ? draggedRow.dataset.sortParent || '' : row.dataset.sortParent || '';
+                    if (dropTargetRow && draggedRow) {
+                        const parent = dropTargetRow.parentNode;
+                        const reference = dropAfterTarget ? targetInsertionReference(dropTargetRow) : dropTargetRow;
+                        draggedRows.forEach(blockRow => {
+                            parent.insertBefore(blockRow, reference);
+                        });
+                    }
+                    clearSortableDropLine();
                     draggedRow = null;
-                    renumberRows(row.dataset.sortScope || '');
+                    draggedRows = [];
+                    renumberRows(movedScope, movedParent);
                 });
 
                 row.addEventListener('dragover', event => {
-                    if (!draggedRow || draggedRow === row) {
-                        return;
-                    }
-
-                    if (
-                        draggedRow.dataset.sortScope !== row.dataset.sortScope
-                        || draggedRow.dataset.sortParent !== row.dataset.sortParent
-                    ) {
+                    if (!canDropSortableRow(row)) {
+                        clearSortableDropLine();
                         return;
                     }
 
                     event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
                     const rect = row.getBoundingClientRect();
                     const after = event.clientY > rect.top + rect.height / 2;
-                    row.parentNode.insertBefore(draggedRow, after ? row.nextSibling : row);
+                    showSortableDropLine(row, after);
+                });
+
+                row.addEventListener('drop', event => {
+                    if (!canDropSortableRow(row)) {
+                        return;
+                    }
+
+                    event.preventDefault();
                 });
             });
         }
