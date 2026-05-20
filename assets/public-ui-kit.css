@@ -1,25 +1,68 @@
 /*
- * Admin-only public runtime preview layer.
+ * Public runtime UI-KIT preview layer.
  * Uses assets/tokens.css, assets/ui-kit.css, and public runtime styles loaded by sr_stylesheet_tag().
- * Keeps only migrated sample layout helpers local to this preview stylesheet.
+ * Keeps only sample layout helpers local to this preview stylesheet.
  */
 
 .public-ui-kit {
     display: grid;
-    gap: 1.5rem;
+    gap: calc(var(--spacing) * 5);
     margin-inline: auto;
-    max-width: 1180px;
-    padding: 2rem;
+    max-width: 1280px;
+    padding-inline: calc(var(--spacing) * 4);
+    padding-block: calc(var(--spacing) * 6) calc(var(--spacing) * 8);
+}
+
+@media (min-width: 64rem) {
+    .public-ui-kit {
+        padding-inline: calc(var(--spacing) * 8);
+    }
+}
+
+.public-ui-kit-summary {
+    margin-bottom: 0;
+}
+
+.public-ui-kit-summary .card-header {
+    align-items: center;
+}
+
+.public-ui-kit-subtitle {
+    margin: 0 0 calc(var(--spacing) * 4);
+    color: var(--color-default-500);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
 }
 
 .public-ui-kit-samples {
     display: grid;
-    gap: 1.5rem;
+    gap: 0;
     padding: 0;
 }
 
+.public-ui-kit-section,
 .ui-kit-sample-section {
     min-width: 0;
+}
+
+.public-ui-kit-section {
+    scroll-margin-top: 1rem;
+}
+
+.public-ui-kit-section-title {
+    margin: 0 0 calc(var(--spacing) * 3);
+    color: var(--color-body-color);
+    font-size: var(--text-lg);
+    line-height: var(--leading-normal);
+    font-weight: var(--font-weight-bold);
+}
+
+.public-ui-kit-samples .card-header.ui-kit-block-flow {
+    display: block;
+}
+
+.public-ui-kit-samples .card-header.ui-kit-block-flow .card-title {
+    margin-bottom: calc(var(--spacing) * 1.25);
 }
 
 .ui-kit-preview-frame {
@@ -447,16 +490,6 @@ input:focus-visible + .btn-choice-secondary { box-shadow: 0 0 0 3px color-mix(in
 .input-group > .dropdown:last-child > .btn {
     border-start-end-radius: var(--radius);
     border-end-end-radius: var(--radius);
-}
-.btn-solid-dark {
-    background-color: var(--color-dark);
-    color: var(--color-white);
-}
-@media (hover:hover) {
-    .btn-solid-dark:hover {
-        background-color: color-mix(in oklab, var(--color-dark) 72%, #000);
-        border-color: color-mix(in oklab, var(--color-dark) 72%, #000);
-    }
 }
 .ui-kit-row-odd-default:nth-child(odd) { background-color: var(--color-default-100); }
 .ui-kit-disabled-pointer-lock:disabled { pointer-events: none; }

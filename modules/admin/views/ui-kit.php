@@ -29,7 +29,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <a href="<?php echo sr_e(sr_url('/ui-kit')); ?>" class="btn btn-sm btn-solid-primary">Public UI-KIT 보기</a>
     </div>
     <div class="card-body">
-        <p class="admin-card-subtitle">기존 중앙 UI-KIT의 모든 카테고리 예시를 관리자 런타임 안으로 옮긴 조회 화면입니다.</p>
+        <p class="admin-card-subtitle">관리자 런타임에서 공통 UI-KIT의 모든 카테고리 예시를 확인하는 화면입니다.</p>
         <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="관리자 UI-KIT 섹션">
             <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
                 <a class="btn btn-sm btn-soft-default" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
