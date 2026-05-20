@@ -5,6 +5,8 @@ return [
         'key' => 'popup_layer',
         'title' => '팝업레이어',
         'order' => 30,
+        'default_visible' => false,
+        'view' => 'views/dashboard-summary.php',
         'rows' => [
             [
                 'label' => '활성 팝업',

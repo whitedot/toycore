@@ -90,6 +90,137 @@ function sr_admin_dashboard_scalar(PDO $pdo, string $sql, string $column, string
     return (string) $row[$column];
 }
 
+function sr_admin_dashboard_layout(string $layout): string
+{
+    $layout = strtolower(trim($layout));
+
+    return in_array($layout, ['table', 'stats'], true) ? $layout : 'table';
+}
+
+function sr_admin_dashboard_state(string $state): string
+{
+    $state = strtolower(trim($state));
+
+    return in_array($state, ['default', 'success', 'warning', 'danger', 'info'], true) ? $state : 'default';
+}
+
+function sr_admin_dashboard_emphasis(string $emphasis): string
+{
+    $emphasis = strtolower(trim($emphasis));
+
+    return in_array($emphasis, ['default', 'primary'], true) ? $emphasis : 'default';
+}
+
+function sr_admin_dashboard_default_visible(mixed $value): bool
+{
+    if ($value === null) {
+        return true;
+    }
+
+    if (is_bool($value)) {
+        return $value;
+    }
+
+    if (is_int($value)) {
+        return $value !== 0;
+    }
+
+    $normalized = strtolower(trim((string) $value));
+    if ($normalized === '') {
+        return true;
+    }
+
+    return !in_array($normalized, ['0', 'false', 'hidden', 'no', 'off'], true);
+}
+
+function sr_admin_dashboard_view_file(string $moduleKey, string $view): string
+{
+    if (!sr_is_safe_module_key($moduleKey)) {
+        return '';
+    }
+
+    $view = trim($view);
+    if (
+        $view === ''
+        || str_starts_with($view, '/')
+        || str_contains($view, '\\')
+        || str_contains($view, '..')
+        || preg_match('/\Aviews\/[a-zA-Z0-9_\/.-]{1,120}\.php\z/', $view) !== 1
+    ) {
+        return '';
+    }
+
+    $moduleDir = SR_ROOT . '/modules/' . $moduleKey;
+    $viewFile = $moduleDir . '/' . $view;
+    $realModuleDir = realpath($moduleDir);
+    $realViewFile = realpath($viewFile);
+
+    if ($realModuleDir === false || $realViewFile === false || strpos($realViewFile, $realModuleDir . DIRECTORY_SEPARATOR) !== 0) {
+        return '';
+    }
+
+    return $realViewFile;
+}
+
+function sr_admin_dashboard_module_section_body(PDO $pdo, array $section): string
+{
+    $viewFile = (string) ($section['view_file'] ?? '');
+    if ($viewFile === '' || !is_file($viewFile)) {
+        $viewFile = SR_ROOT . '/modules/admin/views/dashboard-module-section-default.php';
+    }
+
+    $dashboardSection = $section;
+    $dashboardRows = (array) ($section['rows'] ?? []);
+    $dashboardModuleKey = (string) ($section['module_key'] ?? '');
+    $dashboardSectionTitle = (string) ($section['title'] ?? $dashboardModuleKey);
+
+    try {
+        ob_start();
+        include $viewFile;
+        return (string) ob_get_clean();
+    } catch (Throwable $exception) {
+        if (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        if (function_exists('sr_log_exception')) {
+            sr_log_exception($exception, 'admin_dashboard_module_section_render_failed_' . $dashboardModuleKey);
+        }
+
+        if ($viewFile !== SR_ROOT . '/modules/admin/views/dashboard-module-section-default.php') {
+            return sr_admin_dashboard_module_section_body($pdo, array_merge($section, ['view_file' => '']));
+        }
+
+        return '';
+    }
+}
+
+function sr_admin_dashboard_metric_rows(PDO $pdo, array $rows): array
+{
+    $metrics = [];
+
+    foreach ($rows as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+
+        $label = trim((string) ($row['label'] ?? ''));
+        if ($label === '') {
+            continue;
+        }
+
+        $metrics[] = [
+            'label' => $label,
+            'value' => sr_admin_dashboard_scalar($pdo, (string) ($row['value_sql'] ?? ''), 'value', (string) ($row['value'] ?? '')),
+            'detail' => sr_admin_dashboard_scalar($pdo, (string) ($row['detail_sql'] ?? ''), 'detail', (string) ($row['detail'] ?? '')),
+            'state' => sr_admin_dashboard_state((string) ($row['state'] ?? 'default')),
+            'emphasis' => sr_admin_dashboard_emphasis((string) ($row['emphasis'] ?? 'default')),
+        ];
+    }
+
+    return $metrics;
+}
+
 function sr_admin_dashboard_module_sections(PDO $pdo): array
 {
     $sections = [];
@@ -108,34 +239,26 @@ function sr_admin_dashboard_module_sections(PDO $pdo): array
             $rawKey = (string) ($section['key'] ?? ((string) $moduleKey . '_' . (string) $index));
             $sectionKey = preg_replace('/[^a-z0-9_]+/', '_', strtolower($rawKey));
             $sectionKey = is_string($sectionKey) && $sectionKey !== '' ? trim($sectionKey, '_') : (string) $moduleKey;
-            $rows = [];
-            foreach (is_array($section['rows'] ?? null) ? $section['rows'] : [] as $row) {
-                if (!is_array($row)) {
-                    continue;
-                }
+            $layout = sr_admin_dashboard_layout((string) ($section['layout'] ?? 'table'));
+            $viewFile = sr_admin_dashboard_view_file((string) $moduleKey, (string) ($section['view'] ?? ''));
+            $sourceRows = ($viewFile !== '' || $layout === 'stats') && is_array($section['items'] ?? null)
+                ? (array) $section['items']
+                : (array) (is_array($section['rows'] ?? null) ? $section['rows'] : []);
+            $rows = sr_admin_dashboard_metric_rows($pdo, $sourceRows);
 
-                $label = trim((string) ($row['label'] ?? ''));
-                if ($label === '') {
-                    continue;
-                }
-
-                $rows[] = [
-                    'label' => $label,
-                    'value' => sr_admin_dashboard_scalar($pdo, (string) ($row['value_sql'] ?? ''), 'value', (string) ($row['value'] ?? '')),
-                    'detail' => sr_admin_dashboard_scalar($pdo, (string) ($row['detail_sql'] ?? ''), 'detail', (string) ($row['detail'] ?? '')),
-                ];
-            }
-
-            if ($rows === []) {
+            if ($viewFile === '' && $rows === []) {
                 continue;
             }
 
             $sections[] = [
                 'key' => $sectionKey,
+                'layout' => $layout,
                 'module_key' => (string) $moduleKey,
                 'title' => trim((string) ($section['title'] ?? $moduleKey)),
                 'order' => (int) ($section['order'] ?? 100),
+                'default_visible' => sr_admin_dashboard_default_visible($section['default_visible'] ?? null),
                 'rows' => $rows,
+                'view_file' => $viewFile,
             ];
         }
     }

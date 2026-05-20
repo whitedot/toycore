@@ -5,6 +5,8 @@ return [
         'key' => 'banner',
         'title' => '배너',
         'order' => 20,
+        'default_visible' => false,
+        'view' => 'views/dashboard-summary.php',
         'rows' => [
             [
                 'label' => '활성 배너',

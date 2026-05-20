@@ -443,7 +443,13 @@ window.AdminShell = {
         }
 
         if (dashboardSectionsRoot) {
-            const storageKey = 'sr_admin_dashboard_section_order';
+            const orderStorageKey = 'sr_admin_dashboard_section_order';
+            const visibilityStorageKey = 'sr_admin_dashboard_section_visibility';
+            const managerToggle = document.querySelector('[data-admin-dashboard-manager-toggle]');
+            const managerPanel = document.querySelector('[data-admin-dashboard-manager]');
+            const managerClose = document.querySelector('[data-admin-dashboard-manager-close]');
+            const managerList = document.querySelector('[data-admin-dashboard-manager-list]');
+            const visibilityReset = document.querySelector('[data-admin-dashboard-visibility-reset]');
             let draggedSection = null;
             let currentDropPosition = null;
             const dropLine = document.createElement('div');
@@ -451,28 +457,157 @@ window.AdminShell = {
             dropLine.setAttribute('aria-hidden', 'true');
 
             const sections = () => Array.prototype.slice.call(dashboardSectionsRoot.querySelectorAll('[data-admin-dashboard-section]'));
+            const visibleSections = () => sections().filter(section => !section.hidden);
             const sectionKey = section => section ? (section.dataset.adminDashboardSection || '') : '';
-            const applySectionSpan = (section, span) => {
+            const sectionLabel = section => section ? (section.dataset.adminDashboardLabel || sectionKey(section)) : '';
+            const sectionDefaultVisible = section => !section || section.dataset.adminDashboardDefaultVisible !== '0';
+            const loadVisibilityState = () => {
+                try {
+                    const savedState = JSON.parse(localStorage.getItem(visibilityStorageKey) || '{}');
+                    return savedState && typeof savedState === 'object' && !Array.isArray(savedState) ? savedState : {};
+                } catch (err) {
+                    return {};
+                }
+            };
+            let visibilityState = loadVisibilityState();
+            const applySectionSpan = (section, span, auto) => {
                 if (!section) {
                     return;
                 }
 
                 if (span === 'full') {
                     section.dataset.adminDashboardSpan = 'full';
-                    return;
+                } else if (span === 'half') {
+                    section.dataset.adminDashboardSpan = 'half';
+                } else {
+                    delete section.dataset.adminDashboardSpan;
                 }
 
-                delete section.dataset.adminDashboardSpan;
+                if (auto) {
+                    section.dataset.adminDashboardAutoSpan = '1';
+                } else {
+                    delete section.dataset.adminDashboardAutoSpan;
+                }
             };
             const saveSectionOrder = () => {
                 try {
-                    localStorage.setItem(storageKey, JSON.stringify({
+                    localStorage.setItem(orderStorageKey, JSON.stringify({
                         items: sections().map(section => ({
                             key: sectionKey(section),
-                            span: section.dataset.adminDashboardSpan === 'full' ? 'full' : ''
+                            span: ['full', 'half'].includes(section.dataset.adminDashboardSpan || '')
+                                ? section.dataset.adminDashboardSpan
+                                : '',
+                            auto_span: section.dataset.adminDashboardAutoSpan === '1'
                         }))
                     }));
                 } catch (err) {}
+            };
+            const dashboardColumnCount = () => {
+                if (window.matchMedia('(max-width: 767px)').matches) {
+                    return 1;
+                }
+
+                if (window.matchMedia('(max-width: 1279px)').matches) {
+                    return 2;
+                }
+
+                return 3;
+            };
+            const normalizeSectionRun = (run, columnCount) => {
+                if (run.length === 0 || columnCount <= 1) {
+                    return;
+                }
+
+                for (let index = 0; index < run.length; index += columnCount) {
+                    const chunk = run.slice(index, index + columnCount);
+                    const span = chunk.length === 1
+                        ? 'full'
+                        : (chunk.length === 2 && columnCount >= 3 ? 'half' : '');
+
+                    chunk.forEach(section => {
+                        applySectionSpan(section, span, true);
+                    });
+                }
+            };
+            const normalizeVisibleSectionLayout = () => {
+                const columnCount = dashboardColumnCount();
+                let run = [];
+
+                if (columnCount <= 1) {
+                    return;
+                }
+
+                visibleSections().forEach(section => {
+                    if (section.dataset.adminDashboardSpan === 'full' && section.dataset.adminDashboardAutoSpan !== '1') {
+                        normalizeSectionRun(run, columnCount);
+                        run = [];
+                        return;
+                    }
+
+                    run.push(section);
+                });
+
+                normalizeSectionRun(run, columnCount);
+            };
+            const sectionIsVisible = section => {
+                const key = sectionKey(section);
+                if (Object.prototype.hasOwnProperty.call(visibilityState, key)) {
+                    return visibilityState[key] !== false;
+                }
+
+                return sectionDefaultVisible(section);
+            };
+            const applySectionVisibility = () => {
+                sections().forEach(section => {
+                    section.hidden = !sectionIsVisible(section);
+                });
+            };
+            const saveVisibilityState = () => {
+                try {
+                    localStorage.setItem(visibilityStorageKey, JSON.stringify(visibilityState));
+                } catch (err) {}
+            };
+            const setSectionVisible = (section, visible) => {
+                const key = sectionKey(section);
+                const wasHidden = section.hidden;
+                visibilityState[key] = visible;
+
+                if (visible && wasHidden) {
+                    applySectionSpan(section, 'full');
+                    dashboardSectionsRoot.appendChild(section);
+                }
+
+                section.hidden = !visible;
+                normalizeVisibleSectionLayout();
+                saveVisibilityState();
+                saveSectionOrder();
+                clearDropLine();
+            };
+            const renderVisibilityManager = () => {
+                if (!managerList) {
+                    return;
+                }
+
+                managerList.innerHTML = '';
+                sections().forEach(section => {
+                    const label = document.createElement('label');
+                    const input = document.createElement('input');
+                    const text = document.createElement('span');
+
+                    label.className = 'admin-dashboard-manager-item form-label';
+                    input.type = 'checkbox';
+                    input.className = 'form-checkbox';
+                    input.checked = sectionIsVisible(section);
+                    text.textContent = sectionLabel(section);
+
+                    input.addEventListener('change', () => {
+                        setSectionVisible(section, input.checked);
+                    });
+
+                    label.appendChild(input);
+                    label.appendChild(text);
+                    managerList.appendChild(label);
+                });
             };
             const clearDropLine = () => {
                 if (dropLine.parentNode) {
@@ -568,7 +703,7 @@ window.AdminShell = {
                 };
             };
             const getDropPosition = event => {
-                const availableSections = sections().filter(section => section !== draggedSection);
+                const availableSections = visibleSections().filter(section => section !== draggedSection);
                 const rows = dashboardRows(availableSections);
 
                 for (let index = 0; index < availableSections.length; index += 1) {
@@ -685,7 +820,7 @@ window.AdminShell = {
                 }
 
                 if (orientation === 'vertical' && rect) {
-                    const lineX = verticalDropLineX(dashboardRows(sections().filter(section => section !== draggedSection)), nextPosition)
+                    const lineX = verticalDropLineX(dashboardRows(visibleSections().filter(section => section !== draggedSection)), nextPosition)
                         || (nextPosition.side === 'left' ? rect.left : rect.right);
                     dropLine.style.left = `${Math.round(lineX - rootRect.left - lineBoxSize / 2)}px`;
                     dropLine.style.top = `${Math.round(rect.top - rootRect.top)}px`;
@@ -704,15 +839,46 @@ window.AdminShell = {
                     dropLine.style.height = `${lineBoxSize}px`;
                 }
             };
+            const insertSectionAtDropLine = (section, dropPosition) => {
+                const position = dropPosition || {
+                    reference: null,
+                    orientation: 'horizontal',
+                    span: 'full'
+                };
+                const targetSection = position.section || null;
+                const isSideDropOnFullSection = position.orientation === 'vertical'
+                    && targetSection
+                    && targetSection.dataset.adminDashboardSpan === 'full'
+                    && dashboardColumnCount() > 1;
+
+                if (isSideDropOnFullSection) {
+                    const reference = position.side === 'left'
+                        ? targetSection
+                        : targetSection.nextSibling;
+
+                    applySectionSpan(section, 'half', true);
+                    if (reference && reference.parentNode === dashboardSectionsRoot) {
+                        dashboardSectionsRoot.insertBefore(section, reference);
+                    } else {
+                        dashboardSectionsRoot.appendChild(section);
+                    }
+                    normalizeVisibleSectionLayout();
+                    applySectionSpan(targetSection, 'half', true);
+                    applySectionSpan(section, 'half', true);
+                    return;
+                }
+
+                applySectionSpan(section, position.span || '');
+                if (position.reference && position.reference.parentNode === dashboardSectionsRoot) {
+                    dashboardSectionsRoot.insertBefore(section, position.reference);
+                } else {
+                    dashboardSectionsRoot.appendChild(section);
+                }
+                normalizeVisibleSectionLayout();
+            };
             const finishDashboardDrag = commit => {
                 if (commit && draggedSection) {
-                    const reference = currentDropPosition ? currentDropPosition.reference : null;
-                    applySectionSpan(draggedSection, currentDropPosition ? currentDropPosition.span : '');
-                    if (reference && reference.parentNode === dashboardSectionsRoot) {
-                        dashboardSectionsRoot.insertBefore(draggedSection, reference);
-                    } else {
-                        dashboardSectionsRoot.appendChild(draggedSection);
-                    }
+                    insertSectionAtDropLine(draggedSection, currentDropPosition);
                     saveSectionOrder();
                 }
 
@@ -726,7 +892,7 @@ window.AdminShell = {
             };
 
             try {
-                const savedState = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                const savedState = JSON.parse(localStorage.getItem(orderStorageKey) || '[]');
                 const savedItems = Array.isArray(savedState)
                     ? savedState.map(key => ({ key: String(key), span: '' }))
                     : (Array.isArray(savedState.items) ? savedState.items : []);
@@ -738,11 +904,50 @@ window.AdminShell = {
                             return;
                         }
 
-                        applySectionSpan(section, item.span === 'full' ? 'full' : '');
+                        applySectionSpan(section, ['full', 'half'].includes(item.span || '') ? item.span : '', item.auto_span === true);
                         dashboardSectionsRoot.appendChild(section);
                     });
                 }
             } catch (err) {}
+
+            applySectionVisibility();
+            normalizeVisibleSectionLayout();
+            renderVisibilityManager();
+
+            if (managerToggle && managerPanel) {
+                managerToggle.addEventListener('click', () => {
+                    const nextExpanded = managerPanel.hidden;
+                    managerPanel.hidden = !nextExpanded;
+                    managerToggle.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
+                });
+            }
+
+            if (managerClose && managerPanel) {
+                managerClose.addEventListener('click', () => {
+                    managerPanel.hidden = true;
+                    if (managerToggle) {
+                        managerToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+
+            if (visibilityReset) {
+                visibilityReset.addEventListener('click', () => {
+                    visibilityState = {};
+                    try {
+                        localStorage.removeItem(visibilityStorageKey);
+                    } catch (err) {}
+                    applySectionVisibility();
+                    normalizeVisibleSectionLayout();
+                    saveSectionOrder();
+                    renderVisibilityManager();
+                });
+            }
+
+            window.addEventListener('resize', () => {
+                normalizeVisibleSectionLayout();
+                saveSectionOrder();
+            });
 
             sections().forEach(section => {
                 const handle = section.querySelector('.admin-dashboard-section-handle');

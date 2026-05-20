@@ -207,6 +207,21 @@
 .admin-dashboard-site-grid>div:last-child{border-right-width:0}
 .admin-dashboard-site-grid dt{font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-semibold);color:var(--color-default-500)}
 .admin-dashboard-site-grid dd{margin-top:.25rem;font-size:var(--text-base);line-height:var(--text-base--line-height);font-weight:var(--font-weight-semibold);color:var(--color-default-900);overflow-wrap:anywhere}
+.admin-dashboard-module-section{position:relative}
+.admin-dashboard-module-section-handle{position:absolute;top:calc(var(--spacing) * 3);right:calc(var(--spacing) * 3);z-index:5;box-shadow:var(--shadow-sm)}
+.admin-dashboard-module-default{height:100%}
+.admin-dashboard-module-default>.card-header{padding-right:calc(var(--spacing) * 12)}
+.admin-dashboard-module-stats{margin:0;padding:calc(var(--spacing) * 5);grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:calc(var(--spacing) * 3);display:grid}
+.admin-dashboard-module-stat{--admin-dashboard-stat-accent:var(--color-default-500);--admin-dashboard-stat-surface:var(--color-default-50);border:1px solid var(--color-default-300);border-left-width:3px;border-left-color:var(--admin-dashboard-stat-accent);border-radius:var(--radius);padding:calc(var(--spacing) * 3);min-width:0;background:var(--admin-dashboard-stat-surface)}
+.admin-dashboard-module-stat[data-admin-dashboard-state=success]{--admin-dashboard-stat-accent:var(--color-success);--admin-dashboard-stat-surface:color-mix(in oklab,var(--color-success) 8%,var(--color-card))}
+.admin-dashboard-module-stat[data-admin-dashboard-state=warning]{--admin-dashboard-stat-accent:var(--color-warning);--admin-dashboard-stat-surface:color-mix(in oklab,var(--color-warning) 8%,var(--color-card))}
+.admin-dashboard-module-stat[data-admin-dashboard-state=danger]{--admin-dashboard-stat-accent:var(--color-danger);--admin-dashboard-stat-surface:color-mix(in oklab,var(--color-danger) 8%,var(--color-card))}
+.admin-dashboard-module-stat[data-admin-dashboard-state=info]{--admin-dashboard-stat-accent:var(--color-info);--admin-dashboard-stat-surface:color-mix(in oklab,var(--color-info) 8%,var(--color-card))}
+.admin-dashboard-module-stat[data-admin-dashboard-emphasis=primary]{grid-column:span 2;padding:calc(var(--spacing) * 4);background:linear-gradient(180deg,color-mix(in oklab,var(--admin-dashboard-stat-accent) 14%,var(--color-card)),var(--color-card))}
+.admin-dashboard-module-stat dt{margin:0;color:var(--color-default-600);font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-semibold)}
+.admin-dashboard-module-stat dd{margin:.35rem 0 0;color:var(--color-default-950);font-size:var(--text-xl);line-height:var(--text-xl--line-height);font-weight:var(--font-weight-bold);overflow-wrap:anywhere}
+.admin-dashboard-module-stat[data-admin-dashboard-emphasis=primary] dd{font-size:var(--text-2xl);line-height:var(--text-2xl--line-height)}
+.admin-dashboard-module-stat p{margin:.35rem 0 0;color:var(--color-default-700);font-size:var(--text-sm);line-height:var(--text-sm--line-height);overflow-wrap:anywhere}
 .admin-local-nav-wrap,.admin-notice{margin-bottom:calc(var(--spacing) * 4)}
 .admin-local-nav-wrap{justify-content:space-between;align-items:center;column-gap:calc(var(--spacing) * 4);row-gap:calc(var(--spacing) * 3);flex-wrap:wrap;display:flex}
 .admin-local-nav,.admin-summary-stats{align-items:center;gap:calc(var(--spacing) * 2);flex-wrap:wrap;display:flex}
@@ -675,16 +690,75 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     white-space: pre-wrap;
 }
 
+.admin-dashboard-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: calc(var(--spacing) * 4);
+}
+
+.admin-dashboard-manager {
+    border: 1px solid var(--color-default-300);
+    margin-bottom: calc(var(--spacing) * 4);
+    padding: calc(var(--spacing) * 5);
+}
+
+.admin-dashboard-manager-header {
+    align-items: center;
+    display: flex;
+    gap: calc(var(--spacing) * 3);
+    justify-content: space-between;
+    margin-bottom: calc(var(--spacing) * 4);
+}
+
+.admin-dashboard-manager-header h2 {
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
+    margin: 0;
+}
+
+.admin-dashboard-manager-list {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.admin-dashboard-manager-item {
+    align-items: center;
+    background: var(--color-default-50);
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: flex;
+    gap: calc(var(--spacing) * 2);
+    min-width: 0;
+    padding: calc(var(--spacing) * 3);
+}
+
+.admin-dashboard-manager-item span {
+    overflow-wrap: anywhere;
+}
+
+.admin-dashboard-manager-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: calc(var(--spacing) * 4);
+}
+
 .admin-dashboard-sections {
     display: grid;
     gap: calc(var(--spacing) * 4);
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     align-items: start;
     position: relative;
 }
 
 .admin-dashboard-section {
+    grid-column: span 2;
     min-width: 0;
+}
+
+.admin-dashboard-section[data-admin-dashboard-span="half"] {
+    grid-column: span 3;
 }
 
 .admin-dashboard-section[data-admin-dashboard-span="full"] {
@@ -753,13 +827,24 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
 @media (max-width: 1279px) {
     .admin-dashboard-sections {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .admin-dashboard-section,
+    .admin-dashboard-section[data-admin-dashboard-span="half"] {
+        grid-column: span 2;
     }
 }
 
 @media (max-width: 767px) {
     .admin-dashboard-sections {
         grid-template-columns: 1fr;
+    }
+
+    .admin-dashboard-section,
+    .admin-dashboard-section[data-admin-dashboard-span="half"],
+    .admin-dashboard-section[data-admin-dashboard-span="full"] {
+        grid-column: 1 / -1;
     }
 }
 

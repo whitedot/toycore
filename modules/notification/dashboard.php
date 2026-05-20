@@ -5,6 +5,7 @@ return [
         'key' => 'notification',
         'title' => '알림',
         'order' => 40,
+        'view' => 'views/dashboard-summary.php',
         'rows' => [
             [
                 'label' => '전체 알림',
