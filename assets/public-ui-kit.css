@@ -454,9 +454,8 @@ input:focus-visible + .btn-choice-secondary { box-shadow: 0 0 0 3px color-mix(in
 }
 @media (hover:hover) {
     .btn-solid-dark:hover {
-        background-color: color-mix(in oklab, var(--color-dark) 86%, #000);
-        border-color: color-mix(in oklab, var(--color-dark) 86%, #000);
-        box-shadow: 0 2px 6px color-mix(in oklab, var(--color-dark) 26%, transparent);
+        background-color: color-mix(in oklab, var(--color-dark) 72%, #000);
+        border-color: color-mix(in oklab, var(--color-dark) 72%, #000);
     }
 }
 .ui-kit-row-odd-default:nth-child(odd) { background-color: var(--color-default-100); }
