@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'GET /pages/download' => 'actions/download.php',
+    'POST /pages/action' => 'actions/action.php',
     'GET /pages/*' => 'actions/view.php',
     'GET /admin/pages' => 'actions/admin-pages.php',
     'GET /admin/pages/new' => 'actions/admin-page-new.php',

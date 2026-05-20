@@ -945,7 +945,7 @@ return [
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `page` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `sitemap.php` | 없음 |
+| `page` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php` | 없음 |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php` | 없음 |
@@ -1105,6 +1105,8 @@ return [
 - 팝업레이어 모듈은 자신의 `output-slots.php`에서 저장된 대상 규칙, 기간, 닫기 유지 정책을 검증한 뒤 해당 slot에 출력할 HTML을 반환한다.
 
 번들 페이지 모듈은 `page.view` point와 `before_content`, `after_content` content slot을 제공한다. 배너/팝업레이어 관리 화면에서 페이지 전체 또는 특정 페이지 ID를 대상으로 출력 규칙을 저장할 수 있고, 페이지 관리자 화면에서는 공용 배너/팝업레이어를 직접 선택할 수도 있다.
+
+페이지 유료 열람, 다운로드 과금, 완료 액션은 페이지 모듈이 접근/액션 정책과 로그를 소유하고, 포인트/예치금/적립금 모듈의 잔액 조회와 원장 생성 helper만 호출한다. 결제 자산 모듈은 페이지 도메인을 알 필요가 없으며, 거래 참조는 열람 `reference_type=page.view`, 다운로드 `reference_type=page.download`, 완료 액션 `reference_type=page.action`으로 남긴다. 계정별 열람/다운로드/완료 로그는 페이지 모듈의 `privacy-export.php`에 포함한다.
 
 ## 18. 사이트 메뉴 후보
 

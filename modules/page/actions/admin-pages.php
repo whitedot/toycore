@@ -20,6 +20,7 @@ unset($_SESSION['sr_page_admin_notice']);
 $errors = [];
 $pageAdminPage = isset($pageAdminPage) ? (string) $pageAdminPage : 'list';
 $editPage = null;
+$pageFiles = [];
 $values = [];
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
@@ -27,6 +28,7 @@ $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enable
 $publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_module_enabled($pdo, 'popup_layer')
     ? sr_popup_layer_public_layers($pdo)
     : [];
+$assetModuleOptions = sr_page_asset_module_options($pdo);
 
 if ($pageAdminPage === 'form') {
     $pageId = (int) sr_get_string('id', 20);
@@ -35,6 +37,7 @@ if ($pageAdminPage === 'form') {
         if (!is_array($editPage)) {
             sr_render_error(404, '수정할 페이지를 찾을 수 없습니다.');
         }
+        $pageFiles = sr_page_files_for_page($pdo, $pageId);
     }
 } else {
     $filters = sr_page_admin_filters();

@@ -36,6 +36,9 @@ $errors = sr_page_validate_input($pdo, $values, $pageId, $publicBannerIds, $publ
 if ($pageId > 0 && !is_array(sr_page_by_id($pdo, $pageId))) {
     $errors[] = '수정할 페이지를 찾을 수 없습니다.';
 }
+if ($pageId > 0 || sr_page_file_upload_was_provided($_FILES['page_file_upload'] ?? null)) {
+    $errors = array_merge($errors, sr_page_validate_file_request($pdo, $pageId));
+}
 
 if ($errors !== []) {
     $_SESSION['sr_page_admin_errors'] = $errors;
@@ -44,6 +47,16 @@ if ($errors !== []) {
 }
 
 $savedPageId = sr_page_save($pdo, $values, (int) $account['id'], $pageId);
+try {
+    sr_page_save_files_from_request($pdo, $savedPageId, (int) $account['id']);
+} catch (Throwable $exception) {
+    if (function_exists('sr_log_exception')) {
+        sr_log_exception($exception, 'page_file_save_failed');
+    }
+
+    $_SESSION['sr_page_admin_errors'] = ['페이지는 저장했지만 파일 저장에 실패했습니다: ' . $exception->getMessage()];
+    sr_redirect('/admin/pages/edit?id=' . (string) $savedPageId);
+}
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'admin',
