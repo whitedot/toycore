@@ -120,15 +120,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label>
                         <span class="sr-only">차감 자산</span>
                         <select name="asset_module" class="form-select">
-                            <?php foreach (sr_page_asset_modules() as $assetModule => $assetOption) { ?>
-                                <?php $available = isset($assetModuleOptions[$assetModule]); ?>
+                            <?php if ($assetModuleOptions === []) { ?>
+                                <option value="">활성 자산 모듈 없음</option>
+                            <?php } ?>
+                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
                                 <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($values['asset_module'] ?? 'point') === (string) $assetModule ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $assetOption['label']); ?><?php echo $available ? '' : ' (비활성)'; ?>
+                                    <?php echo sr_e((string) $assetOption['label']); ?>
                                 </option>
                             <?php } ?>
                         </select>
                     </label>
-                    <p class="admin-form-help">포인트, 예치금, 적립금 모듈 중 활성화된 자산만 사용할 수 있습니다.</p>
+                    <p class="admin-form-help">포인트, 적립금, 예치금 모듈 중 활성화된 자산만 사용할 수 있습니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -198,10 +200,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label>
                         <span class="sr-only">대상 자산</span>
                         <select name="asset_action_module" class="form-select">
-                            <?php foreach (sr_page_asset_modules() as $assetModule => $assetOption) { ?>
-                                <?php $available = isset($assetModuleOptions[$assetModule]); ?>
+                            <?php if ($assetModuleOptions === []) { ?>
+                                <option value="">활성 자산 모듈 없음</option>
+                            <?php } ?>
+                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
                                 <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($values['asset_action_module'] ?? 'point') === (string) $assetModule ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $assetOption['label']); ?><?php echo $available ? '' : ' (비활성)'; ?>
+                                    <?php echo sr_e((string) $assetOption['label']); ?>
                                 </option>
                             <?php } ?>
                         </select>
@@ -337,10 +341,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <label>
                                             <span class="sr-only">파일 차감 자산</span>
                                             <select name="page_file_asset_module[<?php echo sr_e((string) $fileId); ?>]" class="form-select">
-                                                <?php foreach (sr_page_asset_modules() as $assetModule => $assetOption) { ?>
-                                                    <?php $available = isset($assetModuleOptions[$assetModule]); ?>
+                                                <?php if ($assetModuleOptions === []) { ?>
+                                                    <option value="">활성 자산 모듈 없음</option>
+                                                <?php } ?>
+                                                <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
                                                     <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($pageFile['asset_module'] ?? 'point') === (string) $assetModule ? ' selected' : ''; ?>>
-                                                        <?php echo sr_e((string) $assetOption['label']); ?><?php echo $available ? '' : ' (비활성)'; ?>
+                                                        <?php echo sr_e((string) $assetOption['label']); ?>
                                                     </option>
                                                 <?php } ?>
                                             </select>
@@ -406,10 +412,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label>
                         <span class="sr-only">새 파일 차감 자산</span>
                         <select name="new_page_file_asset_module" class="form-select">
-                            <?php foreach (sr_page_asset_modules() as $assetModule => $assetOption) { ?>
-                                <?php $available = isset($assetModuleOptions[$assetModule]); ?>
+                            <?php if ($assetModuleOptions === []) { ?>
+                                <option value="">활성 자산 모듈 없음</option>
+                            <?php } ?>
+                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
                                 <option value="<?php echo sr_e((string) $assetModule); ?>">
-                                    <?php echo sr_e((string) $assetOption['label']); ?><?php echo $available ? '' : ' (비활성)'; ?>
+                                    <?php echo sr_e((string) $assetOption['label']); ?>
                                 </option>
                             <?php } ?>
                         </select>

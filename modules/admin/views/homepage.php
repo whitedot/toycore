@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '홈페이지';
+$adminPageTitle = '초기화면';
 $adminPageSubtitle = '초기화면과 기본 홈페이지 문구를 관리합니다.';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -103,7 +103,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
         <a href="<?php echo sr_e(sr_url('/')); ?>" class="btn btn-soft-default" target="_blank" rel="noopener noreferrer">홈 보기</a>
-        <button type="submit" class="btn btn-solid-primary">홈페이지 설정 저장</button>
+        <button type="submit" class="btn btn-solid-primary">초기화면 설정 저장</button>
     </div>
 </form>
 

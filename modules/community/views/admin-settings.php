@@ -134,8 +134,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_choice_label_html('게시글 작성 적립 사용'); ?>
                     </label>
                     <select name="post_reward_asset_module" class="form-select">
-                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
-                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['post_reward_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php if ($assetModuleOptions === []) { ?>
+                            <option value="">활성 자산 모듈 없음</option>
+                        <?php } ?>
+                        <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['post_reward_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
                         <?php } ?>
                     </select>
                     <input type="number" name="post_reward_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['post_reward_amount']); ?>" class="form-input">
@@ -153,8 +156,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_choice_label_html('댓글 작성 적립 사용'); ?>
                     </label>
                     <select name="comment_reward_asset_module" class="form-select">
-                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
-                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['comment_reward_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php if ($assetModuleOptions === []) { ?>
+                            <option value="">활성 자산 모듈 없음</option>
+                        <?php } ?>
+                        <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['comment_reward_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
                         <?php } ?>
                     </select>
                     <input type="number" name="comment_reward_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['comment_reward_amount']); ?>" class="form-input">
@@ -172,8 +178,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_choice_label_html('글쓰기 차감 사용'); ?>
                     </label>
                     <select name="write_charge_asset_module" class="form-select">
-                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
-                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['write_charge_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php if ($assetModuleOptions === []) { ?>
+                            <option value="">활성 자산 모듈 없음</option>
+                        <?php } ?>
+                        <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['write_charge_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
                         <?php } ?>
                     </select>
                     <input type="number" name="write_charge_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['write_charge_amount']); ?>" class="form-input">
@@ -187,8 +196,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_choice_label_html('댓글 차감 사용'); ?>
                     </label>
                     <select name="comment_charge_asset_module" class="form-select">
-                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
-                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['comment_charge_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php if ($assetModuleOptions === []) { ?>
+                            <option value="">활성 자산 모듈 없음</option>
+                        <?php } ?>
+                        <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['comment_charge_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
                         <?php } ?>
                     </select>
                     <input type="number" name="comment_charge_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['comment_charge_amount']); ?>" class="form-input">
@@ -202,8 +214,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_choice_label_html('게시글 유료 열람 사용'); ?>
                     </label>
                     <select name="paid_read_asset_module" class="form-select">
-                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
-                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['paid_read_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php if ($assetModuleOptions === []) { ?>
+                            <option value="">활성 자산 모듈 없음</option>
+                        <?php } ?>
+                        <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['paid_read_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
                         <?php } ?>
                     </select>
                     <input type="number" name="paid_read_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['paid_read_amount']); ?>" class="form-input">
@@ -221,8 +236,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_choice_label_html('첨부 다운로드 차감 사용'); ?>
                     </label>
                     <select name="paid_attachment_download_asset_module" class="form-select">
-                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
-                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['paid_attachment_download_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php if ($assetModuleOptions === []) { ?>
+                            <option value="">활성 자산 모듈 없음</option>
+                        <?php } ?>
+                        <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['paid_attachment_download_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
                         <?php } ?>
                     </select>
                     <input type="number" name="paid_attachment_download_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['paid_attachment_download_amount']); ?>" class="form-input">

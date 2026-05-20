@@ -195,7 +195,7 @@ function sr_admin_event_type_label(string $eventType): string
         'module.version.synced' => '모듈 설치 버전 동기화',
         'site.setting.saved' => '사이트 설정 저장',
         'site.setting.deleted' => '사이트 설정 삭제',
-        'site.homepage.updated' => '홈페이지 설정 변경',
+        'site.homepage.updated' => '초기화면 설정 변경',
         'admin.settings.updated' => '관리자 설정 변경',
         'admin.menu.updated' => '관리자 메뉴 표시 설정 변경',
         'admin.role.changed' => '관리자 역할 변경',

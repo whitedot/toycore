@@ -146,14 +146,14 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
         ],
         [
             'module_key' => 'site_home',
-            'label' => '홈페이지',
+            'label' => '초기화면',
             'admin_category' => 'site',
             'admin_category_label' => '사이트',
             'admin_category_order' => 20,
             'admin_icon' => ['type' => 'symbol', 'name' => 'home'],
             'order' => 0,
             'items' => [
-                ['label' => '홈페이지', 'path' => '/admin/homepage', 'order' => 10],
+                ['label' => '초기화면', 'path' => '/admin/homepage', 'order' => 10],
             ],
         ],
     ];

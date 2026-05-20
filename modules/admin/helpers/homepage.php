@@ -151,7 +151,7 @@ function sr_admin_handle_homepage_post(PDO $pdo, array $account, ?array $site): 
 
         $site = sr_load_site($pdo);
         $values = sr_admin_homepage_settings($pdo, is_array($site) ? $site : null);
-        $notice = '홈페이지 설정을 저장했습니다.';
+        $notice = '초기화면 설정을 저장했습니다.';
 
         sr_audit_log($pdo, [
             'actor_account_id' => (int) ($account['id'] ?? 0),

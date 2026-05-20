@@ -624,9 +624,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_admin_choice_label_html($assetLabel . ' 사용'); ?>
                             </label>
                             <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
-                                <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
+                                <?php if ($assetModuleOptions === []) { ?>
+                                    <option value="">활성 자산 모듈 없음</option>
+                                <?php } ?>
+                                <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
                                     <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
-                                        <?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?>
+                                        <?php echo sr_e((string) $assetOption['label']); ?>
                                     </option>
                                 <?php } ?>
                             </select>

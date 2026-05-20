@@ -15,16 +15,6 @@ function sr_community_asset_modules(): array
             'credit_type' => 'grant',
             'refund_type' => 'refund',
         ],
-        'deposit' => [
-            'label' => '예치금',
-            'module_key' => 'deposit',
-            'helper' => SR_ROOT . '/modules/deposit/helpers.php',
-            'balance_function' => 'sr_deposit_balance',
-            'transaction_function' => 'sr_deposit_create_transaction',
-            'use_type' => 'use',
-            'credit_type' => 'deposit',
-            'refund_type' => 'refund',
-        ],
         'reward' => [
             'label' => '적립금',
             'module_key' => 'reward',
@@ -33,6 +23,16 @@ function sr_community_asset_modules(): array
             'transaction_function' => 'sr_reward_create_transaction',
             'use_type' => 'use',
             'credit_type' => 'grant',
+            'refund_type' => 'refund',
+        ],
+        'deposit' => [
+            'label' => '예치금',
+            'module_key' => 'deposit',
+            'helper' => SR_ROOT . '/modules/deposit/helpers.php',
+            'balance_function' => 'sr_deposit_balance',
+            'transaction_function' => 'sr_deposit_create_transaction',
+            'use_type' => 'use',
+            'credit_type' => 'deposit',
             'refund_type' => 'refund',
         ],
     ];
